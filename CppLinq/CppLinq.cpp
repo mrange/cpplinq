@@ -119,6 +119,32 @@ namespace
             TEST_ASSERT(sum_of_ints, sum_result);
         }
     }
+
+    void test_min ()
+    {
+        {
+            auto min_result = from(empty) >> min();
+            TEST_ASSERT(INT_MAX, min_result);
+        }
+
+        {
+            auto min_result = from_array(ints) >> min();
+            TEST_ASSERT(1, min_result);
+        }
+    }
+
+    void test_max ()
+    {
+        {
+            auto max_result = from(empty) >> max();
+            TEST_ASSERT(INT_MIN, max_result);
+        }
+
+        {
+            auto max_result = from_array(ints) >> max();
+            TEST_ASSERT(9, max_result);
+        }
+    }
 } 
 
 int main()
@@ -128,6 +154,7 @@ int main()
     test_count      ();
     test_first      ();
     test_sum        ();
+    test_min        ();
     // -------------------------------------------------------------------------
     if (errors == 0)
     {
