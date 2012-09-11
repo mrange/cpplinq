@@ -8,5 +8,7 @@
 *.opensdf
 *.suo
 Output/
-
+CppLinq/Intermediate/
+ipch/
+_Resharper.CppLinq/
 

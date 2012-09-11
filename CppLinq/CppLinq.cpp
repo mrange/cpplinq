@@ -16,114 +16,130 @@
 #undef min
 #undef max
 // ----------------------------------------------------------------------------------------------
+#include <algorithm>
+#include <numeric>
+// ----------------------------------------------------------------------------------------------
 #include <limits.h>
 #include <stdio.h>
 #include "../clinq/clinq.hpp"
 // ----------------------------------------------------------------------------------------------
+#define TEST_ASSERT(expected, found)    test_assert(__FILE__, __LINE__, expected, #expected, found, #found, expected == found)
+// ---------------------------------------------------------------------------------------------- 
 using namespace clinq;
 // ---------------------------------------------------------------------------------------------- 
 namespace
 {
-    bool is_prime (int i)
+
+    std::size_t         errors          = 0;
+    
+    std::vector<int>    empty           ;
+
+    int                 ints[]          = {3,1,4,1,5,9,2,6,5,3,5,8,9,7,9,3,2,3,8,4,6,2,6,4,3,3,8,3,2,7,9,5};
+    std::size_t         count_of_ints   = sizeof(ints)/sizeof(ints[0]); 
+
+    bool test_assert(
+            char const *    file
+        ,   int             line_no
+        ,   int             expected
+        ,   char const *    expected_name
+        ,   int             found
+        ,   char const *    found_name
+        ,   bool            result
+        )
     {
-        if (i < 2)
+        if (!result)
         {
-            return false;
+            ++errors;
+            printf(
+                    "%s(%d): ERROR_EXPECTED: %d(%s), FOUND: %d(%s)\r\n"
+                ,   file
+                ,   line_no
+                ,   expected
+                ,   expected_name
+                ,   found
+                ,   found_name
+                );
         }
-        else if (i == 2)
-        {
-            return true;
-        }
-        else
-        {
-            auto r = (int)std::ceil(std::sqrt(i));
 
-            for (auto iter = 2; iter <= r; ++iter)
+        return result;
+    }
+
+    void test_from_array ()
+    {
+        auto q = from_array(ints);
+
+        auto index = 0;
+
+        while (q.next())
+        {
+            if (!TEST_ASSERT(ints[index], q.front()))
             {
-                if (i % iter == 0)
-                {
-                    return false;
-                }
+                printf("    @index:%d\r\n", index);
             }
-
-            return true;
+            ++index;
         }
     }
 
-    std::vector<int> some_primes(size_t how_many)
+    void test_count ()
     {
-        auto xs = 
-                range (0, INT_MAX)
-            >>  where (is_prime)
-            >>  take  (how_many)
-            >>  to_vector ()
-            ;
+        {
+            auto count_result = from(empty) >> count();
+            TEST_ASSERT(0, count_result);
+        }
 
-        return xs;
+        {
+            auto count_result = from_array(ints) >> count();
+            TEST_ASSERT(count_of_ints, count_result);
+        }
+    }
+
+    void test_first ()
+    {
+        {
+            auto first_result = from(empty) >> first();
+            TEST_ASSERT(0, first_result);
+        }
+
+        {
+            auto first_result = from_array(ints) >> first();
+            TEST_ASSERT(3, first_result);
+        }
+    }
+
+    void test_sum ()
+    {
+        {
+            auto sum_result = from(empty) >> sum();
+            TEST_ASSERT(0, sum_result);
+        }
+
+        {
+            auto sum_of_ints = std::accumulate(ints, ints + count_of_ints, 0);
+            auto sum_result = from_array(ints) >> sum();
+            TEST_ASSERT(sum_of_ints, sum_result);
+        }
     }
 } 
+
 int main()
 {
-    printf("Hi\r\n");
-
-    int ints[]  = {3,1,4,1,5,9,2,6,5,3,5,8,9,7,9,3,2,3,8,4,6,2,6,4,3,3,8,3,2,7,9,5};
-    int count   = sizeof(ints)/sizeof(ints[0]); 
-
-    std::vector<int> container (ints, ints + count);
-
-    auto q = 
-//            range (0, 100)
-//            from_iterators (ints, ints + count)
-//            from (container)
-            from_array (ints)
-        >>  skip(2U)
-        >>  take(8U)
-        >>  where([](int i){return i%2 == 0;})
-        >>  select([](int i) -> short {return (short)i + 1;})
-        >>  orderby([](short s){return s;})
-        >>  thenby([](short s){return s;})
-        ;
-    
-    auto v  = q >> to_vector();
-    auto d  = q >> to_map([](short s) {return s;});
-    auto s = q >> sum();
-    auto m = q >> max();
-    auto m2 = q >> min();
-    auto c = q >> clinq::count(); 
-    auto f = q >> first();
-    auto cont = q >> clinq::container ();
-
-    std::for_each(
-            cont.begin()
-        ,   cont.end()
-        ,   [](short s) {printf("I1: %d\r\n",s);}
-        );
-
-    q >> for_each([](short s) {printf("I0: %d\r\n",s);});
-
-    for (auto i : v)
+    // -------------------------------------------------------------------------
+    test_from_array ();
+    test_count      ();
+    test_first      ();
+    test_sum        ();
+    // -------------------------------------------------------------------------
+    if (errors == 0)
     {
-        printf("I2: %d\r\n",i);
+        printf ("PASS\r\n");
     }
-
-    for (auto i : d)
+    else
     {
-        printf("I3: %d,%d\r\n",i.first, i.second);
+        printf ("FAIL\r\n");
     }
-
-    printf("Sum: %d\r\n", s);
-    printf("Max: %d\r\n", m);
-    printf("Min: %d\r\n", m2);
-    printf("Count: %d\r\n", c);
-    printf("First: %d\r\n", f);
-
-    auto primes = some_primes(10U);
-    for (auto prime : primes)
-    {
-        printf("Prime: %d\r\n", prime);
-    }
-
-
-   return 0;
+    // -------------------------------------------------------------------------
+    return errors > 0 ? 101 : 0;
+    // -------------------------------------------------------------------------
 }
+// ---------------------------------------------------------------------------- -
 
