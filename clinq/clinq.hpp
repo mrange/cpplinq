@@ -1435,9 +1435,14 @@ namespace clinq
         ) throw ()
     {
         typedef detail::get_array_properties<TValueArray>   array_properties;
+        typedef typename array_properties::iterator_type iterator_type; 
+
+        iterator_type begin = a;
+        iterator_type end   = begin + array_properties::size; 
+
         return detail::from_range<typename array_properties::iterator_type> (
-                a
-            ,   a   +   array_properties::size
+                std::move (begin)
+            ,   std::move (end)
             );
     }
 
