@@ -54,7 +54,9 @@ namespace clinq
         template<typename TValue>
         struct cleanup_type
         {
-            typedef typename std::remove_reference<TValue>::type   type;
+            typedef typename std::remove_const<
+                typename std::remove_reference<TValue>::type
+                >::type                                         type;
         };
 
         template<typename TRangeBuilder, typename TRange>
@@ -1182,15 +1184,19 @@ namespace clinq
                 ,   typename TRange::value_type
                 > build (TRange range)
             {
-                std::map<
+                typedef std::map<
                     typename get_transformed_type<key_predicate_type, typename TRange::value_type>::type
                 ,   typename TRange::value_type
-                >   result;
+                >   result_type;
+
+                result_type result;
 
                 while (range.next ())
                 {
                     auto v = range.front ();
-                    result[key_predicate (v)] = v;
+                    auto k = key_predicate (v);
+                    
+                    result.insert(result_type::value_type(std::move(k), std::move(v)));
                 }
 
                 return std::move (result);

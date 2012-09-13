@@ -17,8 +17,10 @@
 #undef max
 // ----------------------------------------------------------------------------------------------
 #include <algorithm>
+#include <map>
 #include <numeric>
 #include <string>
+#include <vector>
 // ----------------------------------------------------------------------------------------------
 #include <limits.h>
 #include <stdio.h>
@@ -27,19 +29,33 @@
 #define TEST_PRELUDE()                  test_prelude(__FILE__, __LINE__, __FUNCTION__)
 #define TEST_ASSERT(expected, found)    test_assert(__FILE__, __LINE__, expected, #expected, found, #found, expected == found)
 // ---------------------------------------------------------------------------------------------- 
-using namespace clinq;
-// ---------------------------------------------------------------------------------------------- 
 namespace
 {
 
     struct  customer
     {
+        std::size_t     id          ;
         std::string     first_name  ;
         std::string     last_name   ;
 
-        customer (std::string first_name, std::string last_name)
-            :   first_name  (std::move (first_name))
+        customer (std::size_t id, std::string first_name, std::string last_name)
+            :   id          (std::move(id))
+            ,   first_name  (std::move (first_name))
             ,   last_name   (std::move (last_name))
+        {
+        }
+
+        customer (customer const & c)
+            :   id          (c.id)
+            ,   first_name  (c.first_name)
+            ,   last_name   (c.last_name)
+        {
+        }
+
+        customer (customer && c)
+            :   id          (std::move(c.id))
+            ,   first_name  (std::move (c.first_name))
+            ,   last_name   (std::move (c.last_name))
         {
         }
     };
@@ -56,10 +72,10 @@ namespace
 
     customer            customers[]         = 
         {
-            customer ("Bill"    , "Gates"   ),
-            customer ("Steve"   , "Jobs"    ),
-            customer ("Richard" , "Stallman"),
-            customer ("Linus"   , "Thorvals"),
+            customer (1 , "Bill"    , "Gates"   ),
+            customer (2 , "Steve"   , "Jobs"    ),
+            customer (3 , "Richard" , "Stallman"),
+            customer (4 , "Linus"   , "Thorvals"),
         };
     int                 count_of_customers  = get_array_size(customers); 
 
@@ -100,6 +116,33 @@ namespace
                 ,   expected    ? "true" : "false"
                 ,   expected_name
                 ,   found       ? "true" : "false"
+                ,   found_name
+                );
+        }
+
+        return result;
+    }
+
+    bool test_assert(
+            char const *    file
+        ,   int             line_no
+        ,   std::string     expected
+        ,   char const *    expected_name
+        ,   std::string     found
+        ,   char const *    found_name
+        ,   bool            result
+        )
+    {
+        if (!result)
+        {
+            ++errors;
+            printf(
+                    "%s(%d): ERROR_EXPECTED: %s(%s), FOUND: %s(%s)\r\n"
+                ,   file
+                ,   line_no
+                ,   expected.c_str()
+                ,   expected_name
+                ,   found.c_str()
                 ,   found_name
                 );
         }
@@ -151,6 +194,8 @@ namespace
 
     void test_from ()
     {
+        using namespace clinq;
+
         TEST_PRELUDE();
 
         {
@@ -180,6 +225,8 @@ namespace
 
     void test_count ()
     {
+        using namespace clinq;
+
         TEST_PRELUDE();
 
         {
@@ -195,81 +242,153 @@ namespace
 
     void test_first ()
     {
+        using namespace clinq;
+
         TEST_PRELUDE();
 
         {
-            auto first_result = from(empty) >> first();
+            int first_result = from(empty) >> first();
             TEST_ASSERT(0, first_result);
         }
 
         {
-            auto first_result = from_array(ints) >> first();
+            int first_result = from_array(ints) >> first();
             TEST_ASSERT(3, first_result);
         }
     }
 
     void test_sum ()
     {
+        using namespace clinq;
+
         TEST_PRELUDE();
 
         {
-            auto sum_result = from(empty) >> sum();
+            int sum_result = from(empty) >> sum();
             TEST_ASSERT(0, sum_result);
         }
 
         {
-            auto sum_of_ints = std::accumulate(ints, ints + count_of_ints, 0);
-            auto sum_result = from_array(ints) >> sum();
+            int sum_of_ints = std::accumulate(ints, ints + count_of_ints, 0);
+            int sum_result = from_array(ints) >> sum();
             TEST_ASSERT(sum_of_ints, sum_result);
         }
     }
 
     void test_min ()
     {
+        using namespace clinq;
+
         TEST_PRELUDE();
 
         {
-            auto min_result = from(empty) >> min();
+            int min_result = from(empty) >> min();
             TEST_ASSERT(INT_MAX, min_result);
         }
 
         {
-            auto min_result = from_array(ints) >> min();
+            int min_result = from_array(ints) >> min();
             TEST_ASSERT(1, min_result);
         }
     }
 
     void test_max ()
     {
+        using namespace clinq;
+
         TEST_PRELUDE();
 
         {
-            auto max_result = from(empty) >> max();
+            int max_result = from(empty) >> max();
             TEST_ASSERT(INT_MIN, max_result);
         }
 
         {
-            auto max_result = from_array(ints) >> max();
+            int max_result = from_array(ints) >> max();
             TEST_ASSERT(9, max_result);
         }
     }
 
     void test_for_each ()
     {
+        using namespace clinq;
+
         TEST_PRELUDE();
 
         {
-            auto index = 0;
+            int index = 0;
             from(empty) >> for_each([&](int i){test_int_at(index, i); ++index;});
             TEST_ASSERT(0, index);
         }
 
         {
-            auto index = 0;
+            int index = 0;
             from_array(ints) >> for_each([&](int i){test_int_at(index, i); ++index;});
             TEST_ASSERT(count_of_ints, index);
+
         }
     }
+
+    void test_to_vector ()
+    {
+        using namespace clinq;
+
+        TEST_PRELUDE();
+
+        {
+            std::vector<int> to_vector_result = from (empty) >> to_vector();
+            TEST_ASSERT(0, to_vector_result.size());
+        }
+
+        {
+            std::vector<int> to_vector_result = from_array(ints) >> to_vector();
+            TEST_ASSERT(count_of_ints, (int)to_vector_result.size());
+            for(auto index = 0U; index < to_vector_result.size(); ++index)
+            {
+                test_int_at (index, to_vector_result[index]);
+            }
+        }
+    }
+
+    void test_to_map ()
+    {
+        using namespace clinq;
+
+        TEST_PRELUDE();
+
+        {
+            std::map<int,int> to_map_result = from (empty) >> to_map([](int i){return i;});
+            TEST_ASSERT(0, to_map_result.size());
+        }
+
+        {
+            auto to_map_result = from_array (customers) >> to_map([](customer const & c){return c.id;});
+            TEST_ASSERT(count_of_customers, (int)to_map_result.size());
+
+            for(auto index = 0; index < count_of_customers; ++index)
+            {
+                auto c1 = customers[index];
+                auto find_c2 = to_map_result.find(c1.id);
+                if (TEST_ASSERT(true, (find_c2 != to_map_result.end())))
+                {
+                    auto c2 = find_c2->second;
+
+                    if (
+                            TEST_ASSERT((int)c1.id, (int)c2.id)
+                        &&  TEST_ASSERT(c1.first_name, c2.first_name)
+                        &&  TEST_ASSERT(c1.last_name, c2.last_name)
+                        )
+                    {
+                    }
+                    else
+                    {
+                        printf("    @index:%d\r\n", index);
+                    }
+                }
+            }
+        }
+    }
+
 } 
 
 int main()
@@ -281,6 +400,8 @@ int main()
     test_sum        ();
     test_min        ();
     test_for_each   ();
+    test_to_vector  ();
+    test_to_map     ();
     // -------------------------------------------------------------------------
     if (errors == 0)
     {
