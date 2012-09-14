@@ -24,7 +24,7 @@
 // ----------------------------------------------------------------------------------------------
 #include <limits.h>
 #include <stdio.h>
-#include "../clinq/clinq.hpp"
+#include "../clinq/cpplinq.hpp"
 // ----------------------------------------------------------------------------------------------
 #define TEST_PRELUDE()                  test_prelude(__FILE__, __LINE__, __FUNCTION__)
 #define TEST_ASSERT(expected, found)    test_assert(__FILE__, __LINE__, expected, #expected, found, #found, expected == found)
@@ -63,7 +63,21 @@ namespace
     template<typename TValueArray>
     int get_array_size (TValueArray & a)
     {
-        return clinq::detail::get_array_properties<TValueArray>::size;
+        return cpplinq::detail::get_array_properties<TValueArray>::size;
+    }
+
+    int get_even_counts(int* is, int count)
+    {
+        auto c = 0;
+        for (auto index = 0; index < count; ++index)
+        {
+            auto i = is[index];
+            if (i%2 == 0)
+            {
+                ++c;
+            }
+        }
+        return c;
     }
 
     std::size_t         errors              = 0;
@@ -81,6 +95,8 @@ namespace
 
     int                 ints[]              = {3,1,4,1,5,9,2,6,5,3,5,8,9,7,9,3,2,3,8,4,6,2,6,4,3,3,8,3,2,7,9,5};
     int                 count_of_ints       = get_array_size(ints); 
+
+    int                 even_count_of_ints  = get_even_counts (ints, count_of_ints);
 
     void test_prelude (
             char const *    file
@@ -194,7 +210,7 @@ namespace
 
     void test_from ()
     {
-        using namespace clinq;
+        using namespace cpplinq;
 
         TEST_PRELUDE();
 
@@ -225,7 +241,7 @@ namespace
 
     void test_count ()
     {
-        using namespace clinq;
+        using namespace cpplinq;
 
         TEST_PRELUDE();
 
@@ -242,7 +258,7 @@ namespace
 
     void test_first ()
     {
-        using namespace clinq;
+        using namespace cpplinq;
 
         TEST_PRELUDE();
 
@@ -259,7 +275,7 @@ namespace
 
     void test_sum ()
     {
-        using namespace clinq;
+        using namespace cpplinq;
 
         TEST_PRELUDE();
 
@@ -277,7 +293,7 @@ namespace
 
     void test_min ()
     {
-        using namespace clinq;
+        using namespace cpplinq;
 
         TEST_PRELUDE();
 
@@ -294,7 +310,7 @@ namespace
 
     void test_max ()
     {
-        using namespace clinq;
+        using namespace cpplinq;
 
         TEST_PRELUDE();
 
@@ -311,7 +327,7 @@ namespace
 
     void test_for_each ()
     {
-        using namespace clinq;
+        using namespace cpplinq;
 
         TEST_PRELUDE();
 
@@ -331,7 +347,7 @@ namespace
 
     void test_to_vector ()
     {
-        using namespace clinq;
+        using namespace cpplinq;
 
         TEST_PRELUDE();
 
@@ -352,7 +368,7 @@ namespace
 
     void test_to_map ()
     {
-        using namespace clinq;
+        using namespace cpplinq;
 
         TEST_PRELUDE();
 
@@ -389,6 +405,111 @@ namespace
         }
     }
 
+    void test_container ()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE();
+
+        // TODO:
+    }
+
+    void test_where ()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE();
+
+        {
+            auto c = from(empty) >> where ([](int i) {return i%2==0;}) >> count ();
+            TEST_ASSERT(0, c);
+        }
+        {
+            auto c = from_array(ints) >> where ([](int i) {return i%2==0;}) >> count ();
+            TEST_ASSERT(even_count_of_ints, (int)c);
+        }
+    }
+
+    void test_select ()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE();
+
+        // TODO:
+    }
+
+    void test_orderby ()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE();
+
+        // TODO:
+    }
+
+    void test_skip ()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE();
+
+        {
+            auto q = from(empty) >> skip (5);
+            auto index = 0;
+
+            while (q.next())
+            {
+                test_int_at (index, q.front());
+                ++index;
+            }
+            TEST_ASSERT(0, index);
+        }
+        {
+            auto q = from_array(ints) >> skip (5);
+
+            auto index = 5;
+
+            while (q.next())
+            {
+                test_int_at (index, q.front());
+                ++index;
+            }
+            TEST_ASSERT(count_of_ints, index);
+        }
+    }
+
+    void test_take ()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE();
+
+        {
+            auto q = from(empty) >> take (5);
+            auto index = 0;
+
+            while (q.next())
+            {
+                test_int_at (index, q.front());
+                ++index;
+            }
+            TEST_ASSERT(0, index);
+        }
+        {
+            auto q = from_array(ints) >> take (5);
+
+            auto index = 0;
+
+            while (q.next())
+            {
+                test_int_at (index, q.front());
+                ++index;
+            }
+            TEST_ASSERT(5, index);
+        }
+    }
+
 } 
 
 int main()
@@ -402,6 +523,9 @@ int main()
     test_for_each   ();
     test_to_vector  ();
     test_to_map     ();
+    test_where      ();
+    test_take       ();
+    test_skip       ();
     // -------------------------------------------------------------------------
     if (errors == 0)
     {

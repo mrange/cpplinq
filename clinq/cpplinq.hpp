@@ -25,11 +25,11 @@
 #endif
 // ----------------------------------------------------------------------------
 
-#define CLINQ_METHOD 
-#define CLINQ_INLINEMETHOD inline
+#define CPPLINQ_METHOD 
+#define CPPLINQ_INLINEMETHOD inline
 
 // ----------------------------------------------------------------------------
-namespace clinq
+namespace cpplinq
 {               
 
     // -------------------------------------------------------------------------
@@ -132,7 +132,7 @@ namespace clinq
             iterator_type           current ;
 
 
-            CLINQ_INLINEMETHOD from_range (
+            CPPLINQ_INLINEMETHOD from_range (
                     iterator_type begin
                 ,   iterator_type end
                 ) throw ()
@@ -142,7 +142,7 @@ namespace clinq
             {
             }
 
-            CLINQ_INLINEMETHOD from_range (from_range const & v) throw ()
+            CPPLINQ_INLINEMETHOD from_range (from_range const & v) throw ()
                 :   begin   (v.begin)
                 ,   end     (v.end)
                 ,   start   (v.start)
@@ -150,7 +150,7 @@ namespace clinq
             {
             }
         
-            CLINQ_INLINEMETHOD from_range (from_range && v) throw ()
+            CPPLINQ_INLINEMETHOD from_range (from_range && v) throw ()
                 :   begin   (std::move (v.begin))
                 ,   end     (std::move (v.end))
                 ,   start   (std::move (v.start))
@@ -159,12 +159,12 @@ namespace clinq
             }
         
             template<typename TRangeBuilder>
-            CLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
             {
                 return range_builder.build (*this);
             }
 
-            CLINQ_INLINEMETHOD value_type front () const 
+            CPPLINQ_INLINEMETHOD value_type front () const 
             {
                 assert (!start);
                 assert (current != end);
@@ -172,7 +172,7 @@ namespace clinq
                 return *current;
             }
 
-            CLINQ_INLINEMETHOD bool next () throw ()
+            CPPLINQ_INLINEMETHOD bool next () throw ()
             {
                 if (start)
                 {
@@ -209,7 +209,7 @@ namespace clinq
                 return begin < end ? end : begin;
             }
 
-            CLINQ_INLINEMETHOD int_range (
+            CPPLINQ_INLINEMETHOD int_range (
                     int begin
                 ,   int end
                 ) throw ()
@@ -219,14 +219,14 @@ namespace clinq
             {
             }
 
-            CLINQ_INLINEMETHOD int_range (int_range const & v) throw ()
+            CPPLINQ_INLINEMETHOD int_range (int_range const & v) throw ()
                 :   start   (v.start)
                 ,   current (v.current)
                 ,   end     (v.end)
             {
             }
         
-            CLINQ_INLINEMETHOD int_range (int_range && v) throw ()
+            CPPLINQ_INLINEMETHOD int_range (int_range && v) throw ()
                 :   start   (std::move (v.start))
                 ,   current (std::move (v.current))
                 ,   end     (std::move (v.end))
@@ -234,17 +234,17 @@ namespace clinq
             }
         
             template<typename TRangeBuilder>
-            CLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
             {
                 return range_builder.build (*this);
             }
 
-            CLINQ_INLINEMETHOD int front () const 
+            CPPLINQ_INLINEMETHOD int front () const 
             {
                 return current;
             }
 
-            CLINQ_INLINEMETHOD bool next () throw ()
+            CPPLINQ_INLINEMETHOD bool next () throw ()
             {
                 if (start)
                 {
@@ -281,7 +281,7 @@ namespace clinq
             size_type               current         ;
             std::vector<value_type> sorted_values   ;    
 
-            CLINQ_INLINEMETHOD orderby_range (
+            CPPLINQ_INLINEMETHOD orderby_range (
                     range_type      range
                 ,   predicate_type  predicate
                 ,   bool            sort_ascending
@@ -297,7 +297,7 @@ namespace clinq
                     );
             }
 
-            CLINQ_INLINEMETHOD orderby_range (orderby_range const & v)
+            CPPLINQ_INLINEMETHOD orderby_range (orderby_range const & v)
                 :   range           (v.range)
                 ,   predicate       (v.predicate)
                 ,   sort_ascending  (v.sort_ascending)
@@ -306,7 +306,7 @@ namespace clinq
             {
             }
 
-            CLINQ_INLINEMETHOD orderby_range (orderby_range && v) throw ()
+            CPPLINQ_INLINEMETHOD orderby_range (orderby_range && v) throw ()
                 :   range           (std::move (v.range))
                 ,   predicate       (std::move (v.predicate))
                 ,   sort_ascending  (std::move (v.sort_ascending))
@@ -315,17 +315,17 @@ namespace clinq
             {
             }
 
-            CLINQ_INLINEMETHOD value_type forwarding_front () const 
+            CPPLINQ_INLINEMETHOD value_type forwarding_front () const 
             {
                 return range.front ();
             }
 
-            CLINQ_INLINEMETHOD bool forwarding_next ()
+            CPPLINQ_INLINEMETHOD bool forwarding_next ()
             {
                 return range.next ();
             }
 
-            CLINQ_INLINEMETHOD bool compare_values (value_type const & l, value_type const & r) const
+            CPPLINQ_INLINEMETHOD bool compare_values (value_type const & l, value_type const & r) const
             {
                 if (sort_ascending)
                 {
@@ -338,17 +338,17 @@ namespace clinq
             }
 
             template<typename TRangeBuilder>
-            CLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) throw ()   
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) throw ()   
             {
                 return range_builder.build (*this);
             }
 
-            CLINQ_INLINEMETHOD value_type front () const 
+            CPPLINQ_INLINEMETHOD value_type front () const 
             {
                 return sorted_values[current];
             }
 
-            CLINQ_METHOD bool next ()
+            CPPLINQ_METHOD bool next ()
             {
                 if (current == invalid_size)
                 {
@@ -395,26 +395,26 @@ namespace clinq
             predicate_type  const   predicate       ;
             bool            const   sort_ascending  ;
 
-            CLINQ_INLINEMETHOD explicit orderby_builder (predicate_type predicate, bool sort_ascending) throw ()
+            CPPLINQ_INLINEMETHOD explicit orderby_builder (predicate_type predicate, bool sort_ascending) throw ()
                 :   predicate       (std::move (predicate))
                 ,   sort_ascending  (sort_ascending)
             {
             }
 
-            CLINQ_INLINEMETHOD orderby_builder (orderby_builder const & v)
+            CPPLINQ_INLINEMETHOD orderby_builder (orderby_builder const & v)
                 :   predicate       (v.predicate)
                 ,   sort_ascending  (sort_ascending)
             {
             }
 
-            CLINQ_INLINEMETHOD orderby_builder (orderby_builder && v) throw ()
+            CPPLINQ_INLINEMETHOD orderby_builder (orderby_builder && v) throw ()
                 :   predicate       (std::move (v.predicate))
                 ,   sort_ascending  (std::move (sort_ascending))
             {
             }
 
             template<typename TRange>
-            CLINQ_INLINEMETHOD orderby_range<TRange, TPredicate> build (TRange range) const throw ()
+            CPPLINQ_INLINEMETHOD orderby_range<TRange, TPredicate> build (TRange range) const throw ()
             {
                 return orderby_range<TRange, TPredicate>(range, predicate, sort_ascending);
             }
@@ -439,7 +439,7 @@ namespace clinq
             size_type               current         ;
             std::vector<value_type> sorted_values   ;    
 
-            CLINQ_INLINEMETHOD thenby_range (
+            CPPLINQ_INLINEMETHOD thenby_range (
                     range_type      range
                 ,   predicate_type  predicate
                 ,   bool            sort_ascending
@@ -455,7 +455,7 @@ namespace clinq
                     );
             }
 
-            CLINQ_INLINEMETHOD thenby_range (thenby_range const & v)
+            CPPLINQ_INLINEMETHOD thenby_range (thenby_range const & v)
                 :   range           (v.range)
                 ,   predicate       (v.predicate)
                 ,   sort_ascending  (v.sort_ascending)
@@ -464,7 +464,7 @@ namespace clinq
             {
             }
 
-            CLINQ_INLINEMETHOD thenby_range (thenby_range && v) throw ()
+            CPPLINQ_INLINEMETHOD thenby_range (thenby_range && v) throw ()
                 :   range           (std::move (v.range))
                 ,   predicate       (std::move (v.predicate))
                 ,   sort_ascending  (std::move (v.sort_ascending))
@@ -474,22 +474,22 @@ namespace clinq
             }
 
             template<typename TRangeBuilder>
-            CLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) throw ()   
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) throw ()   
             {
                 return range_builder.build (*this);
             }
 
-            CLINQ_INLINEMETHOD value_type forwarding_front () const 
+            CPPLINQ_INLINEMETHOD value_type forwarding_front () const 
             {
                 return range.front ();
             }
 
-            CLINQ_INLINEMETHOD bool forwarding_next ()
+            CPPLINQ_INLINEMETHOD bool forwarding_next ()
             {
                 return range.next ();
             }
 
-            CLINQ_INLINEMETHOD bool compare_values (value_type const & l, value_type const & r) const
+            CPPLINQ_INLINEMETHOD bool compare_values (value_type const & l, value_type const & r) const
             {
                 auto pless = range.compare_values (l,r);
                 if (pless)
@@ -513,12 +513,12 @@ namespace clinq
                 }
             }
 
-            CLINQ_INLINEMETHOD value_type front () const 
+            CPPLINQ_INLINEMETHOD value_type front () const 
             {
                 return sorted_values[current];
             }
 
-            CLINQ_METHOD bool next ()
+            CPPLINQ_METHOD bool next ()
             {
                 if (current == invalid_size)
                 {
@@ -565,26 +565,26 @@ namespace clinq
             predicate_type  const   predicate       ;
             bool            const   sort_ascending  ;
 
-            CLINQ_INLINEMETHOD explicit thenby_builder (predicate_type predicate, bool sort_ascending) throw ()
+            CPPLINQ_INLINEMETHOD explicit thenby_builder (predicate_type predicate, bool sort_ascending) throw ()
                 :   predicate       (std::move (predicate))
                 ,   sort_ascending  (sort_ascending)
             {
             }
 
-            CLINQ_INLINEMETHOD thenby_builder (thenby_builder const & v)
+            CPPLINQ_INLINEMETHOD thenby_builder (thenby_builder const & v)
                 :   predicate       (v.predicate)
                 ,   sort_ascending  (sort_ascending)
             {
             }
 
-            CLINQ_INLINEMETHOD thenby_builder (thenby_builder && v) throw ()
+            CPPLINQ_INLINEMETHOD thenby_builder (thenby_builder && v) throw ()
                 :   predicate       (std::move (v.predicate))
                 ,   sort_ascending  (std::move (sort_ascending))
             {
             }
 
             template<typename TRange>
-            CLINQ_INLINEMETHOD thenby_range<TRange, TPredicate> build (TRange range) const throw ()
+            CPPLINQ_INLINEMETHOD thenby_range<TRange, TPredicate> build (TRange range) const throw ()
             {
                 return thenby_range<TRange, TPredicate>(range, predicate, sort_ascending);
             }
@@ -605,7 +605,7 @@ namespace clinq
             range_type              range       ;
             predicate_type  const   predicate   ;
 
-            CLINQ_INLINEMETHOD where_range (
+            CPPLINQ_INLINEMETHOD where_range (
                     range_type      range
                 ,   predicate_type  predicate
                 ) throw ()
@@ -614,30 +614,30 @@ namespace clinq
             {
             }
 
-            CLINQ_INLINEMETHOD where_range (where_range const & v)
+            CPPLINQ_INLINEMETHOD where_range (where_range const & v)
                 :   range       (v.range)
                 ,   predicate   (v.predicate)
             {
             }
 
-            CLINQ_INLINEMETHOD where_range (where_range && v) throw ()
+            CPPLINQ_INLINEMETHOD where_range (where_range && v) throw ()
                 :   range       (std::move (v.range))
                 ,   predicate   (std::move (v.predicate))
             {
             }
 
             template<typename TRangeBuilder>
-            CLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) throw ()   
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) throw ()   
             {
                 return range_builder.build (*this);
             }
 
-            CLINQ_INLINEMETHOD value_type front () const 
+            CPPLINQ_INLINEMETHOD value_type front () const 
             {
                 return range.front ();
             }
 
-            CLINQ_INLINEMETHOD bool next ()
+            CPPLINQ_INLINEMETHOD bool next ()
             {
                 while (range.next ())
                 {
@@ -659,23 +659,23 @@ namespace clinq
 
             predicate_type  const   predicate   ;
 
-            CLINQ_INLINEMETHOD explicit where_builder (predicate_type predicate) throw ()
+            CPPLINQ_INLINEMETHOD explicit where_builder (predicate_type predicate) throw ()
                 :   predicate (std::move (predicate))
             {
             }
 
-            CLINQ_INLINEMETHOD where_builder (where_builder const & v)
+            CPPLINQ_INLINEMETHOD where_builder (where_builder const & v)
                 :   predicate (v.predicate)
             {
             }
 
-            CLINQ_INLINEMETHOD where_builder (where_builder && v) throw ()
+            CPPLINQ_INLINEMETHOD where_builder (where_builder && v) throw ()
                 :   predicate (std::move (v.predicate))
             {
             }
 
             template<typename TRange>
-            CLINQ_INLINEMETHOD where_range<TRange, TPredicate> build (TRange range) const throw ()
+            CPPLINQ_INLINEMETHOD where_range<TRange, TPredicate> build (TRange range) const throw ()
             {
                 return where_range<TRange, TPredicate>(range, predicate);
             }
@@ -699,7 +699,7 @@ namespace clinq
             size_type               current     ;
 
 
-            CLINQ_INLINEMETHOD take_range (
+            CPPLINQ_INLINEMETHOD take_range (
                     range_type      range
                 ,   size_type       count
                 ) throw ()
@@ -709,14 +709,14 @@ namespace clinq
             {
             }
 
-            CLINQ_INLINEMETHOD take_range (take_range const & v)
+            CPPLINQ_INLINEMETHOD take_range (take_range const & v)
                 :   range       (v.range)
                 ,   count       (v.count)
                 ,   current     (v.current)
             {
             }
 
-            CLINQ_INLINEMETHOD take_range (take_range && v) throw ()
+            CPPLINQ_INLINEMETHOD take_range (take_range && v) throw ()
                 :   range       (std::move (v.range))
                 ,   count       (std::move (v.count))
                 ,   current     (std::move (v.current))
@@ -724,17 +724,17 @@ namespace clinq
             }
 
             template<typename TRangeBuilder>
-            CLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
             {
                 return range_builder.build (*this);
             }
 
-            CLINQ_INLINEMETHOD value_type front () const 
+            CPPLINQ_INLINEMETHOD value_type front () const 
             {
                 return range.front ();
             }
 
-            CLINQ_INLINEMETHOD bool next ()
+            CPPLINQ_INLINEMETHOD bool next ()
             {
                 if (current < count)
                 {
@@ -752,23 +752,23 @@ namespace clinq
 
             size_type   const       count       ;
 
-            CLINQ_INLINEMETHOD explicit take_builder (size_type count) throw ()
+            CPPLINQ_INLINEMETHOD explicit take_builder (size_type count) throw ()
                 :   count (std::move (count))
             {
             }
 
-            CLINQ_INLINEMETHOD take_builder (take_builder const & v) throw ()
+            CPPLINQ_INLINEMETHOD take_builder (take_builder const & v) throw ()
                 :   count (v.count)
             {
             }
 
-            CLINQ_INLINEMETHOD take_builder (take_builder && v) throw ()
+            CPPLINQ_INLINEMETHOD take_builder (take_builder && v) throw ()
                 :   count (std::move (v.count))
             {
             }
 
             template<typename TRange>
-            CLINQ_INLINEMETHOD take_range<TRange> build (TRange range) const throw ()
+            CPPLINQ_INLINEMETHOD take_range<TRange> build (TRange range) const throw ()
             {
                 return take_range<TRange>(range, count);
             }
@@ -789,7 +789,7 @@ namespace clinq
             size_type   const       count       ;
             size_type               current     ;
 
-            CLINQ_INLINEMETHOD skip_range (
+            CPPLINQ_INLINEMETHOD skip_range (
                     range_type      range
                 ,   size_type       count
                 ) throw ()
@@ -799,14 +799,14 @@ namespace clinq
             {
             }
 
-            CLINQ_INLINEMETHOD skip_range (skip_range const & v)
+            CPPLINQ_INLINEMETHOD skip_range (skip_range const & v)
                 :   range       (v.range)
                 ,   count       (v.count)
                 ,   current     (v.current)
             {
             }
 
-            CLINQ_INLINEMETHOD skip_range (skip_range && v) throw ()
+            CPPLINQ_INLINEMETHOD skip_range (skip_range && v) throw ()
                 :   range       (std::move (v.range))
                 ,   count       (std::move (v.count))
                 ,   current     (std::move (v.current))
@@ -814,17 +814,17 @@ namespace clinq
             }
 
             template<typename TRangeBuilder>
-            CLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
             {
                 return range_builder.build (*this);
             }
 
-            CLINQ_INLINEMETHOD value_type front () const 
+            CPPLINQ_INLINEMETHOD value_type front () const 
             {
                 return range.front ();
             }
 
-            CLINQ_INLINEMETHOD bool next ()
+            CPPLINQ_INLINEMETHOD bool next ()
             {
                 if (current == invalid_size)
                 {
@@ -852,23 +852,23 @@ namespace clinq
 
             size_type   const       count       ;
 
-            CLINQ_INLINEMETHOD explicit skip_builder (size_type count) throw ()
+            CPPLINQ_INLINEMETHOD explicit skip_builder (size_type count) throw ()
                 :   count (std::move (count))
             {
             }
 
-            CLINQ_INLINEMETHOD skip_builder (skip_builder const & v) throw ()
+            CPPLINQ_INLINEMETHOD skip_builder (skip_builder const & v) throw ()
                 :   count (v.count)
             {
             }
 
-            CLINQ_INLINEMETHOD skip_builder (skip_builder && v) throw ()
+            CPPLINQ_INLINEMETHOD skip_builder (skip_builder && v) throw ()
                 :   count (std::move (v.count))
             {
             }
 
             template<typename TRange>
-            CLINQ_INLINEMETHOD skip_range<TRange> build (TRange range) const throw ()
+            CPPLINQ_INLINEMETHOD skip_range<TRange> build (TRange range) const throw ()
             {
                 return skip_range<TRange>(range, count);
             }
@@ -894,7 +894,7 @@ namespace clinq
             range_type              range       ;
             predicate_type  const   predicate   ;
 
-            CLINQ_INLINEMETHOD select_range (
+            CPPLINQ_INLINEMETHOD select_range (
                     range_type      range
                 ,   predicate_type  predicate
                 ) throw ()
@@ -903,30 +903,30 @@ namespace clinq
             {
             }
 
-            CLINQ_INLINEMETHOD select_range (select_range const & v)
+            CPPLINQ_INLINEMETHOD select_range (select_range const & v)
                 :   range       (v.range)
                 ,   predicate   (v.predicate)
             {
             }
 
-            CLINQ_INLINEMETHOD select_range (select_range && v) throw ()
+            CPPLINQ_INLINEMETHOD select_range (select_range && v) throw ()
                 :   range       (std::move (v.range))
                 ,   predicate   (std::move (v.predicate))
             {
             }
 
             template<typename TRangeBuilder>
-            CLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
             {
                 return range_builder.build (*this);
             }
 
-            CLINQ_INLINEMETHOD value_type front () const 
+            CPPLINQ_INLINEMETHOD value_type front () const 
             {
                 return predicate (range.front ());
             }
 
-            CLINQ_INLINEMETHOD bool next ()
+            CPPLINQ_INLINEMETHOD bool next ()
             {
                 return range.next ();
             }
@@ -940,23 +940,23 @@ namespace clinq
 
             predicate_type  const   predicate   ;
 
-            CLINQ_INLINEMETHOD explicit select_builder (predicate_type predicate) throw ()
+            CPPLINQ_INLINEMETHOD explicit select_builder (predicate_type predicate) throw ()
                 :   predicate (std::move (predicate))
             {
             }
 
-            CLINQ_INLINEMETHOD select_builder (select_builder const & v)
+            CPPLINQ_INLINEMETHOD select_builder (select_builder const & v)
                 :   predicate (v.predicate)
             {
             }
 
-            CLINQ_INLINEMETHOD select_builder (select_builder && v) throw ()
+            CPPLINQ_INLINEMETHOD select_builder (select_builder && v) throw ()
                 :   predicate (std::move (v.predicate))
             {
             }
 
             template<typename TRange>
-            CLINQ_INLINEMETHOD select_range<TRange, TPredicate> build (TRange range) const throw ()
+            CPPLINQ_INLINEMETHOD select_range<TRange, TPredicate> build (TRange range) const throw ()
             {
                 return select_range<TRange, TPredicate>(range, predicate);
             }
@@ -987,31 +987,31 @@ namespace clinq
             bool                    is_at_end                               ;
             range_type* const       prange                                  ;
 
-            CLINQ_INLINEMETHOD container_iterator ()   throw ()
+            CPPLINQ_INLINEMETHOD container_iterator ()   throw ()
                 :   is_at_end   (true)
                 ,   prange      (nullptr)
             {
             }
 
-            CLINQ_INLINEMETHOD container_iterator (range_type * prange)   throw ()
+            CPPLINQ_INLINEMETHOD container_iterator (range_type * prange)   throw ()
                 :   is_at_end   (prange ? !prange->next () : true)
                 ,   prange      (prange)
             {
             }
 
-            CLINQ_INLINEMETHOD container_iterator (container_iterator const & v) throw ()
+            CPPLINQ_INLINEMETHOD container_iterator (container_iterator const & v) throw ()
                 :   is_at_end   (v.is_at_end)
                 ,   prange      (v.prange)
             {
             }
 
-            CLINQ_INLINEMETHOD container_iterator (container_iterator && v) throw ()
+            CPPLINQ_INLINEMETHOD container_iterator (container_iterator && v) throw ()
                 :   is_at_end   (std::move (v.is_at_end))
                 ,   prange      (std::move (v.prange))
             {
             }
 
-            CLINQ_INLINEMETHOD value_type  operator* () const throw ()
+            CPPLINQ_INLINEMETHOD value_type  operator* () const throw ()
             {
                 assert (!is_at_end);
                 assert (prange);
@@ -1021,7 +1021,7 @@ namespace clinq
             // TODO: operator-> but this is complicated by the fact that front ()
             // returns a value
 
-            CLINQ_INLINEMETHOD this_type & operator++()
+            CPPLINQ_INLINEMETHOD this_type & operator++()
             {
                 if (!is_at_end && prange)
                 {
@@ -1031,7 +1031,7 @@ namespace clinq
                 return *this;
             }
 
-            CLINQ_INLINEMETHOD bool operator== (this_type const & v) const throw ()
+            CPPLINQ_INLINEMETHOD bool operator== (this_type const & v) const throw ()
             {
                 if (is_at_end && v.is_at_end)
                 {
@@ -1047,7 +1047,7 @@ namespace clinq
                 }
             }
 
-            CLINQ_INLINEMETHOD bool operator!= (this_type const & v) const throw ()
+            CPPLINQ_INLINEMETHOD bool operator!= (this_type const & v) const throw ()
             {
                 return !(*this == v);
             }
@@ -1062,27 +1062,27 @@ namespace clinq
 
             range_type              range   ;
 
-            CLINQ_INLINEMETHOD explicit container (TRange range)
+            CPPLINQ_INLINEMETHOD explicit container (TRange range)
                 :   range (range)
             {
             }
 
-            CLINQ_INLINEMETHOD container (container const & v) throw ()
+            CPPLINQ_INLINEMETHOD container (container const & v) throw ()
                 :   range       (v.range)
             {
             }
 
-            CLINQ_INLINEMETHOD container (container && v) throw ()
+            CPPLINQ_INLINEMETHOD container (container && v) throw ()
                 :   range       (std::move (v.range))
             {
             }
 
-            CLINQ_INLINEMETHOD container_iterator<TRange>  begin () throw ()
+            CPPLINQ_INLINEMETHOD container_iterator<TRange>  begin () throw ()
             {
                 return container_iterator<TRange>(std::addressof (range));
             }
 
-            CLINQ_INLINEMETHOD container_iterator<TRange>  end () throw ()
+            CPPLINQ_INLINEMETHOD container_iterator<TRange>  end () throw ()
             {
                 return container_iterator<TRange>();
             }
@@ -1093,20 +1093,20 @@ namespace clinq
         {
             typedef                 container_builder       this_type       ;
 
-            CLINQ_INLINEMETHOD container_builder () throw ()
+            CPPLINQ_INLINEMETHOD container_builder () throw ()
             {
             }
 
-            CLINQ_INLINEMETHOD container_builder (container_builder const & v) throw ()
+            CPPLINQ_INLINEMETHOD container_builder (container_builder const & v) throw ()
             {
             }
 
-            CLINQ_INLINEMETHOD container_builder (container_builder && v) throw ()
+            CPPLINQ_INLINEMETHOD container_builder (container_builder && v) throw ()
             {
             }
 
             template<typename TRange>
-            CLINQ_METHOD container<TRange> build (TRange range)
+            CPPLINQ_METHOD container<TRange> build (TRange range)
             {
                 return container<TRange> (range);
             }
@@ -1121,23 +1121,23 @@ namespace clinq
 
             size_type   const       capacity;
 
-            CLINQ_INLINEMETHOD explicit to_vector_builder (size_type capacity = 16U) throw ()
+            CPPLINQ_INLINEMETHOD explicit to_vector_builder (size_type capacity = 16U) throw ()
                 :   capacity    (capacity)
             {
             }
 
-            CLINQ_INLINEMETHOD to_vector_builder (to_vector_builder const & v) throw ()
+            CPPLINQ_INLINEMETHOD to_vector_builder (to_vector_builder const & v) throw ()
                 :   capacity (v.capacity)
             {
             }
 
-            CLINQ_INLINEMETHOD to_vector_builder (to_vector_builder && v) throw ()
+            CPPLINQ_INLINEMETHOD to_vector_builder (to_vector_builder && v) throw ()
                 :   capacity (std::move (v.capacity))
             {
             }
 
             template<typename TRange>
-            CLINQ_METHOD std::vector<typename TRange::value_type> build (TRange range)
+            CPPLINQ_METHOD std::vector<typename TRange::value_type> build (TRange range)
             {
                 std::vector<typename TRange::value_type> result;
 
@@ -1163,23 +1163,23 @@ namespace clinq
 
             key_predicate_type  const   key_predicate   ;
 
-            CLINQ_INLINEMETHOD explicit to_map_builder (key_predicate_type key_predicate) throw ()
+            CPPLINQ_INLINEMETHOD explicit to_map_builder (key_predicate_type key_predicate) throw ()
                 :   key_predicate   (key_predicate)
             {
             }
 
-            CLINQ_INLINEMETHOD to_map_builder (to_map_builder const & v)
+            CPPLINQ_INLINEMETHOD to_map_builder (to_map_builder const & v)
                 :   key_predicate (v.key_predicate)
             {
             }
 
-            CLINQ_INLINEMETHOD to_map_builder (to_map_builder && v) throw ()
+            CPPLINQ_INLINEMETHOD to_map_builder (to_map_builder && v) throw ()
                 :   key_predicate (std::move (v.key_predicate))
             {
             }
 
             template<typename TRange>
-            CLINQ_METHOD std::map<
+            CPPLINQ_METHOD std::map<
                     typename get_transformed_type<key_predicate_type, typename TRange::value_type>::type
                 ,   typename TRange::value_type
                 > build (TRange range)
@@ -1214,24 +1214,24 @@ namespace clinq
 
             predicate_type  const   predicate;
 
-            CLINQ_INLINEMETHOD explicit for_each_builder (predicate_type predicate) throw ()
+            CPPLINQ_INLINEMETHOD explicit for_each_builder (predicate_type predicate) throw ()
                 :   predicate    (predicate)
             {
             }
 
-            CLINQ_INLINEMETHOD for_each_builder (for_each_builder const & v) throw ()
+            CPPLINQ_INLINEMETHOD for_each_builder (for_each_builder const & v) throw ()
                 :   predicate (v.predicate)
             {
             }
 
-            CLINQ_INLINEMETHOD for_each_builder (for_each_builder && v) throw ()
+            CPPLINQ_INLINEMETHOD for_each_builder (for_each_builder && v) throw ()
                 :   predicate (std::move (v.predicate))
             {
             }
 
 
             template<typename TRange>
-            CLINQ_INLINEMETHOD void build (TRange range)
+            CPPLINQ_INLINEMETHOD void build (TRange range)
             {
                 while (range.next ())
                 {
@@ -1247,20 +1247,20 @@ namespace clinq
         {
             typedef                 first_builder                   this_type       ;
 
-            CLINQ_INLINEMETHOD first_builder () throw ()
+            CPPLINQ_INLINEMETHOD first_builder () throw ()
             {
             }
 
-            CLINQ_INLINEMETHOD first_builder (first_builder const & v) throw ()
+            CPPLINQ_INLINEMETHOD first_builder (first_builder const & v) throw ()
             {
             }
 
-            CLINQ_INLINEMETHOD first_builder (first_builder && v) throw ()
+            CPPLINQ_INLINEMETHOD first_builder (first_builder && v) throw ()
             {
             }
 
             template<typename TRange>
-            CLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
+            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
             {
                 if (range.next ())
                 {
@@ -1278,21 +1278,21 @@ namespace clinq
         {
             typedef                 count_builder                   this_type       ;
 
-            CLINQ_INLINEMETHOD count_builder () throw ()
+            CPPLINQ_INLINEMETHOD count_builder () throw ()
             {
             }
 
-            CLINQ_INLINEMETHOD count_builder (count_builder const & v) throw ()
+            CPPLINQ_INLINEMETHOD count_builder (count_builder const & v) throw ()
             {
             }
 
-            CLINQ_INLINEMETHOD count_builder (count_builder && v) throw ()
+            CPPLINQ_INLINEMETHOD count_builder (count_builder && v) throw ()
             {
             }
 
 
             template<typename TRange>
-            CLINQ_INLINEMETHOD size_type build (TRange range)
+            CPPLINQ_INLINEMETHOD size_type build (TRange range)
             {
                 size_type count = 0U;
                 while (range.next ())
@@ -1310,20 +1310,20 @@ namespace clinq
         {
             typedef                 sum_builder                     this_type       ;
 
-            CLINQ_INLINEMETHOD sum_builder () throw ()
+            CPPLINQ_INLINEMETHOD sum_builder () throw ()
             {
             }
 
-            CLINQ_INLINEMETHOD sum_builder (sum_builder const & v) throw ()
+            CPPLINQ_INLINEMETHOD sum_builder (sum_builder const & v) throw ()
             {
             }
 
-            CLINQ_INLINEMETHOD sum_builder (sum_builder && v) throw ()
+            CPPLINQ_INLINEMETHOD sum_builder (sum_builder && v) throw ()
             {
             }
 
             template<typename TRange>
-            CLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
+            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
             {
                 auto sum = typename TRange::value_type ();
                 while (range.next ())
@@ -1341,21 +1341,21 @@ namespace clinq
         {
             typedef                 max_builder                         this_type       ;
 
-            CLINQ_INLINEMETHOD max_builder () throw ()
+            CPPLINQ_INLINEMETHOD max_builder () throw ()
             {
             }
 
-            CLINQ_INLINEMETHOD max_builder (max_builder const & v) throw ()
+            CPPLINQ_INLINEMETHOD max_builder (max_builder const & v) throw ()
             {
             }
 
-            CLINQ_INLINEMETHOD max_builder (max_builder && v) throw ()
+            CPPLINQ_INLINEMETHOD max_builder (max_builder && v) throw ()
             {
             }
 
 
             template<typename TRange>
-            CLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
+            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
             {
                 auto current = std::numeric_limits<typename TRange::value_type>::min ();
                 while (range.next ())
@@ -1377,21 +1377,21 @@ namespace clinq
         {
             typedef                 min_builder                         this_type       ;
 
-            CLINQ_INLINEMETHOD min_builder () throw ()
+            CPPLINQ_INLINEMETHOD min_builder () throw ()
             {
             }
 
-            CLINQ_INLINEMETHOD min_builder (min_builder const & v) throw ()
+            CPPLINQ_INLINEMETHOD min_builder (min_builder const & v) throw ()
             {
             }
 
-            CLINQ_INLINEMETHOD min_builder (min_builder && v) throw ()
+            CPPLINQ_INLINEMETHOD min_builder (min_builder && v) throw ()
             {
             }
 
 
             template<typename TRange>
-            CLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
+            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
             {
                 auto current = std::numeric_limits<typename TRange::value_type>::max ();
                 while (range.next ())
@@ -1416,7 +1416,7 @@ namespace clinq
     // -------------------------------------------------------------------------
 
     template<typename TValueIterator>
-    CLINQ_INLINEMETHOD detail::from_range<TValueIterator> from_iterators (
+    CPPLINQ_INLINEMETHOD detail::from_range<TValueIterator> from_iterators (
             TValueIterator  begin
         ,   TValueIterator  end
         ) throw ()
@@ -1425,7 +1425,7 @@ namespace clinq
     }
 
     template<typename TContainer>
-    CLINQ_INLINEMETHOD detail::from_range<typename TContainer::const_iterator> from (
+    CPPLINQ_INLINEMETHOD detail::from_range<typename TContainer::const_iterator> from (
             TContainer  const & container
         ) throw ()
     {
@@ -1436,7 +1436,7 @@ namespace clinq
     }
 
     template<typename TValueArray>
-    CLINQ_INLINEMETHOD detail::from_range<typename detail::get_array_properties<TValueArray>::iterator_type> from_array (
+    CPPLINQ_INLINEMETHOD detail::from_range<typename detail::get_array_properties<TValueArray>::iterator_type> from_array (
             TValueArray & a 
         ) throw ()
     {
@@ -1452,7 +1452,7 @@ namespace clinq
             );
     }
 
-    CLINQ_INLINEMETHOD detail::int_range range (
+    CPPLINQ_INLINEMETHOD detail::int_range range (
             int         start
         ,   int         count
         ) throw ()
@@ -1463,7 +1463,7 @@ namespace clinq
     }
 
     template<typename TPredicate>
-    CLINQ_INLINEMETHOD detail::orderby_builder<TPredicate> orderby (
+    CPPLINQ_INLINEMETHOD detail::orderby_builder<TPredicate> orderby (
             TPredicate      predicate
         ,   bool            sort_ascending  = true
         ) throw ()
@@ -1472,7 +1472,7 @@ namespace clinq
     }
 
     template<typename TPredicate>
-    CLINQ_INLINEMETHOD detail::thenby_builder<TPredicate> thenby (
+    CPPLINQ_INLINEMETHOD detail::thenby_builder<TPredicate> thenby (
             TPredicate      predicate
         ,   bool            sort_ascending  = true
         ) throw ()
@@ -1481,21 +1481,21 @@ namespace clinq
     }
 
     template<typename TPredicate>
-    CLINQ_INLINEMETHOD detail::where_builder<TPredicate> where (
+    CPPLINQ_INLINEMETHOD detail::where_builder<TPredicate> where (
             TPredicate      predicate
         ) throw ()
     {
         return detail::where_builder<TPredicate> (predicate);
     }
 
-    CLINQ_INLINEMETHOD detail::take_builder take (
+    CPPLINQ_INLINEMETHOD detail::take_builder take (
             size_type     count
         ) throw ()
     {
         return detail::take_builder (count);
     }
 
-    CLINQ_INLINEMETHOD detail::skip_builder skip (
+    CPPLINQ_INLINEMETHOD detail::skip_builder skip (
             size_type       count
         ) throw ()
     {
@@ -1503,58 +1503,58 @@ namespace clinq
     }
 
     template<typename TPredicate>
-    CLINQ_INLINEMETHOD detail::select_builder<TPredicate> select (
+    CPPLINQ_INLINEMETHOD detail::select_builder<TPredicate> select (
             TPredicate      predicate
         ) throw ()
     {
         return detail::select_builder<TPredicate> (predicate);
     }
 
-    CLINQ_INLINEMETHOD detail::container_builder    container () throw ()
+    CPPLINQ_INLINEMETHOD detail::container_builder    container () throw ()
     {
         return detail::container_builder ();
     }
 
-    CLINQ_INLINEMETHOD detail::to_vector_builder    to_vector () throw ()
+    CPPLINQ_INLINEMETHOD detail::to_vector_builder    to_vector () throw ()
     {
         return detail::to_vector_builder ();
     }
 
     template<typename TKeyPredicate>
-    CLINQ_INLINEMETHOD detail::to_map_builder<TKeyPredicate>  to_map (TKeyPredicate key_predicate) throw ()
+    CPPLINQ_INLINEMETHOD detail::to_map_builder<TKeyPredicate>  to_map (TKeyPredicate key_predicate) throw ()
     {
         return detail::to_map_builder<TKeyPredicate>(key_predicate);
     }
 
     template<typename TPredicate>
-    CLINQ_INLINEMETHOD detail::for_each_builder<TPredicate> for_each (
+    CPPLINQ_INLINEMETHOD detail::for_each_builder<TPredicate> for_each (
             TPredicate predicate
         ) throw ()
     {
         return detail::for_each_builder<TPredicate> (predicate);
     }
 
-    CLINQ_INLINEMETHOD detail::first_builder   first () throw ()
+    CPPLINQ_INLINEMETHOD detail::first_builder   first () throw ()
     {
         return detail::first_builder ();
     }
 
-    CLINQ_INLINEMETHOD detail::count_builder   count () throw ()
+    CPPLINQ_INLINEMETHOD detail::count_builder   count () throw ()
     {
         return detail::count_builder ();
     }
 
-    CLINQ_INLINEMETHOD detail::sum_builder  sum () throw ()
+    CPPLINQ_INLINEMETHOD detail::sum_builder  sum () throw ()
     {
         return detail::sum_builder ();
     }
 
-    CLINQ_INLINEMETHOD detail::max_builder  max () throw ()
+    CPPLINQ_INLINEMETHOD detail::max_builder  max () throw ()
     {
         return detail::max_builder ();
     }
 
-    CLINQ_INLINEMETHOD detail::min_builder  min () throw ()
+    CPPLINQ_INLINEMETHOD detail::min_builder  min () throw ()
     {
         return detail::min_builder ();
     }
