@@ -24,7 +24,7 @@
 // ----------------------------------------------------------------------------------------------
 #include <limits.h>
 #include <stdio.h>
-#include "../clinq/cpplinq.hpp"
+#include "../CppLinq/cpplinq.hpp"
 // ----------------------------------------------------------------------------------------------
 #define TEST_PRELUDE()                  test_prelude(__FILE__, __LINE__, __FUNCTION__)
 #define TEST_ASSERT(expected, found)    test_assert(__FILE__, __LINE__, expected, #expected, found, #found, expected == found)

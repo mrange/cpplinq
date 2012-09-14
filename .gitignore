@@ -9,6 +9,7 @@
 *.suo
 Output/
 CppLinq/Intermediate/
+Test/Intermediate/
 ipch/
 _Resharper.CppLinq/
 
