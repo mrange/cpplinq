@@ -1202,7 +1202,7 @@ namespace cpplinq
                     auto v = range.front ();
                     auto k = key_predicate (v);
                     
-                    result.insert(result_type::value_type(std::move(k), std::move(v)));
+                    result.insert(typename result_type::value_type(std::move(k), std::move(v)));
                 }
 
                 return std::move (result);

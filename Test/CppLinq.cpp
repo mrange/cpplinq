@@ -11,7 +11,9 @@
 // ----------------------------------------------------------------------------------------------
 #include "stdafx.h"
 // ----------------------------------------------------------------------------------------------
-#pragma warning (disable:4100)
+#ifdef _MSC_VER 
+#   pragma warning (disable:4100)
+#endif
 // ----------------------------------------------------------------------------------------------
 #undef min
 #undef max
@@ -27,7 +29,7 @@
 #include "../CppLinq/cpplinq.hpp"
 // ----------------------------------------------------------------------------------------------
 #define TEST_PRELUDE()                  test_prelude(__FILE__, __LINE__, __FUNCTION__)
-#define TEST_ASSERT(expected, found)    test_assert(__FILE__, __LINE__, expected, #expected, found, #found, expected == found)
+#define TEST_ASSERT(expected, found)    test_assert(__FILE__, __LINE__, expected, #expected, found, #found, (expected == found))
 // ---------------------------------------------------------------------------------------------- 
 namespace
 {
@@ -43,6 +45,20 @@ namespace
             ,   first_name  (std::move (first_name))
             ,   last_name   (std::move (last_name))
         {
+        }
+
+        customer & operator= (customer const & c)
+        {
+            if (std::addressof(c) == this)
+            {
+                return *this;
+            }
+
+            id          = c.id          ;
+            first_name  = c.first_name  ;
+            last_name   = c.last_name   ;
+
+            return *this;
         }
 
         customer (customer const & c)
@@ -201,8 +217,8 @@ namespace
     void test_int_at (int index, int v)
     {
         if (
-                TEST_ASSERT (true, index > -1)
-            &&  TEST_ASSERT (true, index < count_of_ints)
+                TEST_ASSERT (true, (index > -1))
+            &&  TEST_ASSERT (true, (index < count_of_ints))
             &&  TEST_ASSERT (ints[index], v)
             )
         {
