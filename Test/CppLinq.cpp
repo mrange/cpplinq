@@ -11,7 +11,7 @@
 // ----------------------------------------------------------------------------------------------
 #include "stdafx.h"
 // ----------------------------------------------------------------------------------------------
-#pragma warning(disable:4100)
+#pragma warning (disable:4100)
 // ----------------------------------------------------------------------------------------------
 #undef min
 #undef max
@@ -39,7 +39,7 @@ namespace
         std::string     last_name   ;
 
         customer (std::size_t id, std::string first_name, std::string last_name)
-            :   id          (std::move(id))
+            :   id          (std::move (id))
             ,   first_name  (std::move (first_name))
             ,   last_name   (std::move (last_name))
         {
@@ -53,7 +53,7 @@ namespace
         }
 
         customer (customer && c)
-            :   id          (std::move(c.id))
+            :   id          (std::move (c.id))
             ,   first_name  (std::move (c.first_name))
             ,   last_name   (std::move (c.last_name))
         {
@@ -66,7 +66,7 @@ namespace
         return cpplinq::detail::get_array_properties<TValueArray>::size;
     }
 
-    int get_even_counts(int* is, int count)
+    int get_even_counts (int* is, int count)
     {
         auto c = 0;
         for (auto index = 0; index < count; ++index)
@@ -89,14 +89,19 @@ namespace
             customer (1 , "Bill"    , "Gates"   ),
             customer (2 , "Steve"   , "Jobs"    ),
             customer (3 , "Richard" , "Stallman"),
-            customer (4 , "Linus"   , "Thorvals"),
+            customer (4 , "Linus"   , "Torvalds"),
+
+            customer (11, "Steve"   , "Ballmer" ),
+            customer (12, "Tim"     , "Cook"    ),
+
+            customer (21, "Melinda" , "Gates"   ),
         };
-    int                 count_of_customers  = get_array_size(customers); 
+    int const           count_of_customers  = get_array_size (customers); 
 
     int                 ints[]              = {3,1,4,1,5,9,2,6,5,3,5,8,9,7,9,3,2,3,8,4,6,2,6,4,3,3,8,3,2,7,9,5};
-    int                 count_of_ints       = get_array_size(ints); 
+    int const           count_of_ints       = get_array_size (ints); 
 
-    int                 even_count_of_ints  = get_even_counts (ints, count_of_ints);
+    int const           even_count_of_ints  = get_even_counts (ints, count_of_ints);
 
     void test_prelude (
             char const *    file
@@ -104,7 +109,7 @@ namespace
         ,   char const *    test
         )
     {
-        printf(
+        printf (
                 "%s(%d): RUNNING: %s\r\n"
             ,   file
             ,   line_no
@@ -125,7 +130,7 @@ namespace
         if (!result)
         {
             ++errors;
-            printf(
+            printf (
                     "%s(%d): ERROR_EXPECTED: %s(%s), FOUND: %s(%s)\r\n"
                 ,   file
                 ,   line_no
@@ -139,7 +144,7 @@ namespace
         return result;
     }
 
-    bool test_assert(
+    bool test_assert (
             char const *    file
         ,   int             line_no
         ,   std::string     expected
@@ -152,13 +157,13 @@ namespace
         if (!result)
         {
             ++errors;
-            printf(
+            printf (
                     "%s(%d): ERROR_EXPECTED: %s(%s), FOUND: %s(%s)\r\n"
                 ,   file
                 ,   line_no
-                ,   expected.c_str()
+                ,   expected.c_str ()
                 ,   expected_name
-                ,   found.c_str()
+                ,   found.c_str ()
                 ,   found_name
                 );
         }
@@ -166,7 +171,7 @@ namespace
         return result;
     }
 
-    bool test_assert(
+    bool test_assert (
             char const *    file
         ,   int             line_no
         ,   int             expected
@@ -179,7 +184,7 @@ namespace
         if (!result)
         {
             ++errors;
-            printf(
+            printf (
                     "%s(%d): ERROR_EXPECTED: %d(%s), FOUND: %d(%s)\r\n"
                 ,   file
                 ,   line_no
@@ -196,15 +201,15 @@ namespace
     void test_int_at (int index, int v)
     {
         if (
-                TEST_ASSERT(true, index > -1)
-            &&  TEST_ASSERT(true, index < count_of_ints)
-            &&  TEST_ASSERT(ints[index], v)
+                TEST_ASSERT (true, index > -1)
+            &&  TEST_ASSERT (true, index < count_of_ints)
+            &&  TEST_ASSERT (ints[index], v)
             )
         {
         }
         else
         {
-            printf("    @index:%d\r\n", index);
+            printf ("    @index:%d\r\n", index);
         }
     }
 
@@ -212,30 +217,30 @@ namespace
     {
         using namespace cpplinq;
 
-        TEST_PRELUDE();
+        TEST_PRELUDE ();
 
         {
-            auto q = from(empty);
+            auto q = from (empty);
             auto index = 0;
 
-            while (q.next())
+            while (q.next ())
             {
-                test_int_at (index, q.front());
+                test_int_at (index, q.front ());
                 ++index;
             }
-            TEST_ASSERT(0, index);
+            TEST_ASSERT (0, index);
         }
         {
-            auto q = from_array(ints);
+            auto q = from_array (ints);
 
             auto index = 0;
 
-            while (q.next())
+            while (q.next ())
             {
-                test_int_at (index, q.front());
+                test_int_at (index, q.front ());
                 ++index;
             }
-            TEST_ASSERT(count_of_ints, index);
+            TEST_ASSERT (count_of_ints, index);
         }
     }
 
@@ -243,16 +248,16 @@ namespace
     {
         using namespace cpplinq;
 
-        TEST_PRELUDE();
+        TEST_PRELUDE ();
 
         {
-            auto count_result = from(empty) >> count();
-            TEST_ASSERT(0, count_result);
+            auto count_result = from (empty) >> count ();
+            TEST_ASSERT (0, count_result);
         }
 
         {
-            auto count_result = from_array(ints) >> count();
-            TEST_ASSERT(count_of_ints, (int)count_result);
+            auto count_result = from_array (ints) >> count ();
+            TEST_ASSERT (count_of_ints, (int)count_result);
         }
     }
 
@@ -260,16 +265,16 @@ namespace
     {
         using namespace cpplinq;
 
-        TEST_PRELUDE();
+        TEST_PRELUDE ();
 
         {
-            int first_result = from(empty) >> first();
-            TEST_ASSERT(0, first_result);
+            int first_result = from (empty) >> first ();
+            TEST_ASSERT (0, first_result);
         }
 
         {
-            int first_result = from_array(ints) >> first();
-            TEST_ASSERT(3, first_result);
+            int first_result = from_array (ints) >> first ();
+            TEST_ASSERT (3, first_result);
         }
     }
 
@@ -277,17 +282,17 @@ namespace
     {
         using namespace cpplinq;
 
-        TEST_PRELUDE();
+        TEST_PRELUDE ();
 
         {
-            int sum_result = from(empty) >> sum();
-            TEST_ASSERT(0, sum_result);
+            int sum_result = from (empty) >> sum ();
+            TEST_ASSERT (0, sum_result);
         }
 
         {
-            int sum_of_ints = std::accumulate(ints, ints + count_of_ints, 0);
-            int sum_result = from_array(ints) >> sum();
-            TEST_ASSERT(sum_of_ints, sum_result);
+            int sum_of_ints = std::accumulate (ints, ints + count_of_ints, 0);
+            int sum_result = from_array (ints) >> sum ();
+            TEST_ASSERT (sum_of_ints, sum_result);
         }
     }
 
@@ -295,16 +300,16 @@ namespace
     {
         using namespace cpplinq;
 
-        TEST_PRELUDE();
+        TEST_PRELUDE ();
 
         {
-            int min_result = from(empty) >> min();
-            TEST_ASSERT(INT_MAX, min_result);
+            int min_result = from (empty) >> min ();
+            TEST_ASSERT (INT_MAX, min_result);
         }
 
         {
-            int min_result = from_array(ints) >> min();
-            TEST_ASSERT(1, min_result);
+            int min_result = from_array (ints) >> min ();
+            TEST_ASSERT (1, min_result);
         }
     }
 
@@ -312,16 +317,16 @@ namespace
     {
         using namespace cpplinq;
 
-        TEST_PRELUDE();
+        TEST_PRELUDE ();
 
         {
-            int max_result = from(empty) >> max();
-            TEST_ASSERT(INT_MIN, max_result);
+            int max_result = from (empty) >> max ();
+            TEST_ASSERT (INT_MIN, max_result);
         }
 
         {
-            int max_result = from_array(ints) >> max();
-            TEST_ASSERT(9, max_result);
+            int max_result = from_array (ints) >> max ();
+            TEST_ASSERT (9, max_result);
         }
     }
 
@@ -329,18 +334,18 @@ namespace
     {
         using namespace cpplinq;
 
-        TEST_PRELUDE();
+        TEST_PRELUDE ();
 
         {
             int index = 0;
-            from(empty) >> for_each([&](int i){test_int_at(index, i); ++index;});
-            TEST_ASSERT(0, index);
+            from (empty) >> for_each ([&](int i){test_int_at (index, i); ++index;});
+            TEST_ASSERT (0, index);
         }
 
         {
             int index = 0;
-            from_array(ints) >> for_each([&](int i){test_int_at(index, i); ++index;});
-            TEST_ASSERT(count_of_ints, index);
+            from_array (ints) >> for_each ([&](int i){test_int_at (index, i); ++index;});
+            TEST_ASSERT (count_of_ints, index);
 
         }
     }
@@ -349,17 +354,17 @@ namespace
     {
         using namespace cpplinq;
 
-        TEST_PRELUDE();
+        TEST_PRELUDE ();
 
         {
-            std::vector<int> to_vector_result = from (empty) >> to_vector();
-            TEST_ASSERT(0, to_vector_result.size());
+            std::vector<int> to_vector_result = from (empty) >> to_vector ();
+            TEST_ASSERT (0, to_vector_result.size ());
         }
 
         {
-            std::vector<int> to_vector_result = from_array(ints) >> to_vector();
-            TEST_ASSERT(count_of_ints, (int)to_vector_result.size());
-            for(auto index = 0U; index < to_vector_result.size(); ++index)
+            std::vector<int> to_vector_result = from_array (ints) >> to_vector ();
+            TEST_ASSERT (count_of_ints, (int)to_vector_result.size ());
+            for (auto index = 0U; index < to_vector_result.size (); ++index)
             {
                 test_int_at (index, to_vector_result[index]);
             }
@@ -370,35 +375,35 @@ namespace
     {
         using namespace cpplinq;
 
-        TEST_PRELUDE();
+        TEST_PRELUDE ();
 
         {
-            std::map<int,int> to_map_result = from (empty) >> to_map([](int i){return i;});
-            TEST_ASSERT(0, to_map_result.size());
+            std::map<int,int> to_map_result = from (empty) >> to_map ([](int i){return i;});
+            TEST_ASSERT (0, to_map_result.size ());
         }
 
         {
-            auto to_map_result = from_array (customers) >> to_map([](customer const & c){return c.id;});
-            TEST_ASSERT(count_of_customers, (int)to_map_result.size());
+            auto to_map_result = from_array (customers) >> to_map ([](customer const & c){return c.id;});
+            TEST_ASSERT (count_of_customers, (int)to_map_result.size ());
 
-            for(auto index = 0; index < count_of_customers; ++index)
+            for (auto index = 0; index < count_of_customers; ++index)
             {
                 auto c1 = customers[index];
-                auto find_c2 = to_map_result.find(c1.id);
-                if (TEST_ASSERT(true, (find_c2 != to_map_result.end())))
+                auto find_c2 = to_map_result.find (c1.id);
+                if (TEST_ASSERT (true, (find_c2 != to_map_result.end ())))
                 {
                     auto c2 = find_c2->second;
 
                     if (
-                            TEST_ASSERT((int)c1.id, (int)c2.id)
-                        &&  TEST_ASSERT(c1.first_name, c2.first_name)
-                        &&  TEST_ASSERT(c1.last_name, c2.last_name)
+                            TEST_ASSERT ((int)c1.id, (int)c2.id)
+                        &&  TEST_ASSERT (c1.first_name, c2.first_name)
+                        &&  TEST_ASSERT (c1.last_name, c2.last_name)
                         )
                     {
                     }
                     else
                     {
-                        printf("    @index:%d\r\n", index);
+                        printf ("    @index:%d\r\n", index);
                     }
                 }
             }
@@ -408,25 +413,39 @@ namespace
     void test_container ()
     {
         using namespace cpplinq;
+        using namespace cpplinq::experimental;
 
-        TEST_PRELUDE();
+        TEST_PRELUDE ();
 
-        // TODO:
+        {
+            auto container_result = from (empty) >> container ();
+            std::vector<int> v (container_result.begin (), container_result.end ());
+            TEST_ASSERT (0, (int)v.size ());
+        }
+
+        // Container is experimental and doesn't have the right semantics just yet
+#if 0 
+        {
+            auto container_result = from_iterators (ints, ints + 1) >> container ();
+            std::vector<int> v (container_result.begin (), container_result.end ());
+            TEST_ASSERT (count_of_ints, (int)v.size ());
+        }
+#endif
     }
 
     void test_where ()
     {
         using namespace cpplinq;
 
-        TEST_PRELUDE();
+        TEST_PRELUDE ();
 
         {
-            auto c = from(empty) >> where ([](int i) {return i%2==0;}) >> count ();
-            TEST_ASSERT(0, c);
+            auto c = from (empty) >> where ([](int i) {return i%2==0;}) >> count ();
+            TEST_ASSERT (0, c);
         }
         {
-            auto c = from_array(ints) >> where ([](int i) {return i%2==0;}) >> count ();
-            TEST_ASSERT(even_count_of_ints, (int)c);
+            auto c = from_array (ints) >> where ([](int i) {return i%2==0;}) >> count ();
+            TEST_ASSERT (even_count_of_ints, (int)c);
         }
     }
 
@@ -434,48 +453,164 @@ namespace
     {
         using namespace cpplinq;
 
-        TEST_PRELUDE();
+        TEST_PRELUDE ();
 
-        // TODO:
+        {
+            std::vector<double> select_result = from (empty) >> select ([](int i){return 1.0*i;}) >> to_vector ();
+            TEST_ASSERT (0, (int)select_result.size ());
+        }
+
+        {
+            std::vector<std::size_t> select_result = 
+                    from_array (customers) 
+                >>  select ([](customer const & c){return c.id;}) 
+                >>  to_vector ()
+                ;
+
+            auto index = 0U;
+            for (auto sz : select_result)
+            {
+                if (!TEST_ASSERT ((int)customers[index].id, (int)sz))
+                {
+                        printf ("    @index:%d\r\n", index);
+                }
+
+                ++index;
+            }
+
+            TEST_ASSERT (count_of_customers, (int)select_result.size ());
+        }
+
     }
 
     void test_orderby ()
     {
         using namespace cpplinq;
 
-        TEST_PRELUDE();
+        TEST_PRELUDE ();
 
-        // TODO:
+        {
+            auto c = from (empty) >> orderby_ascending ([](int i){return i;}) >> count ();
+            TEST_ASSERT (0, (int)c);
+        }
+
+        const int test_set_size = 7;
+
+        auto verify = [=](
+                int expected[test_set_size]
+            ,   std::vector<customer> const & sequence
+            )
+        {
+            auto sz = sequence.size ();
+            if (TEST_ASSERT (test_set_size, (int)sz))
+            {
+                auto index = 0U;
+                for (auto c : sequence)
+                {
+                    if (!TEST_ASSERT (expected[index], (int)c.id))
+                    {
+                        printf ("    @index:%d\r\n", index);
+                    }
+
+                    ++index;
+                }
+
+            }
+        };
+
+        {
+            int expected[] = 
+                {
+                    11,
+                    12,
+                    1,
+                    21,
+                    2,
+                    3,
+                    4,
+                };
+
+            auto sequence = 
+                    from_array (customers) 
+                >>  orderby_ascending ([] (customer const & c) {return c.last_name;})
+                >>  thenby_ascending ([] (customer const & c) {return c.first_name;})
+                >>  to_vector ()
+                ;
+
+            verify (expected, sequence);
+        }
+        {
+            int expected[] = 
+                {
+                    4,
+                    3,
+                    2,
+                    21,
+                    1,
+                    12,
+                    11,
+                };
+
+            auto sequence = 
+                    from_array (customers) 
+                >>  orderby_descending ([] (customer const & c) {return c.last_name;})
+                >>  thenby_descending ([] (customer const & c) {return c.first_name;})
+                >>  to_vector ()
+                ;
+
+            verify (expected, sequence);
+        }
+        {
+            int expected[] = 
+                {
+                    11,
+                    12,
+                    21,
+                    1,
+                    2,
+                    3,
+                    4,
+                };
+
+            auto sequence = 
+                    from_array (customers) 
+                >>  orderby ([] (customer const & c) {return c.last_name;}, true)
+                >>  thenby ([] (customer const & c) {return c.first_name;}, false)
+                >>  to_vector ()
+                ;
+
+            verify (expected, sequence);
+        }
     }
 
     void test_skip ()
     {
         using namespace cpplinq;
 
-        TEST_PRELUDE();
+        TEST_PRELUDE ();
 
         {
-            auto q = from(empty) >> skip (5);
+            auto q = from (empty) >> skip (5);
             auto index = 0;
 
-            while (q.next())
+            while (q.next ())
             {
-                test_int_at (index, q.front());
+                test_int_at (index, q.front ());
                 ++index;
             }
-            TEST_ASSERT(0, index);
+            TEST_ASSERT (0, index);
         }
         {
-            auto q = from_array(ints) >> skip (5);
+            auto q = from_array (ints) >> skip (5);
 
             auto index = 5;
 
-            while (q.next())
+            while (q.next ())
             {
-                test_int_at (index, q.front());
+                test_int_at (index, q.front ());
                 ++index;
             }
-            TEST_ASSERT(count_of_ints, index);
+            TEST_ASSERT (count_of_ints, index);
         }
     }
 
@@ -483,36 +618,36 @@ namespace
     {
         using namespace cpplinq;
 
-        TEST_PRELUDE();
+        TEST_PRELUDE ();
 
         {
-            auto q = from(empty) >> take (5);
+            auto q = from (empty) >> take (5);
             auto index = 0;
 
-            while (q.next())
+            while (q.next ())
             {
-                test_int_at (index, q.front());
+                test_int_at (index, q.front ());
                 ++index;
             }
-            TEST_ASSERT(0, index);
+            TEST_ASSERT (0, index);
         }
         {
-            auto q = from_array(ints) >> take (5);
+            auto q = from_array (ints) >> take (5);
 
             auto index = 0;
 
-            while (q.next())
+            while (q.next ())
             {
-                test_int_at (index, q.front());
+                test_int_at (index, q.front ());
                 ++index;
             }
-            TEST_ASSERT(5, index);
+            TEST_ASSERT (5, index);
         }
     }
 
 } 
 
-int main()
+int main ()
 {
     // -------------------------------------------------------------------------
     test_from       ();
@@ -523,7 +658,10 @@ int main()
     test_for_each   ();
     test_to_vector  ();
     test_to_map     ();
+    test_container  ();
     test_where      ();
+    test_select     ();
+    test_orderby    ();
     test_take       ();
     test_skip       ();
     // -------------------------------------------------------------------------

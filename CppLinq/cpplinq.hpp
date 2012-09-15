@@ -963,155 +963,161 @@ namespace cpplinq
 
         };
 
-        // -------------------------------------------------------------------------
-
-        // TODO: The way this iterator is done has two problems
-        // 1. operator-> is not implemented due to technical difficulties
-        //    Investigate how boost does this
-        // 2. The iterator modifies the underlying range, a couple of reasons for that:
-        //      1. It's not certain the range is cheaply copyable and iterators should be cheap to copy
-        //      2. It's not certain the underlying collection supports iterating over it multiple times
-
-        template<typename TRange>
-        struct container_iterator
+        namespace experimental
         {
-            typedef                 std::forward_iterator_tag   iterator_category   ;
-            typedef     typename    TRange::value_type          value_type          ;
-            typedef                 std::ptrdiff_t              difference_type     ;
-            typedef                 value_type*                 pointer             ;
-	        typedef                 value_type&                 reference           ;
+            // -------------------------------------------------------------------------
 
-            typedef                 container_iterator<TRange>  this_type   ;
-            typedef                 TRange                      range_type  ;
+            // TODO: The way this iterator is done has two problems
+            // 1. operator-> is not implemented due to technical difficulties
+            //    Investigate how boost does this
+            // 2. The iterator modifies the underlying range, a couple of reasons for that:
+            //      1. It's not certain the range is cheaply copyable and iterators should be cheap to copy
+            //      2. It's not certain the underlying collection supports iterating over it multiple times
 
-            bool                    is_at_end                               ;
-            range_type* const       prange                                  ;
-
-            CPPLINQ_INLINEMETHOD container_iterator ()   throw ()
-                :   is_at_end   (true)
-                ,   prange      (nullptr)
-            {
-            }
-
-            CPPLINQ_INLINEMETHOD container_iterator (range_type * prange)   throw ()
-                :   is_at_end   (prange ? !prange->next () : true)
-                ,   prange      (prange)
-            {
-            }
-
-            CPPLINQ_INLINEMETHOD container_iterator (container_iterator const & v) throw ()
-                :   is_at_end   (v.is_at_end)
-                ,   prange      (v.prange)
-            {
-            }
-
-            CPPLINQ_INLINEMETHOD container_iterator (container_iterator && v) throw ()
-                :   is_at_end   (std::move (v.is_at_end))
-                ,   prange      (std::move (v.prange))
-            {
-            }
-
-            CPPLINQ_INLINEMETHOD value_type  operator* () const throw ()
-            {
-                assert (!is_at_end);
-                assert (prange);
-                return prange->front ();
-            }
-
-            // TODO: operator-> but this is complicated by the fact that front ()
-            // returns a value
-
-            CPPLINQ_INLINEMETHOD this_type & operator++()
-            {
-                if (!is_at_end && prange)
-                {
-                    is_at_end = !prange->next ();
-                }
-
-                return *this;
-            }
-
-            CPPLINQ_INLINEMETHOD bool operator== (this_type const & v) const throw ()
-            {
-                if (is_at_end && v.is_at_end)
-                {
-                    return true;
-                }
-                else if (!is_at_end && !v.is_at_end && prange == v.prange)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-
-            CPPLINQ_INLINEMETHOD bool operator!= (this_type const & v) const throw ()
-            {
-                return !(*this == v);
-            }
-        };
-
-        template<typename TRange>
-        struct container
-        {
-            typedef                 container<TRange>   this_type   ;
-            typedef                 TRange              range_type  ;
-            typedef     typename    TRange::value_type  value_type  ;
-
-            range_type              range   ;
-
-            CPPLINQ_INLINEMETHOD explicit container (TRange range)
-                :   range (range)
-            {
-            }
-
-            CPPLINQ_INLINEMETHOD container (container const & v) throw ()
-                :   range       (v.range)
-            {
-            }
-
-            CPPLINQ_INLINEMETHOD container (container && v) throw ()
-                :   range       (std::move (v.range))
-            {
-            }
-
-            CPPLINQ_INLINEMETHOD container_iterator<TRange>  begin () throw ()
-            {
-                return container_iterator<TRange>(std::addressof (range));
-            }
-
-            CPPLINQ_INLINEMETHOD container_iterator<TRange>  end () throw ()
-            {
-                return container_iterator<TRange>();
-            }
-
-        };
-
-        struct container_builder
-        {
-            typedef                 container_builder       this_type       ;
-
-            CPPLINQ_INLINEMETHOD container_builder () throw ()
-            {
-            }
-
-            CPPLINQ_INLINEMETHOD container_builder (container_builder const & v) throw ()
-            {
-            }
-
-            CPPLINQ_INLINEMETHOD container_builder (container_builder && v) throw ()
-            {
-            }
+            // The end result is that the iterator doesn't comply yet to the 
+            // contract of a forward iterator, thus it's in experimental namespace
 
             template<typename TRange>
-            CPPLINQ_METHOD container<TRange> build (TRange range)
+            struct container_iterator
             {
-                return container<TRange> (range);
-            }
+                typedef                 std::forward_iterator_tag   iterator_category   ;
+                typedef     typename    TRange::value_type          value_type          ;
+                typedef                 std::ptrdiff_t              difference_type     ;
+                typedef                 value_type*                 pointer             ;
+	            typedef                 value_type&                 reference           ;
 
-        };
+                typedef                 container_iterator<TRange>  this_type   ;
+                typedef                 TRange                      range_type  ;
+
+                bool                    is_at_end                               ;
+                range_type* const       prange                                  ;
+
+                CPPLINQ_INLINEMETHOD container_iterator ()   throw ()
+                    :   is_at_end   (true)
+                    ,   prange      (nullptr)
+                {
+                }
+
+                CPPLINQ_INLINEMETHOD container_iterator (range_type * prange)   throw ()
+                    :   is_at_end   (prange ? !prange->next () : true)
+                    ,   prange      (prange)
+                {
+                }
+
+                CPPLINQ_INLINEMETHOD container_iterator (container_iterator const & v) throw ()
+                    :   is_at_end   (v.is_at_end)
+                    ,   prange      (v.prange)
+                {
+                }
+
+                CPPLINQ_INLINEMETHOD container_iterator (container_iterator && v) throw ()
+                    :   is_at_end   (std::move (v.is_at_end))
+                    ,   prange      (std::move (v.prange))
+                {
+                }
+
+                CPPLINQ_INLINEMETHOD value_type  operator* () const throw ()
+                {
+                    assert (!is_at_end);
+                    assert (prange);
+                    return prange->front ();
+                }
+
+                // TODO: operator-> but this is complicated by the fact that front ()
+                // returns a value, not a reference
+
+                CPPLINQ_INLINEMETHOD this_type & operator++()
+                {
+                    if (!is_at_end && prange)
+                    {
+                        is_at_end = !prange->next ();
+                    }
+
+                    return *this;
+                }
+
+                CPPLINQ_INLINEMETHOD bool operator== (this_type const & v) const throw ()
+                {
+                    if (is_at_end && v.is_at_end)
+                    {
+                        return true;
+                    }
+                    else if (!is_at_end && !v.is_at_end && prange == v.prange)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+
+                CPPLINQ_INLINEMETHOD bool operator!= (this_type const & v) const throw ()
+                {
+                    return !(*this == v);
+                }
+            };
+
+            template<typename TRange>
+            struct container
+            {
+                typedef                 container<TRange>   this_type   ;
+                typedef                 TRange              range_type  ;
+                typedef     typename    TRange::value_type  value_type  ;
+
+                range_type              range   ;
+
+                CPPLINQ_INLINEMETHOD explicit container (TRange range)
+                    :   range (range)
+                {
+                }
+
+                CPPLINQ_INLINEMETHOD container (container const & v) throw ()
+                    :   range       (v.range)
+                {
+                }
+
+                CPPLINQ_INLINEMETHOD container (container && v) throw ()
+                    :   range       (std::move (v.range))
+                {
+                }
+
+                CPPLINQ_INLINEMETHOD container_iterator<TRange>  begin () throw ()
+                {
+                    return container_iterator<TRange>(std::addressof (range));
+                }
+
+                CPPLINQ_INLINEMETHOD container_iterator<TRange>  end () throw ()
+                {
+                    return container_iterator<TRange>();
+                }
+
+            };
+
+            struct container_builder
+            {
+                typedef                 container_builder       this_type       ;
+
+                CPPLINQ_INLINEMETHOD container_builder () throw ()
+                {
+                }
+
+                CPPLINQ_INLINEMETHOD container_builder (container_builder const & v) throw ()
+                {
+                }
+
+                CPPLINQ_INLINEMETHOD container_builder (container_builder && v) throw ()
+                {
+                }
+
+                template<typename TRange>
+                CPPLINQ_METHOD container<TRange> build (TRange range)
+                {
+                    return container<TRange> (range);
+                }
+
+            };
+        }
 
         // -------------------------------------------------------------------------
 
@@ -1472,12 +1478,44 @@ namespace cpplinq
     }
 
     template<typename TPredicate>
+    CPPLINQ_INLINEMETHOD detail::orderby_builder<TPredicate> orderby_ascending (
+            TPredicate      predicate
+        ) throw ()
+    {
+        return detail::orderby_builder<TPredicate> (predicate, true);
+    }
+
+    template<typename TPredicate>
+    CPPLINQ_INLINEMETHOD detail::orderby_builder<TPredicate> orderby_descending (
+            TPredicate      predicate
+        ) throw ()
+    {
+        return detail::orderby_builder<TPredicate> (predicate, false);
+    }
+
+    template<typename TPredicate>
     CPPLINQ_INLINEMETHOD detail::thenby_builder<TPredicate> thenby (
             TPredicate      predicate
         ,   bool            sort_ascending  = true
         ) throw ()
     {
         return detail::thenby_builder<TPredicate> (predicate, sort_ascending);
+    }
+
+    template<typename TPredicate>
+    CPPLINQ_INLINEMETHOD detail::thenby_builder<TPredicate> thenby_ascending (
+            TPredicate      predicate
+        ) throw ()
+    {
+        return detail::thenby_builder<TPredicate> (predicate, true);
+    }
+
+    template<typename TPredicate>
+    CPPLINQ_INLINEMETHOD detail::thenby_builder<TPredicate> thenby_descending (
+            TPredicate      predicate
+        ) throw ()
+    {
+        return detail::thenby_builder<TPredicate> (predicate, false);
     }
 
     template<typename TPredicate>
@@ -1510,9 +1548,12 @@ namespace cpplinq
         return detail::select_builder<TPredicate> (predicate);
     }
 
-    CPPLINQ_INLINEMETHOD detail::container_builder    container () throw ()
+    namespace experimental
     {
-        return detail::container_builder ();
+        CPPLINQ_INLINEMETHOD detail::experimental::container_builder    container () throw ()
+        {
+            return detail::experimental::container_builder ();
+        }
     }
 
     CPPLINQ_INLINEMETHOD detail::to_vector_builder    to_vector () throw ()
