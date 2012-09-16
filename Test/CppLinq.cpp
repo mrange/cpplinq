@@ -49,7 +49,7 @@ namespace
 
         customer & operator= (customer const & c)
         {
-            if (std::addressof(c) == this)
+            if (std::addressof (c) == this)
             {
                 return *this;
             }
@@ -133,7 +133,7 @@ namespace
             );
     }
 
-    bool test_assert(
+    bool test_assert (
             char const *    file
         ,   int             line_no
         ,   bool            expected
