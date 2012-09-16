@@ -13,12 +13,14 @@
 // ----------------------------------------------------------------------------------------------
 #ifdef _MSC_VER 
 #   pragma warning (disable:4100)
+#   pragma warning (disable:4996)
 #endif
 // ----------------------------------------------------------------------------------------------
 #undef min
 #undef max
 // ----------------------------------------------------------------------------------------------
 #include <algorithm>
+#include <chrono>
 #include <map>
 #include <numeric>
 #include <string>
@@ -661,6 +663,170 @@ namespace
         }
     }
 
+    template<typename TPredicate>
+    long long execute_testruns (
+            std::size_t test_runs
+        ,   TPredicate predicate
+        )
+    {
+        auto then = std::chrono::high_resolution_clock::now ();
+
+        for (auto test_run = 0U; test_run < test_runs; ++test_run)
+        {
+            predicate ();
+        }
+
+        auto now = std::chrono::high_resolution_clock::now ();
+
+        auto diff = now - then;
+
+        auto diff_in_ms = std::chrono::duration_cast<std::chrono::milliseconds>(diff).count ();
+
+        return diff_in_ms;
+    }
+
+   bool is_prime (int i)
+    {
+        if (i < 2)
+        {
+            return false;
+        }
+        else if (i == 2)
+        {
+            return true;
+        }
+        else
+        {
+            auto r = (int)std::ceil(std::sqrt(i));
+
+            for (auto iter = 2; iter <= r; ++iter)
+            {
+                if (i % iter == 0)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+    }
+
+    int create_value (int i)
+    {
+        return rand ();
+    }
+
+    void test_performance_sum ()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE ();
+
+#if _DEBUG
+        int         const test_repeat   = 1000      ;
+#else
+        int         const test_repeat   = 4000      ;
+#endif
+        int         const test_size     = 10000     ;
+
+        srand (19740531);
+        auto expected = execute_testruns (
+                test_repeat
+            ,   [&] ()
+                {
+                    auto iter_sum = 0.0;
+                    for (auto iter = 0; iter < test_size; ++iter)
+                    {
+                        iter_sum += create_value (iter);
+                    }
+                }
+            );
+
+        srand (19740531);
+        auto result = execute_testruns (
+                test_repeat
+            ,   [&] ()
+                {
+                    auto iter_sum =
+                            range (0, test_size)
+                        >>  select (create_value)
+                        >>  sum ()
+                        ;
+                    iter_sum;
+                }                 
+            );
+
+        auto ratio_limit    = 1.25; 
+        auto ratio          = ((double)expected)/result;
+        TEST_ASSERT (true, (ratio > 1/ratio_limit && ratio < ratio_limit));
+        printf (
+                "Performance numbers, expected:%d, result:%d, ratio_limit:%f, ratio:%f\r\n"
+            ,   (int)expected
+            ,   (int)result
+            ,   ratio_limit
+            ,   ratio
+            );
+    }
+
+    void test_performance_is_prime ()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE ();
+
+#if _DEBUG
+        int         const test_repeat   = 1000      ;
+#else
+        int         const test_repeat   = 40000     ;
+#endif
+        int         const test_size     = 100       ;
+
+        auto expected = execute_testruns (
+                test_repeat
+            ,   [&] ()
+                {
+                    auto        iter       = 2;
+                    auto        count      = 0;
+                    auto        prime_sum  = 0;
+                    while (count < test_size)
+                    {
+                        if (is_prime (iter))
+                        {
+                            prime_sum += iter;
+                            ++count;
+                        }
+                        ++iter;
+                    }
+                }
+            );
+
+        auto result = execute_testruns (
+                test_repeat
+            ,   [&] ()
+                {
+                    auto prime_sum =
+                            range (2, INT_MAX)
+                        >>  where (is_prime)
+                        >>  take (test_size)
+                        >>  sum ()
+                        ;
+
+                    prime_sum;
+                }                 
+            );
+
+        auto ratio_limit    = 1.25; 
+        auto ratio          = ((double)expected)/result;
+        TEST_ASSERT (true, (ratio > 1/ratio_limit && ratio < ratio_limit));
+        printf (
+                "Performance numbers, expected:%d, result:%d, ratio_limit:%f, ratio:%f\r\n"
+            ,   (int)expected
+            ,   (int)result
+            ,   ratio_limit
+            ,   ratio
+            );
+    }
+
 } 
 
 int main ()
@@ -680,6 +846,9 @@ int main ()
     test_orderby    ();
     test_take       ();
     test_skip       ();
+    // -------------------------------------------------------------------------
+    test_performance_sum ();
+    test_performance_is_prime ();
     // -------------------------------------------------------------------------
     if (errors == 0)
     {

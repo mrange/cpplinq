@@ -1146,6 +1146,7 @@ namespace cpplinq
             CPPLINQ_METHOD std::vector<typename TRange::value_type> build (TRange range)
             {
                 std::vector<typename TRange::value_type> result;
+                result.reserve (capacity);
 
                 while (range.next ())
                 {
@@ -1465,7 +1466,7 @@ namespace cpplinq
     {
         auto c      = count > 0 ? count : 0;
         auto end    = (INT_MAX - c) > start ? (start + c) : INT_MAX;
-        return detail::int_range (start, start + end);
+        return detail::int_range (start, end);
     }
 
     template<typename TPredicate>
@@ -1556,9 +1557,9 @@ namespace cpplinq
         }
     }
 
-    CPPLINQ_INLINEMETHOD detail::to_vector_builder    to_vector () throw ()
+    CPPLINQ_INLINEMETHOD detail::to_vector_builder    to_vector (size_type capacity = 16U) throw ()
     {
-        return detail::to_vector_builder ();
+        return detail::to_vector_builder (capacity);
     }
 
     template<typename TKeyPredicate>

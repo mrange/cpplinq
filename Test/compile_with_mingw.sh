@@ -1,1 +1,1 @@
-g++ -std=c++11 -Wall CppLinq.cpp
+g++ -std=c++11 -O2 -Wall CppLinq.cpp
