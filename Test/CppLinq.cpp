@@ -685,6 +685,69 @@ namespace
         return diff_in_ms;
     }
 
+    void test_performance_sum ()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE ();
+
+#if _DEBUG
+        int         const test_repeat   = 10        ;
+#else
+        int         const test_repeat   = 80000     ;
+#endif
+        int         const test_size     = 20000     ;
+
+        srand (19740531);
+
+        auto test_set = 
+                range (0, test_size)
+            >>  select ([] (int i){return rand ();})
+            >>  to_vector (test_size)
+            ;
+
+        auto expected_complete_sum = 0;
+        auto expected = execute_testruns (
+                test_repeat
+            ,   [&] ()
+                {
+                    auto set_sum = 0;
+                    for (auto v : test_set)
+                    {
+                        set_sum += v;
+                    }
+                    expected_complete_sum += set_sum;
+                }
+            );
+
+        auto result_complete_sum = 0;
+        auto result = execute_testruns (
+                test_repeat
+            ,   [&] ()
+                {
+                    auto set_sum =
+                            from (test_set)
+                        >>  sum ()
+                        ;
+                    result_complete_sum += set_sum;
+                }                 
+            );
+
+        printf ("Expected sum: %d\r\n", expected_complete_sum);
+        printf ("Result sum: %d\r\n", result_complete_sum);
+
+        auto ratio_limit    = 3.0; 
+        auto ratio          = ((double)expected)/result;
+        TEST_ASSERT (true, (ratio > 1/ratio_limit && ratio < ratio_limit));
+        printf (
+                "Performance numbers for simple sum over numbers, expected:%d, result:%d, ratio_limit:%f, ratio:%f\r\n"
+            ,   (int)expected
+            ,   (int)result
+            ,   ratio_limit
+            ,   ratio
+            );
+    }
+
    bool is_prime (int i)
     {
         if (i < 2)
@@ -697,7 +760,7 @@ namespace
         }
         else
         {
-            auto r = (int)std::ceil(std::sqrt(i));
+            auto r = (int)std::ceil (std::sqrt (i));
 
             for (auto iter = 2; iter <= r; ++iter)
             {
@@ -711,63 +774,6 @@ namespace
         }
     }
 
-    int create_value (int i)
-    {
-        return rand ();
-    }
-
-    void test_performance_sum ()
-    {
-        using namespace cpplinq;
-
-        TEST_PRELUDE ();
-
-#if _DEBUG
-        int         const test_repeat   = 1000      ;
-#else
-        int         const test_repeat   = 4000      ;
-#endif
-        int         const test_size     = 10000     ;
-
-        srand (19740531);
-        auto expected = execute_testruns (
-                test_repeat
-            ,   [&] ()
-                {
-                    auto iter_sum = 0.0;
-                    for (auto iter = 0; iter < test_size; ++iter)
-                    {
-                        iter_sum += create_value (iter);
-                    }
-                }
-            );
-
-        srand (19740531);
-        auto result = execute_testruns (
-                test_repeat
-            ,   [&] ()
-                {
-                    auto iter_sum =
-                            range (0, test_size)
-                        >>  select (create_value)
-                        >>  sum ()
-                        ;
-                    iter_sum;
-                }                 
-            );
-
-        auto ratio_limit    = 1.25; 
-        auto ratio          = ((double)expected)/result;
-        TEST_ASSERT (true, (ratio > 1/ratio_limit && ratio < ratio_limit));
-        printf (
-                "Performance numbers, expected:%d, result:%d, ratio_limit:%f, ratio:%f\r\n"
-            ,   (int)expected
-            ,   (int)result
-            ,   ratio_limit
-            ,   ratio
-            );
-    }
-
     void test_performance_is_prime ()
     {
         using namespace cpplinq;
@@ -775,11 +781,11 @@ namespace
         TEST_PRELUDE ();
 
 #if _DEBUG
-        int         const test_repeat   = 1000      ;
+        int         const test_repeat   = 25        ;
 #else
-        int         const test_repeat   = 40000     ;
+        int         const test_repeat   = 100       ;
 #endif
-        int         const test_size     = 100       ;
+        int         const test_size     = 10000     ;
 
         auto expected = execute_testruns (
                 test_repeat
@@ -819,7 +825,7 @@ namespace
         auto ratio          = ((double)expected)/result;
         TEST_ASSERT (true, (ratio > 1/ratio_limit && ratio < ratio_limit));
         printf (
-                "Performance numbers, expected:%d, result:%d, ratio_limit:%f, ratio:%f\r\n"
+                "Performance numbers for computing primes, expected:%d, result:%d, ratio_limit:%f, ratio:%f\r\n"
             ,   (int)expected
             ,   (int)result
             ,   ratio_limit
