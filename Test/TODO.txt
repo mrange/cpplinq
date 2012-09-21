@@ -1,2 +1,12 @@
 1.  Add concatenate range aggregator
         . Concatenates string values into a string value with separator 
+2.  Add set manipulation range operators
+        . intersect
+        . union
+        . exclude
+        . distinct
+3.  Add select_many range_operator
+        . Used to flatten hierachies
+4.  to_map should accept a value selector predicate
+5.  Add until range aggregator
+        . Like for_each but terminates if predicate returns false
