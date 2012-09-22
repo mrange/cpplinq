@@ -191,6 +191,75 @@ namespace cpplinq
 
         // -------------------------------------------------------------------------
 
+        // -------------------------------------------------------------------------
+
+        template<typename TContainer>
+        struct from_copy_range
+        {
+            typedef                 from_copy_range<TContainer>         this_type       ;
+
+            typedef                 TContainer                          container_type  ;
+            typedef        typename TContainer::const_iterator          iterator_type   ;
+            typedef        typename TContainer::value_type              value_type      ;
+
+            container_type          container   ;
+
+            bool                    start       ;
+            iterator_type           current     ;
+
+            CPPLINQ_INLINEMETHOD from_copy_range (
+                    container_type  container
+                )
+                :   container   (std::move (container))
+                ,   start       (true)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD from_copy_range (from_copy_range const & v)
+                :   container   (v.container)
+                ,   start       (v.start)
+            {
+            }
+        
+            CPPLINQ_INLINEMETHOD from_copy_range (from_copy_range && v) throw ()
+                :   container   (std::move (v.container))
+                ,   start       (v.start)
+            {
+            }
+        
+            template<typename TRangeBuilder>
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            {
+                return range_builder.build (*this);
+            }
+
+            CPPLINQ_INLINEMETHOD value_type front () const 
+            {
+                assert (!start);
+                assert (current != container.end ());
+
+                return *current;
+            }
+
+            CPPLINQ_INLINEMETHOD bool next () throw ()
+            {
+                auto end = container.end ();
+                if (start)
+                {
+                    start = false;
+                    current = container.begin ();
+                }
+                else if (current != end)
+                {
+                    ++current;
+                }
+
+                return current != end;
+            }
+        };
+
+        // -------------------------------------------------------------------------
+
         struct int_range
         {
             typedef                 int_range                           this_type       ;
@@ -1495,6 +1564,8 @@ namespace cpplinq
     // The interface of clinq
     // -------------------------------------------------------------------------
 
+    // Range sources
+
     template<typename TValueIterator>
     CPPLINQ_INLINEMETHOD detail::from_range<TValueIterator> from_iterators (
             TValueIterator  begin
@@ -1507,7 +1578,7 @@ namespace cpplinq
     template<typename TContainer>
     CPPLINQ_INLINEMETHOD detail::from_range<typename TContainer::const_iterator> from (
             TContainer  const & container
-        ) throw ()
+        )
     {
         return detail::from_range<typename TContainer::const_iterator> (
                 container.begin ()
@@ -1532,6 +1603,16 @@ namespace cpplinq
             );
     }
 
+    template<typename TContainer>
+    CPPLINQ_INLINEMETHOD detail::from_copy_range<TContainer> from_copy (
+            TContainer  const & container
+        )
+    {
+        return detail::from_copy_range<TContainer> (
+                std::move (container)
+            );
+    }
+
     CPPLINQ_INLINEMETHOD detail::int_range range (
             int         start
         ,   int         count
@@ -1541,6 +1622,8 @@ namespace cpplinq
         auto end    = (INT_MAX - c) > start ? (start + c) : INT_MAX;
         return detail::int_range (start, end);
     }
+
+    // Range operators
 
     template<typename TPredicate>
     CPPLINQ_INLINEMETHOD detail::orderby_builder<TPredicate> orderby (
@@ -1621,6 +1704,8 @@ namespace cpplinq
     {
         return detail::select_builder<TPredicate> (std::move (predicate));
     }
+
+    // Range aggregators
 
     namespace experimental
     {

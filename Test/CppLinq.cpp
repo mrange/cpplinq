@@ -260,6 +260,30 @@ namespace
             }
             TEST_ASSERT (count_of_ints, index);
         }
+        {
+            auto q = from_copy (empty);
+            auto index = 0;
+
+            while (q.next ())
+            {
+                test_int_at (index, q.front ());
+                ++index;
+            }
+            TEST_ASSERT (0, index);
+        }
+        {
+            std::vector<int> is (ints, ints + count_of_ints);
+            auto q = from_copy (is);
+
+            auto index = 0;
+
+            while (q.next ())
+            {
+                test_int_at (index, q.front ());
+                ++index;
+            }
+            TEST_ASSERT (count_of_ints, index);
+        }
     }
 
     void test_count ()

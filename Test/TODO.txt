@@ -5,6 +5,18 @@
         . distinct
 3.  Add select_many range_operator
         . Used to flatten hierachies
+        . It's a bit more tricky than SelectMany in LINQ as I like
+            . Value semantics
+            . Performance
+          These two sometimes doesn't combine that well
+          The current idea is that select many requires that
+          the predicate returns a range. The dilemma with that is that
+          it then requires that the life-time of the object that range
+          spans must extend over select_many. It works for situations
+          like returns all columns of all tables but if select_many
+          over intermediate values it might fail
+          The alternative is to return a collection of values but that
+          will potentially be more costly        
 4.  to_map should accept a value selector predicate
 5.  Add until range aggregator
         . Like for_each but terminates if predicate returns false
