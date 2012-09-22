@@ -16,6 +16,7 @@
 #include <iterator>
 #include <map>
 #include <numeric>
+#include <string>
 #include <type_traits>
 #include <vector>
 // ----------------------------------------------------------------------------
@@ -293,7 +294,7 @@ namespace cpplinq
             {
                 static_assert (
                         !std::is_convertible<range_type, sorting_range>::value
-                    ,   "ordery may not follow orderby or thenby"
+                    ,   "orderby may not follow orderby or thenby"
                     );
             }
 
@@ -1416,6 +1417,78 @@ namespace cpplinq
 
         // -------------------------------------------------------------------------
 
+        template<typename TCharType>
+        struct concatenate_builder
+        {
+            typedef                         concatenate_builder<typename TCharType>     this_type       ;
+
+            std::basic_string<TCharType>    separator   ;
+            size_type                       capacity    ;
+
+            CPPLINQ_INLINEMETHOD concatenate_builder (
+                    std::basic_string<TCharType>    separator
+                ,   size_type capacity
+                ) throw ()
+                :   separator   (std::move (separator))
+                ,   capacity    (capacity)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD concatenate_builder (concatenate_builder const & v) throw ()
+                :   separator   (v.separator)
+                ,   capacity    (v.capacity)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD concatenate_builder (concatenate_builder && v) throw ()
+                :   separator   (std::move (v.separator))
+                ,   capacity    (std::move (v.capacity))
+            {
+            }
+
+            template<typename TRange>
+            CPPLINQ_INLINEMETHOD typename std::basic_string<TCharType> build (TRange range)
+            {
+                auto                    first  =   true ;
+                std::vector<TCharType>  buffer          ;
+
+                buffer.reserve (capacity);
+
+
+                while (range.next ())
+                {
+                    if (first)
+                    {
+                        first = false;
+                    }
+                    else
+                    {
+                        buffer.insert (
+                                buffer.end ()
+                            ,   separator.begin ()
+                            ,   separator.end ()
+                            );
+                    }
+
+                    auto v = range.front ();
+
+                    buffer.insert (
+                            buffer.end ()
+                        ,   v.begin ()
+                        ,   v.end ()
+                        );
+                }
+
+                return std::basic_string<TCharType> (
+                        buffer.begin ()
+                    ,   buffer.end ()
+                    );
+            }
+
+        };
+
+        // -------------------------------------------------------------------------
+
     }   // namespace detail
 
     // -------------------------------------------------------------------------
@@ -1599,6 +1672,28 @@ namespace cpplinq
     CPPLINQ_INLINEMETHOD detail::min_builder  min () throw ()
     {
         return detail::min_builder ();
+    }
+
+    CPPLINQ_INLINEMETHOD detail::concatenate_builder<char>  concatenate (
+            std::string separator
+        ,   size_type capacity = 16U
+        ) throw ()
+    {
+        return detail::concatenate_builder<char> (
+                separator
+            ,   capacity
+            );
+    }
+
+    CPPLINQ_INLINEMETHOD detail::concatenate_builder<wchar_t>  concatenate (
+            std::wstring separator
+        ,   size_type capacity = 16U
+        ) throw ()
+    {
+        return detail::concatenate_builder<wchar_t> (
+                separator
+            ,   capacity
+            );
     }
 
     // -------------------------------------------------------------------------
