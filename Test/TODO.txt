@@ -1,5 +1,3 @@
-1.  Add concatenate range aggregator
-        . Concatenates string values into a string value with separator 
 2.  Add set manipulation range operators
         . intersect
         . union

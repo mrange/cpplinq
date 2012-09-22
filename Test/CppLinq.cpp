@@ -348,6 +348,32 @@ namespace
         }
     }
 
+    void test_concatenate ()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE ();
+
+        {
+            std::wstring concatenate_result = 
+                    from (empty) 
+                >>  select ([](int i){return std::wstring();})
+                >>  concatenate (L"")
+                ;
+            TEST_ASSERT (true, concatenate_result.empty ());
+        }
+
+        {
+            std::string concatenate_result = 
+                    from_array (customers) 
+                >>  select ([](customer const & c){return c.last_name;})
+                >>  concatenate (", ")
+                ;
+
+            TEST_ASSERT ("Gates, Jobs, Stallman, Torvalds, Ballmer, Cook, Gates", concatenate_result);
+        }
+    }
+
     void test_for_each ()
     {
         using namespace cpplinq;
@@ -842,7 +868,9 @@ int main ()
     test_count      ();
     test_first      ();
     test_sum        ();
+    test_max        ();
     test_min        ();
+    test_concatenate();
     test_for_each   ();
     test_to_vector  ();
     test_to_map     ();
