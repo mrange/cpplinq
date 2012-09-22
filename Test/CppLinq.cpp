@@ -270,7 +270,7 @@ namespace
 
         {
             auto count_result = from (empty) >> count ();
-            TEST_ASSERT (0, count_result);
+            TEST_ASSERT (0, (int)count_result);
         }
 
         {
@@ -402,7 +402,7 @@ namespace
 
         {
             std::vector<int> to_vector_result = from (empty) >> to_vector ();
-            TEST_ASSERT (0, to_vector_result.size ());
+            TEST_ASSERT (0, (int)to_vector_result.size ());
         }
 
         {
@@ -423,7 +423,7 @@ namespace
 
         {
             std::map<int,int> to_map_result = from (empty) >> to_map ([](int i){return i;});
-            TEST_ASSERT (0, to_map_result.size ());
+            TEST_ASSERT (0, (int)to_map_result.size ());
         }
 
         {
@@ -485,7 +485,7 @@ namespace
 
         {
             auto c = from (empty) >> where ([](int i) {return i%2==0;}) >> count ();
-            TEST_ASSERT (0, c);
+            TEST_ASSERT (0, (int)c);
         }
         {
             auto c = from_array (ints) >> where ([](int i) {return i%2==0;}) >> count ();
