@@ -1420,7 +1420,7 @@ namespace cpplinq
         template<typename TCharType>
         struct concatenate_builder
         {
-            typedef                         concatenate_builder<typename TCharType>     this_type       ;
+            typedef                         concatenate_builder<TCharType>  this_type       ;
 
             std::basic_string<TCharType>    separator   ;
             size_type                       capacity    ;
@@ -1501,7 +1501,7 @@ namespace cpplinq
         ,   TValueIterator  end
         ) throw ()
     {
-        return detail::from_range<TValueIterator> (begin,end);
+        return detail::from_range<TValueIterator> (std::move (begin), std::move (end));
     }
 
     template<typename TContainer>
@@ -1564,7 +1564,7 @@ namespace cpplinq
             TPredicate      predicate
         ) throw ()
     {
-        return detail::orderby_builder<TPredicate> (predicate, false);
+        return detail::orderby_builder<TPredicate> (std::move (predicate), false);
     }
 
     template<typename TPredicate>
@@ -1573,7 +1573,7 @@ namespace cpplinq
         ,   bool            sort_ascending  = true
         ) throw ()
     {
-        return detail::thenby_builder<TPredicate> (predicate, sort_ascending);
+        return detail::thenby_builder<TPredicate> (std::move (predicate), sort_ascending);
     }
 
     template<typename TPredicate>
@@ -1581,7 +1581,7 @@ namespace cpplinq
             TPredicate      predicate
         ) throw ()
     {
-        return detail::thenby_builder<TPredicate> (predicate, true);
+        return detail::thenby_builder<TPredicate> (std::move (predicate), true);
     }
 
     template<typename TPredicate>
@@ -1589,7 +1589,7 @@ namespace cpplinq
             TPredicate      predicate
         ) throw ()
     {
-        return detail::thenby_builder<TPredicate> (predicate, false);
+        return detail::thenby_builder<TPredicate> (std::move (predicate), false);
     }
 
     template<typename TPredicate>
@@ -1597,7 +1597,7 @@ namespace cpplinq
             TPredicate      predicate
         ) throw ()
     {
-        return detail::where_builder<TPredicate> (predicate);
+        return detail::where_builder<TPredicate> (std::move (predicate));
     }
 
     CPPLINQ_INLINEMETHOD detail::take_builder take (
@@ -1619,7 +1619,7 @@ namespace cpplinq
             TPredicate      predicate
         ) throw ()
     {
-        return detail::select_builder<TPredicate> (predicate);
+        return detail::select_builder<TPredicate> (std::move (predicate));
     }
 
     namespace experimental
@@ -1638,7 +1638,7 @@ namespace cpplinq
     template<typename TKeyPredicate>
     CPPLINQ_INLINEMETHOD detail::to_map_builder<TKeyPredicate>  to_map (TKeyPredicate key_predicate) throw ()
     {
-        return detail::to_map_builder<TKeyPredicate>(key_predicate);
+        return detail::to_map_builder<TKeyPredicate>(std::move (key_predicate));
     }
 
     template<typename TPredicate>
@@ -1646,7 +1646,7 @@ namespace cpplinq
             TPredicate predicate
         ) throw ()
     {
-        return detail::for_each_builder<TPredicate> (predicate);
+        return detail::for_each_builder<TPredicate> (std::move (predicate));
     }
 
     CPPLINQ_INLINEMETHOD detail::first_builder   first () throw ()
@@ -1680,7 +1680,7 @@ namespace cpplinq
         ) throw ()
     {
         return detail::concatenate_builder<char> (
-                separator
+                std::move (separator)
             ,   capacity
             );
     }
@@ -1691,7 +1691,7 @@ namespace cpplinq
         ) throw ()
     {
         return detail::concatenate_builder<wchar_t> (
-                separator
+                std::move (separator)
             ,   capacity
             );
     }

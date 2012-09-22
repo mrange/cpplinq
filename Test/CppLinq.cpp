@@ -843,7 +843,8 @@ namespace
                         >>  sum ()
                         ;
 
-                    prime_sum;
+                    // To suppress not used warnings
+                    prime_sum = prime_sum;
                 }                 
             );
 
