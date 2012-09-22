@@ -1548,7 +1548,7 @@ namespace cpplinq
         ,   bool            sort_ascending  = true
         ) throw ()
     {
-        return detail::orderby_builder<TPredicate> (predicate, sort_ascending);
+        return detail::orderby_builder<TPredicate> (std::move (predicate), sort_ascending);
     }
 
     template<typename TPredicate>
@@ -1556,7 +1556,7 @@ namespace cpplinq
             TPredicate      predicate
         ) throw ()
     {
-        return detail::orderby_builder<TPredicate> (predicate, true);
+        return detail::orderby_builder<TPredicate> (std::move (predicate), true);
     }
 
     template<typename TPredicate>
