@@ -1328,7 +1328,6 @@ namespace cpplinq
         // -------------------------------------------------------------------------
 
         // Some trickery in order to force the code to compile on VS2012
-        // TODO: Report this issue
         template<typename TRange, typename TPredicate>
         struct select_many_range_helper
         {
@@ -1450,12 +1449,9 @@ namespace cpplinq
         {
             // -------------------------------------------------------------------------
 
-            // TODO: The way this iterator is done has two problems
-            // 1. operator-> is not implemented due to technical difficulties
+            // TODO:  operator-> is not implemented due to technical difficulties
+            //    front () returns a value not a reference which makes this hard
             //    Investigate how boost does this
-            // 2. The iterator modifies the underlying range, a couple of reasons for that:
-            //      1. It's not certain the range is cheaply copyable and iterators should be cheap to copy
-            //      2. It's not certain the underlying collection supports iterating over it multiple times
 
             // The end result is that the iterator doesn't comply yet to the 
             // contract of a forward iterator, thus it's in experimental namespace
@@ -1472,48 +1468,44 @@ namespace cpplinq
                 typedef                 container_iterator<TRange>  this_type   ;
                 typedef                 TRange                      range_type  ;
 
-                bool                    is_at_end                               ;
-                range_type*             prange                                  ;
+                bool                    has_value                               ;
+                opt<range_type>         range                                   ;
 
                 CPPLINQ_INLINEMETHOD container_iterator ()   throw ()
-                    :   is_at_end   (true)
-                    ,   prange      (nullptr)
+                    :   has_value   (false)
                 {
                 }
 
-                CPPLINQ_INLINEMETHOD container_iterator (range_type * prange)   throw ()
-                    :   is_at_end   (prange ? !prange->next () : true)
-                    ,   prange      (prange)
+                CPPLINQ_INLINEMETHOD container_iterator (range_type r)   throw ()
+                    :   range      (std::move(r))
                 {
+                    has_value = range && range->next (); 
                 }
 
                 CPPLINQ_INLINEMETHOD container_iterator (container_iterator const & v) throw ()
-                    :   is_at_end   (v.is_at_end)
-                    ,   prange      (v.prange)
+                    :   has_value   (v.has_value)
+                    ,   range       (v.range)
                 {
                 }
 
                 CPPLINQ_INLINEMETHOD container_iterator (container_iterator && v) throw ()
-                    :   is_at_end   (std::move (v.is_at_end))
-                    ,   prange      (std::move (v.prange))
+                    :   has_value   (std::move (v.has_value))
+                    ,   range       (std::move (v.range))
                 {
                 }
 
                 CPPLINQ_INLINEMETHOD value_type  operator* () const throw ()
                 {
-                    assert (!is_at_end);
-                    assert (prange);
-                    return prange->front ();
+                    assert (has_value);
+                    assert (range);
+                    return range->front ();
                 }
-
-                // TODO: operator-> but this is complicated by the fact that front ()
-                // returns a value, not a reference
 
                 CPPLINQ_INLINEMETHOD this_type & operator++()
                 {
-                    if (!is_at_end && prange)
+                    if (has_value && range)
                     {
-                        is_at_end = !prange->next ();
+                        has_value = range->next ();
                     }
 
                     return *this;
@@ -1521,11 +1513,11 @@ namespace cpplinq
 
                 CPPLINQ_INLINEMETHOD bool operator== (this_type const & v) const throw ()
                 {
-                    if (is_at_end && v.is_at_end)
+                    if (!has_value && !v.has_value)
                     {
                         return true;
                     }
-                    else if (!is_at_end && !v.is_at_end && prange == v.prange)
+                    else if (has_value && has_value && range.get_ptr () == v.range.get_ptr ())
                     {
                         return true;
                     }
@@ -1567,7 +1559,7 @@ namespace cpplinq
 
                 CPPLINQ_INLINEMETHOD container_iterator<TRange>  begin () throw ()
                 {
-                    return container_iterator<TRange>(std::addressof (range));
+                    return container_iterator<TRange>(range);
                 }
 
                 CPPLINQ_INLINEMETHOD container_iterator<TRange>  end () throw ()

@@ -549,13 +549,18 @@ namespace
         }
 
         // Container is experimental and doesn't have the right semantics just yet
-#if 0 
         {
-            auto container_result = from_iterators (ints, ints + 1) >> container ();
+            auto container_result = from_iterators (ints, ints + count_of_ints) >> container ();
             std::vector<int> v (container_result.begin (), container_result.end ());
-            TEST_ASSERT (count_of_ints, (int)v.size ());
+            if (TEST_ASSERT (count_of_ints, (int)v.size ()))
+            {
+                for (auto index = 0; index < count_of_ints; ++index)
+                {
+                    test_int_at (index, v[index]);
+                }
+            }
+
         }
-#endif
     }
 
     void test_where ()
@@ -643,11 +648,11 @@ namespace
 
             if (TEST_ASSERT ((int)expected.size (), (int)select_many_result.size ()))
             {
-                for (auto iter = 0U; iter < expected.size (); ++iter)
+                for (auto index = 0U; index < expected.size (); ++index)
                 {
-                    if (!TEST_ASSERT (expected[iter], select_many_result[iter]))
+                    if (!TEST_ASSERT (expected[index], select_many_result[index]))
                     {
-                        printf ("    @index:%d\r\n", iter);
+                        printf ("    @index:%d\r\n", index);
                     }
                 }
             }
