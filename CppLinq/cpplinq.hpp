@@ -147,7 +147,12 @@ namespace cpplinq
                 }
             };
 
-            typedef helper_type<std::has_move_constructor<value_type>::value> helper;
+            typedef helper_type<
+//                std::has_move_constructor<value_type>::value
+                std::is_move_constructible<value_type>::value
+                > 
+                helper
+                ;
 
             CPPLINQ_INLINEMETHOD opt () throw ()
                 :   is_initialized (false)
@@ -360,8 +365,8 @@ namespace cpplinq
             typedef                 decltype (*get_iterator ())           raw_value_type  ;
             typedef        typename cleanup_type<raw_value_type>::type  value_type      ;
 
-            iterator_type   const   begin   ;
-            iterator_type   const   end     ;
+            iterator_type           begin   ;
+            iterator_type           end     ;
 
             bool                    start   ;
             iterator_type           current ;
@@ -501,7 +506,7 @@ namespace cpplinq
 
             bool                    start   ;
             int                     current ;
-            int         const       end     ;
+            int                     end     ;
 
             static int get_current (int begin, int end)
             {
@@ -579,8 +584,8 @@ namespace cpplinq
             typedef                 TPredicate                          predicate_type  ;
 
             range_type              range           ;
-            predicate_type  const   predicate       ;
-            bool            const   sort_ascending  ;
+            predicate_type          predicate       ;
+            bool                    sort_ascending  ;
 
             size_type               current         ;
             std::vector<value_type> sorted_values   ;    
@@ -696,8 +701,8 @@ namespace cpplinq
             typedef                 orderby_builder<TPredicate> this_type       ;
             typedef                 TPredicate                  predicate_type  ;
 
-            predicate_type  const   predicate       ;
-            bool            const   sort_ascending  ;
+            predicate_type          predicate       ;
+            bool                    sort_ascending  ;
 
             CPPLINQ_INLINEMETHOD explicit orderby_builder (predicate_type predicate, bool sort_ascending) throw ()
                 :   predicate       (std::move (predicate))
@@ -737,8 +742,8 @@ namespace cpplinq
             typedef                 TPredicate                          predicate_type  ;
 
             range_type              range           ;
-            predicate_type  const   predicate       ;
-            bool            const   sort_ascending  ;
+            predicate_type          predicate       ;
+            bool                    sort_ascending  ;
 
             size_type               current         ;
             std::vector<value_type> sorted_values   ;    
@@ -866,8 +871,8 @@ namespace cpplinq
             typedef                 thenby_builder<TPredicate>  this_type       ;
             typedef                 TPredicate                  predicate_type  ;
 
-            predicate_type  const   predicate       ;
-            bool            const   sort_ascending  ;
+            predicate_type          predicate       ;
+            bool                    sort_ascending  ;
 
             CPPLINQ_INLINEMETHOD explicit thenby_builder (predicate_type predicate, bool sort_ascending) throw ()
                 :   predicate       (std::move (predicate))
@@ -907,7 +912,7 @@ namespace cpplinq
             typedef                 TPredicate                      predicate_type  ;
 
             range_type              range       ;
-            predicate_type  const   predicate   ;
+            predicate_type          predicate   ;
 
             CPPLINQ_INLINEMETHOD where_range (
                     range_type      range
@@ -961,7 +966,7 @@ namespace cpplinq
             typedef                 where_builder<TPredicate>   this_type       ;
             typedef                 TPredicate                  predicate_type  ;
 
-            predicate_type  const   predicate   ;
+            predicate_type          predicate   ;
 
             CPPLINQ_INLINEMETHOD explicit where_builder (predicate_type predicate) throw ()
                 :   predicate (std::move (predicate))
@@ -999,7 +1004,7 @@ namespace cpplinq
             typedef                 TRange                          range_type      ;
 
             range_type              range       ;
-            size_type   const       count       ;
+            size_type               count       ;
             size_type               current     ;
 
 
@@ -1054,7 +1059,7 @@ namespace cpplinq
         {
             typedef                 take_builder        this_type       ;
 
-            size_type   const       count       ;
+            size_type               count       ;
 
             CPPLINQ_INLINEMETHOD explicit take_builder (size_type count) throw ()
                 :   count (std::move (count))
@@ -1090,7 +1095,7 @@ namespace cpplinq
             typedef                 TRange                          range_type      ;
 
             range_type              range       ;
-            size_type   const       count       ;
+            size_type               count       ;
             size_type               current     ;
 
             CPPLINQ_INLINEMETHOD skip_range (
@@ -1154,7 +1159,7 @@ namespace cpplinq
         {
             typedef                 skip_builder        this_type       ;
 
-            size_type   const       count       ;
+            size_type               count       ;
 
             CPPLINQ_INLINEMETHOD explicit skip_builder (size_type count) throw ()
                 :   count (std::move (count))
@@ -1196,7 +1201,7 @@ namespace cpplinq
             typedef                 TPredicate                          predicate_type  ;
 
             range_type              range       ;
-            predicate_type  const   predicate   ;
+            predicate_type          predicate   ;
 
             CPPLINQ_INLINEMETHOD select_range (
                     range_type      range
@@ -1242,7 +1247,7 @@ namespace cpplinq
             typedef                 select_builder<TPredicate>  this_type       ;
             typedef                 TPredicate                  predicate_type  ;
 
-            predicate_type  const   predicate   ;
+            predicate_type          predicate   ;
 
             CPPLINQ_INLINEMETHOD explicit select_builder (predicate_type predicate) throw ()
                 :   predicate (std::move (predicate))
@@ -1263,6 +1268,115 @@ namespace cpplinq
             CPPLINQ_INLINEMETHOD select_range<TRange, TPredicate> build (TRange range) const throw ()
             {
                 return select_range<TRange, TPredicate>(range, predicate);
+            }
+
+        };
+
+        // -------------------------------------------------------------------------
+
+        template<typename TRange, typename TPredicate>
+        struct select_many_range
+        {
+            static typename TRange::value_type get_source ();
+            static          TPredicate get_predicate ();
+
+            typedef        decltype (get_predicate ()(get_source ()))           raw_inner_range_type    ;
+            typedef        typename cleanup_type<raw_inner_range_type>::type    inner_range_type        ;
+
+            static         inner_range_type get_inner_range ();
+
+            typedef        decltype (get_inner_range ().front ())               raw_value_type          ;
+            typedef        typename cleanup_type<raw_value_type>::type          value_type              ;
+
+            typedef                 select_many_range<TRange, TPredicate>       this_type               ;
+            typedef                 TRange                                      range_type              ;
+            typedef                 TPredicate                                  predicate_type          ;
+
+            range_type              range       ;
+            predicate_type          predicate   ;
+
+            inner_range_type*       inner_range ;
+
+            CPPLINQ_INLINEMETHOD select_many_range (
+                    range_type      range
+                ,   predicate_type  predicate
+                ) throw ()
+                :   range       (std::move (range))
+                ,   predicate   (std::move (predicate))
+                ,   inner_range (nullptr)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD select_many_range (select_many_range const & v)
+                :   range       (v.range)
+                ,   predicate   (v.predicate)
+                ,   inner_range (v.inner_range)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD select_many_range (select_many_range && v) throw ()
+                :   range       (std::move (v.range))
+                ,   predicate   (std::move (v.predicate))
+                ,   inner_range (std::move (v.inner_range))
+            {
+            }
+
+            template<typename TRangeBuilder>
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            {
+                return range_builder.build (*this);
+            }
+
+            CPPLINQ_INLINEMETHOD value_type front () const 
+            {
+                assert (inner_range);
+                return inner_range->front ();
+            }
+
+            CPPLINQ_INLINEMETHOD bool next ()
+            {
+                if (inner_range && inner_range->next ())
+                {
+                    return true;
+                }
+
+                if (range.next ())
+                {
+                    inner_range = new inner_range_type (predicate (range.front ()));
+                    return inner_range && inner_range->next ();
+                }
+
+                return false;
+            }
+        };
+
+        template<typename TPredicate>
+        struct select_many_builder
+        {
+            typedef                 select_many_builder<TPredicate> this_type       ;
+            typedef                 TPredicate                      predicate_type  ;
+
+            predicate_type          predicate   ;
+
+            CPPLINQ_INLINEMETHOD explicit select_many_builder (predicate_type predicate) throw ()
+                :   predicate (std::move (predicate))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD select_many_builder (select_many_builder const & v)
+                :   predicate (v.predicate)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD select_many_builder (select_many_builder && v) throw ()
+                :   predicate (std::move (v.predicate))
+            {
+            }
+
+            template<typename TRange>
+            CPPLINQ_INLINEMETHOD select_many_range<TRange, TPredicate> build (TRange range) const throw ()
+            {
+                return select_many_range<TRange, TPredicate>(range, predicate);
             }
 
         };
@@ -1294,7 +1408,7 @@ namespace cpplinq
                 typedef                 TRange                      range_type  ;
 
                 bool                    is_at_end                               ;
-                range_type* const       prange                                  ;
+                range_type*             prange                                  ;
 
                 CPPLINQ_INLINEMETHOD container_iterator ()   throw ()
                     :   is_at_end   (true)
@@ -1429,7 +1543,7 @@ namespace cpplinq
         {
             typedef                 to_vector_builder       this_type       ;
 
-            size_type   const       capacity;
+            size_type               capacity;
 
             CPPLINQ_INLINEMETHOD explicit to_vector_builder (size_type capacity = 16U) throw ()
                 :   capacity    (capacity)
@@ -1472,7 +1586,7 @@ namespace cpplinq
             typedef                     to_map_builder<TKeyPredicate>  this_type           ;
             typedef                     TKeyPredicate               key_predicate_type  ;
 
-            key_predicate_type  const   key_predicate   ;
+            key_predicate_type          key_predicate   ;
 
             CPPLINQ_INLINEMETHOD explicit to_map_builder (key_predicate_type key_predicate) throw ()
                 :   key_predicate   (key_predicate)
@@ -1523,7 +1637,7 @@ namespace cpplinq
             typedef                 for_each_builder<TPredicate>    this_type       ;
             typedef                 TPredicate                      predicate_type  ;
 
-            predicate_type  const   predicate;
+            predicate_type          predicate;
 
             CPPLINQ_INLINEMETHOD explicit for_each_builder (predicate_type predicate) throw ()
                 :   predicate    (predicate)
@@ -1937,6 +2051,14 @@ namespace cpplinq
         ) throw ()
     {
         return detail::select_builder<TPredicate> (std::move (predicate));
+    }
+
+    template<typename TPredicate>
+    CPPLINQ_INLINEMETHOD detail::select_many_builder<TPredicate> select_many (
+            TPredicate      predicate
+        ) throw ()
+    {
+        return detail::select_many_builder<TPredicate> (std::move (predicate));
     }
 
     // Range aggregators

@@ -597,13 +597,30 @@ namespace
             {
                 if (!TEST_ASSERT ((int)customers[index].id, (int)sz))
                 {
-                        printf ("    @index:%d\r\n", index);
+                    printf ("    @index:%d\r\n", index);
                 }
 
                 ++index;
             }
 
             TEST_ASSERT (count_of_customers, (int)select_result.size ());
+        }
+
+    }
+
+    void test_select_many ()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE ();
+
+        {
+            auto select_many_result = 
+                    from_array (customers) 
+                >>  select_many ([](customer const & c){return from_copy (c.last_name);}) 
+                >>  to_vector ()
+                ;
+
         }
 
     }
@@ -954,6 +971,7 @@ namespace
         test_container  ();
         test_where      ();
         test_select     ();
+        test_select_many();
         test_orderby    ();
         test_take       ();
         test_skip       ();
