@@ -798,11 +798,7 @@ namespace
 
         TEST_PRELUDE ();
 
-#if _DEBUG
-        int         const test_repeat   = 10        ;
-#else
         int         const test_repeat   = 80000     ;
-#endif
         int         const test_size     = 20000     ;
 
         srand (19740531);
@@ -941,43 +937,67 @@ namespace
             );
     }
 
+    bool run_all_tests (bool run_perfomance_tests)
+    {
+        // -------------------------------------------------------------------------
+        test_opt        ();
+        test_from       ();
+        test_count      ();
+        test_first      ();
+        test_sum        ();
+        test_max        ();
+        test_min        ();
+        test_concatenate();
+        test_for_each   ();
+        test_to_vector  ();
+        test_to_map     ();
+        test_container  ();
+        test_where      ();
+        test_select     ();
+        test_orderby    ();
+        test_take       ();
+        test_skip       ();
+        // -------------------------------------------------------------------------
+        if (run_perfomance_tests)
+        {
+            test_performance_sum ();
+            test_performance_is_prime ();
+        }
+        // -------------------------------------------------------------------------
+        if (errors == 0)
+        {
+            printf ("PASS\r\n");
+        }
+        else
+        {
+            printf ("FAIL\r\n");
+        }
+        // -------------------------------------------------------------------------
+        return errors > 0;
+        // -------------------------------------------------------------------------
+    }
 } 
+
+
 
 int main ()
 {
-    // -------------------------------------------------------------------------
-    test_opt        ();
-    test_from       ();
-    test_count      ();
-    test_first      ();
-    test_sum        ();
-    test_max        ();
-    test_min        ();
-    test_concatenate();
-    test_for_each   ();
-    test_to_vector  ();
-    test_to_map     ();
-    test_container  ();
-    test_where      ();
-    test_select     ();
-    test_orderby    ();
-    test_take       ();
-    test_skip       ();
-    // -------------------------------------------------------------------------
-    test_performance_sum ();
-    test_performance_is_prime ();
-    // -------------------------------------------------------------------------
-    if (errors == 0)
-    {
-        printf ("PASS\r\n");
-    }
-    else
-    {
-        printf ("FAIL\r\n");
-    }
-    // -------------------------------------------------------------------------
-    return errors > 0 ? 101 : 0;
-    // -------------------------------------------------------------------------
+    //for (auto iter = 0; iter < 100; ++iter)
+    //{
+    //    run_all_tests (false);
+    //}
+
+    auto r = run_all_tests (
+#if _DEBUG
+            false
+#else
+            true
+#endif
+        );
+
+    //_CrtDumpMemoryLeaks();
+
+    return r ? 101 : 0;
 }
 // ---------------------------------------------------------------------------- -
 
