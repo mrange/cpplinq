@@ -6,3 +6,7 @@
 4.  to_map should accept a value selector predicate
 5.  Add until range aggregator
         . Like for_each but terminates if predicate returns false
+7.  Fix container range aggregator iterator semantics
+8.  Document select_many range operator
+9.  Document container range aggregator
+10. Document how to build a range source
