@@ -94,6 +94,240 @@ namespace cpplinq
             typedef             value_type*                 iterator_type   ;
         };
 
+        template<typename TValue>
+        struct opt
+        {
+            typedef     TValue  value_type;
+
+            template<bool has_move_ctor>
+            struct helper_type;
+
+            template<>
+            struct helper_type<true>
+            {
+                CPPLINQ_INLINEMETHOD static void move (
+                        void * to
+                    ,   void * from
+                    ) throw ()
+                {
+                    auto f = reinterpret_cast<value_type*> (from); 
+                    new (to) value_type (std::move (*f));
+                }
+
+                CPPLINQ_INLINEMETHOD static void copy (
+                        void * to
+                    ,   void const * from
+                    ) throw ()
+                {
+                    auto f = reinterpret_cast<value_type const *> (from); 
+                    new (to) value_type (*f);
+                }
+            };
+
+            template<>
+            struct helper_type<false>
+            {
+                CPPLINQ_INLINEMETHOD static void move (
+                        void * to
+                    ,   void * from
+                    ) throw ()
+                {
+                    auto f = reinterpret_cast<value_type*> (from); 
+                    new (to) value_type (*f);
+                    f->~value_type ();
+                }
+
+                CPPLINQ_INLINEMETHOD static void copy (
+                        void * to
+                    ,   void const * from
+                    ) throw ()
+                {
+                    auto f = reinterpret_cast<value_type const *> (from); 
+                    new (to) value_type (*f);
+                }
+            };
+
+            typedef helper_type<std::has_move_constructor<value_type>::value> helper;
+
+            CPPLINQ_INLINEMETHOD opt () throw ()
+                :   is_initialized (false)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD explicit opt (value_type value)
+                :   is_initialized      (true)
+            {
+                new (get_ptr ()) value_type (std::move (value));
+            }
+
+            CPPLINQ_INLINEMETHOD ~opt () throw ()
+            {
+                if (is_initialized)
+                {
+                    get_ptr ()->~value_type ();
+                }
+            }
+
+            CPPLINQ_INLINEMETHOD opt (opt const & v)
+                :   is_initialized      (v.is_initialized)
+            {
+                if (v.is_initialized)
+                {
+                    helper::copy (&storage  , &v.storage    );
+                }
+            }
+
+            CPPLINQ_INLINEMETHOD opt (opt && v)  throw ()
+                :   is_initialized      (v.is_initialized)
+            {
+                if (v.is_initialized)
+                {
+                    helper::move (&storage  , &v.storage    );
+                }
+                v.is_initialized = false;
+            }
+
+            void swap (opt & v)
+            {
+                if (is_initialized && v.is_initialized)
+                {
+                    storage_type tmp;
+
+                    helper::move (&tmp          , &storage      );
+                    helper::move (&storage      , &v.storage    );
+                    helper::move (&v.storage    , &tmp          );
+                }
+                else if (is_initialized)
+                {
+                    helper::move (&v.storage    , &storage      );
+                    v.is_initialized= true;
+                    is_initialized  = false;
+                }
+                else if (v.is_initialized)
+                {
+                    helper::move (&storage      , &v.storage    );
+                    v.is_initialized= false;
+                    is_initialized  = true;
+                }
+                else
+                {
+                    // Do nothing
+                }
+
+
+            }
+
+            CPPLINQ_INLINEMETHOD opt & operator= (opt const & v)
+            {
+                if (this == std::addressof (v))
+                {
+                    return *this;
+                }
+
+                opt<value_type> o (v);
+
+                swap (o);
+
+                return *this;
+            }
+
+            CPPLINQ_INLINEMETHOD opt & operator= (opt && v)
+            {
+                if (this == std::addressof (v))
+                {
+                    return *this;
+                }
+
+                opt<value_type> o (std::move (v));
+
+                swap (o);
+
+                return *this;
+            }
+
+            CPPLINQ_INLINEMETHOD opt & operator= (value_type v)
+            {
+                return *this = opt (std::move (v));
+            }
+
+            CPPLINQ_INLINEMETHOD value_type const * get_ptr () const throw ()
+            {
+                if (is_initialized)
+                {
+                    return reinterpret_cast<value_type*> (&storage);
+                }
+                else
+                {
+                    return nullptr;
+                }
+            }
+
+            CPPLINQ_INLINEMETHOD value_type * get_ptr () throw ()
+            {
+                if (is_initialized)
+                {
+                    return reinterpret_cast<value_type*> (&storage);
+                }
+                else
+                {
+                    return nullptr;
+                }
+            }
+
+            CPPLINQ_INLINEMETHOD value_type const & get () const throw ()
+            {
+                assert (is_initialized);
+                return *get_ptr ();
+            }
+
+            CPPLINQ_INLINEMETHOD value_type & get () throw ()
+            {
+                assert (is_initialized);
+                return *get_ptr ();
+            }
+
+            CPPLINQ_INLINEMETHOD bool has_value () const throw ()
+            {
+                return is_initialized;
+            }
+
+            typedef bool (opt::*type_safe_bool_type) () const;
+
+            CPPLINQ_INLINEMETHOD operator type_safe_bool_type () const throw ()
+            {
+                return is_initialized ? &opt::has_value : nullptr;
+            }
+
+            CPPLINQ_INLINEMETHOD value_type const & operator* () const throw ()
+            {
+                return get ();
+            }
+
+            CPPLINQ_INLINEMETHOD value_type & operator* () throw ()
+            {
+                return get ();
+            }
+
+            CPPLINQ_INLINEMETHOD value_type const * operator-> () const throw ()
+            {
+                return get_ptr ();
+            }
+
+            CPPLINQ_INLINEMETHOD value_type * operator-> () throw ()
+            {
+                return get_ptr ();
+            }
+
+        private:
+            typedef typename std::aligned_storage<
+                    sizeof (value_type)
+                ,   std::alignment_of<value_type>::value
+                >::type storage_type    ;
+
+            storage_type    storage         ;
+            bool            is_initialized  ;
+        };
+
         // -------------------------------------------------------------------------
         // The generic interface
         // -------------------------------------------------------------------------

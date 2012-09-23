@@ -231,6 +231,63 @@ namespace
         }
     }
 
+    void test_opt ()
+    {
+        using namespace cpplinq::detail;
+
+        TEST_PRELUDE ();
+
+        {
+            opt<int> o;
+            TEST_ASSERT (false, o.has_value ());
+            TEST_ASSERT (false, o);
+
+        }
+        {
+            opt<int> o1;
+            opt<int> o2 (10);
+            TEST_ASSERT (false, o1.has_value ());
+            TEST_ASSERT (false, o1);
+            TEST_ASSERT (true, o2.has_value ());
+            TEST_ASSERT (true, (bool)o2);
+            TEST_ASSERT (10, *o2);
+
+            o1.swap (o2);
+            TEST_ASSERT (true, o1.has_value ());
+            TEST_ASSERT (true, (bool)o1);
+            TEST_ASSERT (10, *o1);
+            TEST_ASSERT (false, o2.has_value ());
+            TEST_ASSERT (false, o2);
+
+            o2 = o1;
+            TEST_ASSERT (true, o1.has_value ());
+            TEST_ASSERT (true, (bool)o1);
+            TEST_ASSERT (10, *o1);
+            TEST_ASSERT (true, o2.has_value ());
+            TEST_ASSERT (true, (bool)o2);
+            TEST_ASSERT (10, *o2);
+
+            o1 = 11;
+            o2 = 12;
+            TEST_ASSERT (true, o1.has_value ());
+            TEST_ASSERT (true, (bool)o1);
+            TEST_ASSERT (11, *o1);
+            TEST_ASSERT (true, o2.has_value ());
+            TEST_ASSERT (true, (bool)o2);
+            TEST_ASSERT (12, *o2);
+        }
+        {
+            opt<std::string> o1;
+            opt<std::string> o2 ("Test");
+
+            TEST_ASSERT (false, o1.has_value ());
+            TEST_ASSERT (false, o1);
+            TEST_ASSERT (true, o2.has_value ());
+            TEST_ASSERT (true, (bool)o2);
+            TEST_ASSERT ("Test", *o2);
+        }
+    }
+
     void test_from ()
     {
         using namespace cpplinq;
@@ -889,6 +946,7 @@ namespace
 int main ()
 {
     // -------------------------------------------------------------------------
+    test_opt        ();
     test_from       ();
     test_count      ();
     test_first      ();
