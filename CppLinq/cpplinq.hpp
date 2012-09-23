@@ -104,25 +104,6 @@ namespace cpplinq
         {
             typedef     TValue  value_type;
 
-            CPPLINQ_INLINEMETHOD static void move (
-                    void * to
-                ,   void * from
-                ) throw ()
-            {
-                auto f = reinterpret_cast<value_type*> (from); 
-                new (to) value_type (std::move (*f));
-                f->~value_type ();
-            }
-
-            CPPLINQ_INLINEMETHOD static void copy (
-                    void * to
-                ,   void const * from
-                ) throw ()
-            {
-                auto f = reinterpret_cast<value_type const *> (from); 
-                new (to) value_type (*f);
-            }
-
             CPPLINQ_INLINEMETHOD opt () throw ()
                 :   is_initialized (false)
             {
@@ -163,7 +144,7 @@ namespace cpplinq
                 v.is_initialized = false;
             }
 
-            void swap (opt & v)
+            CPPLINQ_METHOD void swap (opt & v)
             {
                 if (is_initialized && v.is_initialized)
                 {
@@ -189,8 +170,6 @@ namespace cpplinq
                 {
                     // Do nothing
                 }
-
-
             }
 
             CPPLINQ_INLINEMETHOD opt & operator= (opt const & v)
@@ -302,6 +281,27 @@ namespace cpplinq
 
             storage_type    storage         ;
             bool            is_initialized  ;
+
+            CPPLINQ_INLINEMETHOD static void move (
+                    storage_type * to
+                ,   storage_type * from
+                ) throw ()
+            {
+                auto f = reinterpret_cast<value_type*> (from); 
+                new (to) value_type (std::move (*f));
+                f->~value_type ();
+            }
+
+            CPPLINQ_INLINEMETHOD static void copy (
+                    storage_type * to
+                ,   storage_type const * from
+                )
+            {
+                auto f = reinterpret_cast<value_type const *> (from); 
+                new (to) value_type (*f);
+            }
+
+
         };
 
         // -------------------------------------------------------------------------
