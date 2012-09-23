@@ -438,7 +438,7 @@ namespace
         {
             std::wstring concatenate_result = 
                     from (empty) 
-                >>  select ([](int i){return std::wstring();})
+                >>  select ([] (int i){return std::wstring ();})
                 >>  concatenate (L"")
                 ;
             TEST_ASSERT (true, concatenate_result.empty ());
@@ -615,14 +615,42 @@ namespace
         TEST_PRELUDE ();
 
         {
-            // TODO: why do I need to use from_copy
+            auto select_many_result = 
+                    from_iterators (customers, customers) 
+                >>  select_many ([](customer const & c){return from_copy (c.last_name);}) 
+                >>  to_vector ()
+                ;
+
+            TEST_ASSERT (0, (int)select_many_result.size ());
+        }
+        {
+            std::vector<char> expected; 
+            for (auto customer : customers)
+            {
+                expected.insert (
+                        expected.end ()
+                    ,   customer.last_name.begin ()
+                    ,   customer.last_name.end ()
+                    );
+            }
+
+            // TODO: figure out why I need to use from_copy
             auto select_many_result = 
                     from_array (customers) 
                 >>  select_many ([](customer const & c){return from_copy (c.last_name);}) 
                 >>  to_vector ()
                 ;
 
-            TEST_ASSERT (41, (int)select_many_result.size ());
+            if (TEST_ASSERT ((int)expected.size (), (int)select_many_result.size ()))
+            {
+                for (auto iter = 0U; iter < expected.size (); ++iter)
+                {
+                    if (!TEST_ASSERT (expected[iter], select_many_result[iter]))
+                    {
+                        printf ("    @index:%d\r\n", iter);
+                    }
+                }
+            }
         }
 
     }
