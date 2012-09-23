@@ -615,12 +615,14 @@ namespace
         TEST_PRELUDE ();
 
         {
+            // TODO: why do I need to use from_copy
             auto select_many_result = 
                     from_array (customers) 
                 >>  select_many ([](customer const & c){return from_copy (c.last_name);}) 
                 >>  to_vector ()
                 ;
 
+            TEST_ASSERT (41, (int)select_many_result.size ());
         }
 
     }
@@ -1013,7 +1015,7 @@ int main ()
 #endif
         );
 
-    //_CrtDumpMemoryLeaks();
+    //_CrtDumpMemoryLeaks ();
 
     return r ? 101 : 0;
 }

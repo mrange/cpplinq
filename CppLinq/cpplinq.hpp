@@ -29,6 +29,11 @@
 #define CPPLINQ_METHOD 
 #define CPPLINQ_INLINEMETHOD inline
 
+// TODO:    Struggled with getting slice protection 
+//          and assignment operator detection for MINGW
+//          Look into using delete standard functions
+// #define CPPLINQ_DETECT_INVALID_METHODS
+
 // ----------------------------------------------------------------------------
 namespace cpplinq
 {               
@@ -40,7 +45,7 @@ namespace cpplinq
     // -------------------------------------------------------------------------
 
     // -------------------------------------------------------------------------
-    // Tedious implementation details of clinq
+    // Tedious implementation details of cpplinq
     // -------------------------------------------------------------------------
 
     namespace detail
@@ -99,60 +104,24 @@ namespace cpplinq
         {
             typedef     TValue  value_type;
 
-            template<bool has_move_ctor>
-            struct helper_type;
-
-            template<>
-            struct helper_type<true>
+            CPPLINQ_INLINEMETHOD static void move (
+                    void * to
+                ,   void * from
+                ) throw ()
             {
-                CPPLINQ_INLINEMETHOD static void move (
-                        void * to
-                    ,   void * from
-                    ) throw ()
-                {
-                    auto f = reinterpret_cast<value_type*> (from); 
-                    new (to) value_type (std::move (*f));
-                }
+                auto f = reinterpret_cast<value_type*> (from); 
+                new (to) value_type (std::move (*f));
+                f->~value_type ();
+            }
 
-                CPPLINQ_INLINEMETHOD static void copy (
-                        void * to
-                    ,   void const * from
-                    ) throw ()
-                {
-                    auto f = reinterpret_cast<value_type const *> (from); 
-                    new (to) value_type (*f);
-                }
-            };
-
-            template<>
-            struct helper_type<false>
+            CPPLINQ_INLINEMETHOD static void copy (
+                    void * to
+                ,   void const * from
+                ) throw ()
             {
-                CPPLINQ_INLINEMETHOD static void move (
-                        void * to
-                    ,   void * from
-                    ) throw ()
-                {
-                    auto f = reinterpret_cast<value_type*> (from); 
-                    new (to) value_type (*f);
-                    f->~value_type ();
-                }
-
-                CPPLINQ_INLINEMETHOD static void copy (
-                        void * to
-                    ,   void const * from
-                    ) throw ()
-                {
-                    auto f = reinterpret_cast<value_type const *> (from); 
-                    new (to) value_type (*f);
-                }
-            };
-
-            typedef helper_type<
-//                std::has_move_constructor<value_type>::value
-                std::is_move_constructible<value_type>::value
-                > 
-                helper
-                ;
+                auto f = reinterpret_cast<value_type const *> (from); 
+                new (to) value_type (*f);
+            }
 
             CPPLINQ_INLINEMETHOD opt () throw ()
                 :   is_initialized (false)
@@ -162,15 +131,17 @@ namespace cpplinq
             CPPLINQ_INLINEMETHOD explicit opt (value_type value)
                 :   is_initialized      (true)
             {
-                new (get_ptr ()) value_type (std::move (value));
+                new (&storage) value_type (std::move (value));
             }
 
             CPPLINQ_INLINEMETHOD ~opt () throw ()
             {
-                if (is_initialized)
+                auto ptr = get_ptr ();
+                if (ptr)
                 {
-                    get_ptr ()->~value_type ();
+                    ptr->~value_type ();
                 }
+                is_initialized = false;
             }
 
             CPPLINQ_INLINEMETHOD opt (opt const & v)
@@ -178,7 +149,7 @@ namespace cpplinq
             {
                 if (v.is_initialized)
                 {
-                    helper::copy (&storage  , &v.storage    );
+                    copy (&storage  , &v.storage    );
                 }
             }
 
@@ -187,7 +158,7 @@ namespace cpplinq
             {
                 if (v.is_initialized)
                 {
-                    helper::move (&storage  , &v.storage    );
+                    move (&storage  , &v.storage    );
                 }
                 v.is_initialized = false;
             }
@@ -198,19 +169,19 @@ namespace cpplinq
                 {
                     storage_type tmp;
 
-                    helper::move (&tmp          , &storage      );
-                    helper::move (&storage      , &v.storage    );
-                    helper::move (&v.storage    , &tmp          );
+                    move (&tmp          , &storage      );
+                    move (&storage      , &v.storage    );
+                    move (&v.storage    , &tmp          );
                 }
                 else if (is_initialized)
                 {
-                    helper::move (&v.storage    , &storage      );
+                    move (&v.storage    , &storage      );
                     v.is_initialized= true;
                     is_initialized  = false;
                 }
                 else if (v.is_initialized)
                 {
-                    helper::move (&storage      , &v.storage    );
+                    move (&storage      , &v.storage    );
                     v.is_initialized= false;
                     is_initialized  = true;
                 }
@@ -259,7 +230,7 @@ namespace cpplinq
             {
                 if (is_initialized)
                 {
-                    return reinterpret_cast<value_type*> (&storage);
+                    return reinterpret_cast<value_type const *> (&storage);
                 }
                 else
                 {
@@ -337,6 +308,7 @@ namespace cpplinq
         // The generic interface
         // -------------------------------------------------------------------------
         // _range classes:
+        //      inherit base_range
         //      COPYABLE
         //      MOVEABLE (movesemantics)
         //      typedef                 ...         this_type       ;
@@ -347,6 +319,7 @@ namespace cpplinq
         //      typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const 
         // -------------------------------------------------------------------------
         // _builder classes:
+        //      inherit base_builder
         //      COPYABLE
         //      MOVEABLE (movesemantics)
         //      typedef                 ...         this_type       ;
@@ -354,8 +327,65 @@ namespace cpplinq
         //      TAggregated build (TRange range) const
         // -------------------------------------------------------------------------
 
+        struct base_range 
+        {
+#ifdef CPPLINQ_DETECT_INVALID_METHODS
+        protected:
+            // In order to prevent object slicing
+
+            CPPLINQ_INLINEMETHOD base_range () throw ()
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD base_range (base_range const &) throw ()
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD base_range (base_range &&) throw ()
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD ~base_range () throw ()
+            {
+            }
+
+        private:
+            CPPLINQ_INLINEMETHOD base_range & operator= (base_range const &);
+            CPPLINQ_INLINEMETHOD base_range & operator= (base_range &&);
+#endif
+        };
+
+        struct base_builder
+        {
+#ifdef CPPLINQ_DETECT_INVALID_METHODS
+        protected:
+            // In order to prevent object slicing
+
+            CPPLINQ_INLINEMETHOD base_builder () throw ()
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD base_builder (base_builder const &) throw ()
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD base_builder (base_builder &&) throw ()
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD ~base_builder () throw ()
+            {
+            }
+
+        private:
+            CPPLINQ_INLINEMETHOD base_builder & operator= (base_builder const &);
+            CPPLINQ_INLINEMETHOD base_builder & operator= (base_builder &&);
+#endif
+        };
+
+
         template<typename TValueIterator>
-        struct from_range
+        struct from_range : base_range
         {
             static TValueIterator get_iterator ();
 
@@ -433,7 +463,7 @@ namespace cpplinq
         // -------------------------------------------------------------------------
 
         template<typename TContainer>
-        struct from_copy_range
+        struct from_copy_range : base_range
         {
             typedef                 from_copy_range<TContainer>         this_type       ;
 
@@ -499,7 +529,7 @@ namespace cpplinq
 
         // -------------------------------------------------------------------------
 
-        struct int_range
+        struct int_range : base_range
         {
             typedef                 int_range                           this_type       ;
             typedef                 int                                 value_type      ;
@@ -570,8 +600,31 @@ namespace cpplinq
 
         // -------------------------------------------------------------------------
 
-        struct sorting_range
+        struct sorting_range : base_range
         {
+#ifdef CPPLINQ_DETECT_INVALID_METHODS
+        protected:
+            // In order to prevent object slicing
+
+            CPPLINQ_INLINEMETHOD sorting_range () throw ()
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD sorting_range (sorting_range const &) throw ()
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD sorting_range (sorting_range &&) throw ()
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD ~sorting_range () throw ()
+            {
+            }
+        private:
+            CPPLINQ_INLINEMETHOD sorting_range & operator= (sorting_range const &);
+            CPPLINQ_INLINEMETHOD sorting_range & operator= (sorting_range &&);
+#endif
         };
 
         template<typename TRange, typename TPredicate>
@@ -696,7 +749,7 @@ namespace cpplinq
         };
 
         template<typename TPredicate>
-        struct orderby_builder
+        struct orderby_builder : base_builder
         {
             typedef                 orderby_builder<TPredicate> this_type       ;
             typedef                 TPredicate                  predicate_type  ;
@@ -866,7 +919,7 @@ namespace cpplinq
         };
 
         template<typename TPredicate>
-        struct thenby_builder
+        struct thenby_builder : base_builder
         {
             typedef                 thenby_builder<TPredicate>  this_type       ;
             typedef                 TPredicate                  predicate_type  ;
@@ -903,7 +956,7 @@ namespace cpplinq
         // -------------------------------------------------------------------------
 
         template<typename TRange, typename TPredicate>
-        struct where_range
+        struct where_range : base_range
         {
             typedef                 typename TRange::value_type     value_type      ;
 
@@ -961,7 +1014,7 @@ namespace cpplinq
         };
 
         template<typename TPredicate>
-        struct where_builder
+        struct where_builder : base_builder
         {
             typedef                 where_builder<TPredicate>   this_type       ;
             typedef                 TPredicate                  predicate_type  ;
@@ -996,7 +1049,7 @@ namespace cpplinq
         // -------------------------------------------------------------------------
 
         template<typename TRange>
-        struct take_range
+        struct take_range : base_range
         {
             typedef                 typename TRange::value_type     value_type      ;
 
@@ -1055,7 +1108,7 @@ namespace cpplinq
             }
         };
 
-        struct take_builder
+        struct take_builder : base_builder
         {
             typedef                 take_builder        this_type       ;
 
@@ -1087,7 +1140,7 @@ namespace cpplinq
         // -------------------------------------------------------------------------
 
         template<typename TRange>
-        struct skip_range
+        struct skip_range : base_range
         {
             typedef                 typename TRange::value_type     value_type      ;
 
@@ -1155,7 +1208,7 @@ namespace cpplinq
             }
         };
 
-        struct skip_builder
+        struct skip_builder : base_builder
         {
             typedef                 skip_builder        this_type       ;
 
@@ -1187,7 +1240,7 @@ namespace cpplinq
         // -------------------------------------------------------------------------
 
         template<typename TRange, typename TPredicate>
-        struct select_range
+        struct select_range : base_range
         {
             static typename TRange::value_type get_source ();
             static          TPredicate get_predicate ();
@@ -1242,7 +1295,7 @@ namespace cpplinq
         };
 
         template<typename TPredicate>
-        struct select_builder
+        struct select_builder : base_builder
         {
             typedef                 select_builder<TPredicate>  this_type       ;
             typedef                 TPredicate                  predicate_type  ;
@@ -1274,8 +1327,10 @@ namespace cpplinq
 
         // -------------------------------------------------------------------------
 
+        // Some trickery in order to force the code to compile on VS2012
+        // TODO: Report this issue
         template<typename TRange, typename TPredicate>
-        struct select_many_range
+        struct select_many_range_helper
         {
             static typename TRange::value_type get_source ();
             static          TPredicate get_predicate ();
@@ -1288,6 +1343,16 @@ namespace cpplinq
             typedef        decltype (get_inner_range ().front ())               raw_value_type          ;
             typedef        typename cleanup_type<raw_value_type>::type          value_type              ;
 
+        };
+
+        template<typename TRange, typename TPredicate>
+        struct select_many_range : base_range
+        {
+            typedef select_many_range_helper<TRange, TPredicate>    helper_type ;
+
+            typedef        typename helper_type::inner_range_type          inner_range_type     ;
+            typedef        typename helper_type::value_type                 value_type           ;
+
             typedef                 select_many_range<TRange, TPredicate>       this_type               ;
             typedef                 TRange                                      range_type              ;
             typedef                 TPredicate                                  predicate_type          ;
@@ -1295,7 +1360,8 @@ namespace cpplinq
             range_type              range       ;
             predicate_type          predicate   ;
 
-            inner_range_type*       inner_range ;
+            opt<inner_range_type>   inner_range ;
+            
 
             CPPLINQ_INLINEMETHOD select_many_range (
                     range_type      range
@@ -1303,7 +1369,6 @@ namespace cpplinq
                 ) throw ()
                 :   range       (std::move (range))
                 ,   predicate   (std::move (predicate))
-                ,   inner_range (nullptr)
             {
             }
 
@@ -1342,7 +1407,7 @@ namespace cpplinq
 
                 if (range.next ())
                 {
-                    inner_range = new inner_range_type (predicate (range.front ()));
+                    inner_range = predicate (range.front ());
                     return inner_range && inner_range->next ();
                 }
 
@@ -1351,7 +1416,7 @@ namespace cpplinq
         };
 
         template<typename TPredicate>
-        struct select_many_builder
+        struct select_many_builder : base_builder
         {
             typedef                 select_many_builder<TPredicate> this_type       ;
             typedef                 TPredicate                      predicate_type  ;
@@ -1512,7 +1577,7 @@ namespace cpplinq
 
             };
 
-            struct container_builder
+            struct container_builder : base_builder
             {
                 typedef                 container_builder       this_type       ;
 
@@ -1539,7 +1604,7 @@ namespace cpplinq
 
         // -------------------------------------------------------------------------
 
-        struct to_vector_builder
+        struct to_vector_builder : base_builder
         {
             typedef                 to_vector_builder       this_type       ;
 
@@ -1579,7 +1644,7 @@ namespace cpplinq
         // -------------------------------------------------------------------------
 
         template<typename TKeyPredicate>
-        struct to_map_builder
+        struct to_map_builder : base_builder
         {
             static TKeyPredicate get_key_predicate ();
 
@@ -1632,7 +1697,7 @@ namespace cpplinq
         // -------------------------------------------------------------------------
 
         template<typename TPredicate>
-        struct for_each_builder
+        struct for_each_builder : base_builder
         {
             typedef                 for_each_builder<TPredicate>    this_type       ;
             typedef                 TPredicate                      predicate_type  ;
@@ -1668,7 +1733,7 @@ namespace cpplinq
 
         // -------------------------------------------------------------------------
 
-        struct first_builder
+        struct first_builder : base_builder
         {
             typedef                 first_builder                   this_type       ;
 
@@ -1699,7 +1764,7 @@ namespace cpplinq
 
         // -------------------------------------------------------------------------
 
-        struct count_builder
+        struct count_builder : base_builder
         {
             typedef                 count_builder                   this_type       ;
 
@@ -1731,7 +1796,7 @@ namespace cpplinq
 
         // -------------------------------------------------------------------------
 
-        struct sum_builder
+        struct sum_builder : base_builder
         {
             typedef                 sum_builder                     this_type       ;
 
@@ -1762,7 +1827,7 @@ namespace cpplinq
 
         // -------------------------------------------------------------------------
 
-        struct max_builder
+        struct max_builder : base_builder
         {
             typedef                 max_builder                         this_type       ;
 
@@ -1798,7 +1863,7 @@ namespace cpplinq
 
         // -------------------------------------------------------------------------
 
-        struct min_builder
+        struct min_builder : base_builder
         {
             typedef                 min_builder                         this_type       ;
 
@@ -1835,7 +1900,7 @@ namespace cpplinq
         // -------------------------------------------------------------------------
 
         template<typename TCharType>
-        struct concatenate_builder
+        struct concatenate_builder : base_builder
         {
             typedef                         concatenate_builder<TCharType>  this_type       ;
 
@@ -1909,7 +1974,7 @@ namespace cpplinq
     }   // namespace detail
 
     // -------------------------------------------------------------------------
-    // The interface of clinq
+    // The interface of cpplinq
     // -------------------------------------------------------------------------
 
     // Range sources
