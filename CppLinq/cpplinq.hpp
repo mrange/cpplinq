@@ -195,9 +195,7 @@ namespace cpplinq
                     return *this;
                 }
 
-                opt<value_type> o (std::move (v));
-
-                swap (o);
+                swap (v);
 
                 return *this;
             }

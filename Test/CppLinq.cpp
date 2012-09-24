@@ -253,6 +253,15 @@ namespace
             TEST_ASSERT (true, (bool)o2);
             TEST_ASSERT (10, *o2);
 
+            opt<int> o3 (o2);
+            opt<int> o4 (o1);
+            o3.swap (o4);
+            TEST_ASSERT (false, o3.has_value ());
+            TEST_ASSERT (false, o3);
+            TEST_ASSERT (true, o4.has_value ());
+            TEST_ASSERT (true, (bool)o4);
+            TEST_ASSERT (10, *o4);
+
             o1.swap (o2);
             TEST_ASSERT (true, o1.has_value ());
             TEST_ASSERT (true, (bool)o1);
@@ -276,6 +285,7 @@ namespace
             TEST_ASSERT (true, o2.has_value ());
             TEST_ASSERT (true, (bool)o2);
             TEST_ASSERT (12, *o2);
+
         }
         {
             opt<std::string> o1;
@@ -286,6 +296,24 @@ namespace
             TEST_ASSERT (true, o2.has_value ());
             TEST_ASSERT (true, (bool)o2);
             TEST_ASSERT ("Test", *o2);
+            TEST_ASSERT (4, (int)o2->size ());
+        
+            o1 = "Test2";
+            o2 = "Test3";
+            TEST_ASSERT (true, o1.has_value ());
+            TEST_ASSERT (true, (bool)o1);
+            TEST_ASSERT ("Test2", *o1);
+            TEST_ASSERT (true, o2.has_value ());
+            TEST_ASSERT (true, (bool)o2);
+            TEST_ASSERT ("Test3", *o2);
+
+            o1.swap(o2);
+            TEST_ASSERT (true, o1.has_value ());
+            TEST_ASSERT (true, (bool)o1);
+            TEST_ASSERT ("Test3", *o1);
+            TEST_ASSERT (true, o2.has_value ());
+            TEST_ASSERT (true, (bool)o2);
+            TEST_ASSERT ("Test2", *o2);
         }
     }
 
