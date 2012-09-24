@@ -41,11 +41,11 @@ namespace cpplinq
 {               
     // -------------------------------------------------------------------------
 
-    int const small_pod_size = sizeof (double);
+    typedef std::size_t size_type;
 
     // -------------------------------------------------------------------------
 
-    typedef std::size_t size_type;
+    size_type const small_pod_size = sizeof (double);
 
     // -------------------------------------------------------------------------
 
