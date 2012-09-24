@@ -1536,22 +1536,19 @@ namespace cpplinq
         {
             // -------------------------------------------------------------------------
 
-            // TODO:  operator-> is not implemented due to technical difficulties
-            //    front () returns a value not a reference which makes this hard
-            //    Investigate how boost does this
-
-            // The end result is that the iterator doesn't comply yet to the 
-            // contract of a forward iterator, thus it's in experimental namespace
-
-            // TODO:
-            // Now that front () may return a reference operator-> should be conditionally
-            // implemented
+            // TODO: Verify that container range aggregator has the right semantics
 
             template<typename TRange>
             struct container_iterator
             {
                 typedef                 std::forward_iterator_tag   iterator_category   ;
                 typedef     typename    TRange::value_type          value_type          ;
+                typedef     typename    TRange::return_type         return_type         ;
+                enum    
+                { 
+                    returns_reference   = TRange::returns_reference   , 
+                };
+
                 typedef                 std::ptrdiff_t              difference_type     ;
                 typedef                 value_type*                 pointer             ;
 	            typedef                 value_type&                 reference           ;
@@ -1585,11 +1582,20 @@ namespace cpplinq
                 {
                 }
 
-                CPPLINQ_INLINEMETHOD value_type  operator* () const throw ()
+                CPPLINQ_INLINEMETHOD return_type        operator* () const
                 {
                     assert (has_value);
                     assert (range);
                     return range->front ();
+                }
+
+                CPPLINQ_INLINEMETHOD value_type const * operator-> () const
+                {
+                    static_assert (
+                            returns_reference
+                        ,   "operator-> requires a range that returns a reference, typically select causes ranges to return values not references"
+                        );
+                    return &range->front ();
                 }
 
                 CPPLINQ_INLINEMETHOD this_type & operator++()
@@ -1941,7 +1947,7 @@ namespace cpplinq
                     auto v = range.front ();
                     if (current < v)
                     {
-                        current = v;
+                        current = std::move (v);
                     }
                 }
                 return current;
@@ -1977,7 +1983,7 @@ namespace cpplinq
                     auto v = range.front ();
                     if (current > v)
                     {
-                        current = v;
+                        current = std::move (v);
                     }
                 }
                 return current;

@@ -651,7 +651,6 @@ namespace
             TEST_ASSERT (0, (int)v.size ());
         }
 
-        // Container is experimental and doesn't have the right semantics just yet
         {
             auto container_result = from_iterators (ints, ints + count_of_ints) >> container ();
             std::vector<int> v (container_result.begin (), container_result.end ());
@@ -662,6 +661,21 @@ namespace
                     test_int_at (index, v[index]);
                 }
             }
+        }
+        {
+            auto container_result   = from_array (customers) >> container ();
+            auto begin              = container_result.begin ();
+            auto end                = container_result.end ();
+
+            TEST_ASSERT (true, (begin != end));
+            TEST_ASSERT (false, (begin == end));
+
+            auto c = *begin;
+
+            TEST_ASSERT (1, (int)c.id);
+            TEST_ASSERT (1, (int)begin->id);
+            TEST_ASSERT (1, (int)(*begin).id);
+
 
         }
     }
