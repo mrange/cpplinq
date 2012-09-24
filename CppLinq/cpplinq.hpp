@@ -625,7 +625,7 @@ namespace cpplinq
                 return range_builder.build (*this);
             }
 
-            CPPLINQ_INLINEMETHOD int front () const 
+            CPPLINQ_INLINEMETHOD return_type front () const 
             {
                 return current;
             }

@@ -415,6 +415,37 @@ namespace
         }
     }
 
+    void test_range ()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE ();
+
+        {
+            auto start = 12;
+            auto count = 10;
+            auto index = start;
+
+            auto q = range (start, count);
+
+            typedef decltype (q.front ())   return_type;
+            static_assert (
+                    !std::is_reference<return_type>::value 
+                ,   "front () must return non-reference when value_type = int"
+                );
+
+            while (q.next ())
+            {
+                if (!TEST_ASSERT (index, q.front ()))
+                {
+                        printf ("    @index:%d\r\n", index);
+                }
+                ++index;
+            }
+            TEST_ASSERT (start + count , index);
+        }
+    }
+
     void test_count ()
     {
         using namespace cpplinq;
@@ -1065,6 +1096,7 @@ namespace
         // -------------------------------------------------------------------------
         test_opt        ();
         test_from       ();
+        test_range      ();
         test_count      ();
         test_first      ();
         test_sum        ();
