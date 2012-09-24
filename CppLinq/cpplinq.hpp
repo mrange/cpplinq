@@ -39,6 +39,9 @@
 // ----------------------------------------------------------------------------
 namespace cpplinq
 {               
+    // -------------------------------------------------------------------------
+
+    int const small_pod_size = sizeof (double);
 
     // -------------------------------------------------------------------------
 
@@ -58,6 +61,27 @@ namespace cpplinq
         size_type const invalid_size = static_cast<size_type>(-1);
 
         // -------------------------------------------------------------------------
+
+        template<typename TValue>
+        struct is_small_pod
+        {
+            enum
+            {
+                value = (std::is_pod<TValue>::value && (sizeof (TValue) <= small_pod_size))
+            };
+        };
+
+        template<bool b, typename TIf, typename TElse>
+        struct if_else
+        {
+            typedef TIf type;
+        };
+
+        template<typename TIf, typename TElse>
+        struct if_else<false, TIf, TElse>
+        {
+            typedef TElse type;
+        };
 
         template<typename TValue>
         struct cleanup_type
@@ -313,6 +337,8 @@ namespace cpplinq
         //      MOVEABLE (movesemantics)
         //      typedef                 ...         this_type       ;
         //      typedef                 ...         value_type      ;
+        //      typedef                 ...         return_type     ;   // value_type | value_type const &
+        //      enum { returns_reference = 0|1 };
         //      value_type front () const
         //      bool next ()
         //      template<typename TRangeBuilder>
@@ -392,8 +418,16 @@ namespace cpplinq
             typedef                 from_range<TValueIterator>          this_type       ;
             typedef                 TValueIterator                      iterator_type   ;
 
-            typedef                 decltype (*get_iterator ())           raw_value_type  ;
+            typedef                 decltype (*get_iterator ())         raw_value_type  ;
             typedef        typename cleanup_type<raw_value_type>::type  value_type      ;
+            enum    
+            { 
+                returns_reference = is_small_pod<value_type>::value ? 0 : 1 , 
+            };
+            typedef        typename if_else<
+                                            returns_reference
+                                        ,   value_type const &
+                                        ,   value_type>::type           return_type     ;
 
             iterator_type           begin   ;
             iterator_type           end     ;
@@ -434,7 +468,7 @@ namespace cpplinq
                 return range_builder.build (*this);
             }
 
-            CPPLINQ_INLINEMETHOD value_type front () const 
+            CPPLINQ_INLINEMETHOD return_type front () const 
             {
                 assert (!start);
                 assert (current != end);
@@ -470,6 +504,14 @@ namespace cpplinq
             typedef                 TContainer                          container_type  ;
             typedef        typename TContainer::const_iterator          iterator_type   ;
             typedef        typename TContainer::value_type              value_type      ;
+            enum    
+            { 
+                returns_reference = is_small_pod<value_type>::value ? 0 : 1 , 
+            };
+            typedef        typename if_else<
+                                            returns_reference
+                                        ,   value_type const &
+                                        ,   value_type>::type           return_type     ;
 
             container_type          container   ;
 
@@ -502,7 +544,7 @@ namespace cpplinq
                 return range_builder.build (*this);
             }
 
-            CPPLINQ_INLINEMETHOD value_type front () const 
+            CPPLINQ_INLINEMETHOD return_type front () const 
             {
                 assert (!start);
                 assert (current != container.end ());
@@ -533,6 +575,11 @@ namespace cpplinq
         {
             typedef                 int_range                           this_type       ;
             typedef                 int                                 value_type      ;
+            typedef                 int                                 return_type     ;
+            enum    
+            { 
+                returns_reference = 0   , 
+            };
 
             bool                    start   ;
             int                     current ;
@@ -630,11 +677,19 @@ namespace cpplinq
         template<typename TRange, typename TPredicate>
         struct orderby_range : sorting_range
         {
-            typedef                 typename TRange::value_type         value_type      ;
 
-            typedef                 orderby_range<TRange, TPredicate>   this_type       ;
-            typedef                 TRange                              range_type      ;
-            typedef                 TPredicate                          predicate_type  ;
+            typedef                 orderby_range<TRange, TPredicate>   this_type               ;
+            typedef                 TRange                              range_type              ;
+            typedef                 TPredicate                          predicate_type          ;
+
+            typedef                 typename TRange::value_type         value_type              ;
+            typedef                 typename TRange::return_type        forwarding_return_type  ;
+            typedef                 value_type const &                  return_type             ;
+            enum    
+            { 
+                forward_returns_reference   = TRange::returns_reference ,
+                returns_reference           = 1                         , 
+            };
 
             range_type              range           ;
             predicate_type          predicate       ;
@@ -677,7 +732,7 @@ namespace cpplinq
             {
             }
 
-            CPPLINQ_INLINEMETHOD value_type forwarding_front () const 
+            CPPLINQ_INLINEMETHOD forwarding_return_type forwarding_front () const 
             {
                 return range.front ();
             }
@@ -705,7 +760,7 @@ namespace cpplinq
                 return range_builder.build (*this);
             }
 
-            CPPLINQ_INLINEMETHOD value_type front () const 
+            CPPLINQ_INLINEMETHOD return_type front () const 
             {
                 return sorted_values[current];
             }
@@ -788,11 +843,18 @@ namespace cpplinq
         template<typename TRange, typename TPredicate>
         struct thenby_range : sorting_range
         {
-            typedef                 typename TRange::value_type         value_type      ;
+            typedef                 thenby_range<TRange, TPredicate>        this_type               ;
+            typedef                 TRange                                  range_type              ;
+            typedef                 TPredicate                              predicate_type          ;
 
-            typedef                 thenby_range<TRange, TPredicate>    this_type       ;
-            typedef                 TRange                              range_type      ;
-            typedef                 TPredicate                          predicate_type  ;
+            typedef                 typename TRange::value_type             value_type              ;
+            typedef                 typename TRange::forwarding_return_type forwarding_return_type  ;
+            typedef                 value_type const &                      return_type             ;
+            enum    
+            { 
+                forward_returns_reference   = TRange::forward_returns_reference ,
+                returns_reference           = 1                                 , 
+            };
 
             range_type              range           ;
             predicate_type          predicate       ;
@@ -841,7 +903,7 @@ namespace cpplinq
                 return range_builder.build (*this);
             }
 
-            CPPLINQ_INLINEMETHOD value_type forwarding_front () const 
+            CPPLINQ_INLINEMETHOD forwarding_return_type forwarding_front () const 
             {
                 return range.front ();
             }
@@ -875,7 +937,7 @@ namespace cpplinq
                 }
             }
 
-            CPPLINQ_INLINEMETHOD value_type front () const 
+            CPPLINQ_INLINEMETHOD return_type front () const 
             {
                 return sorted_values[current];
             }
@@ -958,11 +1020,16 @@ namespace cpplinq
         template<typename TRange, typename TPredicate>
         struct where_range : base_range
         {
-            typedef                 typename TRange::value_type     value_type      ;
-
             typedef                 where_range<TRange, TPredicate> this_type       ;
             typedef                 TRange                          range_type      ;
             typedef                 TPredicate                      predicate_type  ;
+
+            typedef                 typename TRange::value_type     value_type      ;
+            typedef                 typename TRange::return_type    return_type     ;
+            enum    
+            { 
+                returns_reference   = TRange::returns_reference   , 
+            };
 
             range_type              range       ;
             predicate_type          predicate   ;
@@ -994,7 +1061,7 @@ namespace cpplinq
                 return range_builder.build (*this);
             }
 
-            CPPLINQ_INLINEMETHOD value_type front () const 
+            CPPLINQ_INLINEMETHOD return_type front () const 
             {
                 return range.front ();
             }
@@ -1051,10 +1118,15 @@ namespace cpplinq
         template<typename TRange>
         struct take_range : base_range
         {
-            typedef                 typename TRange::value_type     value_type      ;
-
             typedef                 take_range<TRange>              this_type       ;
             typedef                 TRange                          range_type      ;
+
+            typedef                 typename TRange::value_type     value_type      ;
+            typedef                 typename TRange::return_type    return_type     ;
+            enum    
+            { 
+                returns_reference   = TRange::returns_reference   , 
+            };
 
             range_type              range       ;
             size_type               count       ;
@@ -1091,7 +1163,7 @@ namespace cpplinq
                 return range_builder.build (*this);
             }
 
-            CPPLINQ_INLINEMETHOD value_type front () const 
+            CPPLINQ_INLINEMETHOD return_type front () const 
             {
                 return range.front ();
             }
@@ -1142,10 +1214,15 @@ namespace cpplinq
         template<typename TRange>
         struct skip_range : base_range
         {
-            typedef                 typename TRange::value_type     value_type      ;
-
             typedef                 skip_range<TRange>              this_type       ;
             typedef                 TRange                          range_type      ;
+
+            typedef                 typename TRange::value_type     value_type      ;
+            typedef                 typename TRange::return_type    return_type     ;
+            enum    
+            { 
+                returns_reference   = TRange::returns_reference   , 
+            };
 
             range_type              range       ;
             size_type               count       ;
@@ -1181,7 +1258,7 @@ namespace cpplinq
                 return range_builder.build (*this);
             }
 
-            CPPLINQ_INLINEMETHOD value_type front () const 
+            CPPLINQ_INLINEMETHOD return_type front () const 
             {
                 return range.front ();
             }
@@ -1246,8 +1323,13 @@ namespace cpplinq
             static          TPredicate get_predicate ();
 
 
-            typedef         decltype (get_predicate ()(get_source ()))     raw_value_type  ;
+            typedef         decltype (get_predicate ()(get_source ()))  raw_value_type  ;
             typedef        typename cleanup_type<raw_value_type>::type  value_type      ;
+            typedef                 value_type                          return_type     ;
+            enum    
+            { 
+                returns_reference   = 0   , 
+            };
 
             typedef                 select_range<TRange, TPredicate>    this_type       ;
             typedef                 TRange                              range_type      ;
@@ -1283,7 +1365,7 @@ namespace cpplinq
                 return range_builder.build (*this);
             }
 
-            CPPLINQ_INLINEMETHOD value_type front () const 
+            CPPLINQ_INLINEMETHOD return_type front () const 
             {
                 return predicate (range.front ());
             }
@@ -1347,10 +1429,15 @@ namespace cpplinq
         template<typename TRange, typename TPredicate>
         struct select_many_range : base_range
         {
-            typedef select_many_range_helper<TRange, TPredicate>    helper_type ;
+            typedef select_many_range_helper<TRange, TPredicate>    helper_type         ;
 
-            typedef        typename helper_type::inner_range_type          inner_range_type     ;
-            typedef        typename helper_type::value_type                 value_type           ;
+            typedef        typename helper_type::inner_range_type   inner_range_type    ;
+            typedef        typename helper_type::value_type         value_type          ;
+            typedef                 value_type                      return_type         ;
+            enum    
+            { 
+                returns_reference   = 0   , 
+            };
 
             typedef                 select_many_range<TRange, TPredicate>       this_type               ;
             typedef                 TRange                                      range_type              ;
@@ -1391,7 +1478,7 @@ namespace cpplinq
                 return range_builder.build (*this);
             }
 
-            CPPLINQ_INLINEMETHOD value_type front () const 
+            CPPLINQ_INLINEMETHOD return_type front () const 
             {
                 assert (inner_range);
                 return inner_range->front ();
@@ -1455,6 +1542,10 @@ namespace cpplinq
 
             // The end result is that the iterator doesn't comply yet to the 
             // contract of a forward iterator, thus it's in experimental namespace
+
+            // TODO:
+            // Now that front () may return a reference operator-> should be conditionally
+            // implemented
 
             template<typename TRange>
             struct container_iterator
@@ -1536,9 +1627,14 @@ namespace cpplinq
             template<typename TRange>
             struct container
             {
-                typedef                 container<TRange>   this_type   ;
-                typedef                 TRange              range_type  ;
-                typedef     typename    TRange::value_type  value_type  ;
+                typedef                 container<TRange>   this_type                   ;
+                typedef                 TRange              range_type                  ;
+                typedef                 typename TRange::value_type     value_type      ;
+                typedef                 typename TRange::return_type    return_type     ;
+                enum    
+                { 
+                    returns_reference   = TRange::returns_reference   , 
+                };
 
                 range_type              range   ;
 

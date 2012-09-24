@@ -1,13 +1,15 @@
+NEXT:14
+13. Document the relaxation of front ()
+8.  Document select_many range operator
+12. Document how to build a range source
+11. First range operator should take a default value
+4.  to_map should accept a value selector predicate
+7.  Fix container range aggregator iterator semantics
+9.  Document container range aggregator
+5.  Add until range aggregator
+        . Like for_each but terminates if predicate returns false
 2.  Add set manipulation range operators
         . intersect
         . union
         . exclude
         . distinct
-4.  to_map should accept a value selector predicate
-5.  Add until range aggregator
-        . Like for_each but terminates if predicate returns false
-7.  Fix container range aggregator iterator semantics
-8.  Document select_many range operator
-9.  Document container range aggregator
-10. Document how to build a range source
-11. First range aggregator should take a default value

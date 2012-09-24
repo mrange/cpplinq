@@ -325,6 +325,13 @@ namespace
 
         {
             auto q = from (empty);
+
+            typedef decltype (q.front ())   return_type;
+            static_assert (
+                    !std::is_reference<return_type>::value 
+                ,   "front () must return non-reference when value_type = int"
+                );
+
             auto index = 0;
 
             while (q.next ())
@@ -337,6 +344,12 @@ namespace
         {
             auto q = from_array (ints);
 
+            typedef decltype (q.front ())   return_type;
+            static_assert (
+                    !std::is_reference<return_type>::value 
+                ,   "front () must return non-reference when value_type = int"
+                );
+
             auto index = 0;
 
             while (q.next ())
@@ -348,6 +361,13 @@ namespace
         }
         {
             auto q = from_copy (empty);
+
+            typedef decltype (q.front ())   return_type;
+            static_assert (
+                    !std::is_reference<return_type>::value 
+                ,   "front () must return non-reference when value_type = int"
+                );
+
             auto index = 0;
 
             while (q.next ())
@@ -361,6 +381,12 @@ namespace
             std::vector<int> is (ints, ints + count_of_ints);
             auto q = from_copy (is);
 
+            typedef decltype (q.front ())   return_type;
+            static_assert (
+                    !std::is_reference<return_type>::value 
+                ,   "front () must return non-reference when value_type = int"
+                );
+
             auto index = 0;
 
             while (q.next ())
@@ -369,6 +395,23 @@ namespace
                 ++index;
             }
             TEST_ASSERT (count_of_ints, index);
+        }
+        {
+            auto q = from_array (customers);
+            typedef decltype (q.front ())   return_type;
+            static_assert (
+                    std::is_reference<return_type>::value 
+                ,   "front () must return non-reference when value_type = customer"
+                );
+        }
+        {
+            std::vector<customer> cs;
+            auto q = from_copy (cs);
+            typedef decltype (q.front ())   return_type;
+            static_assert (
+                    std::is_reference<return_type>::value 
+                ,   "front () must return non-reference when value_type = customer"
+                );
         }
     }
 
@@ -649,9 +692,9 @@ namespace
         TEST_PRELUDE ();
 
         {
-            auto select_many_result = 
+            std::vector<char> select_many_result = 
                     from_iterators (customers, customers) 
-                >>  select_many ([](customer const & c){return from_copy (c.last_name);}) 
+                >>  select_many ([](customer const & c){return from (c.last_name);}) 
                 >>  to_vector ()
                 ;
 
@@ -668,34 +711,22 @@ namespace
                     );
             }
 
-            // TODO:    figure out why I need to use from_copy
-            //          Figured it out and it has to do with the front ()
-            //          returns a value type
-            //          Perhaps a optimization could be in order where
-            //          front depending on the preceding range returns a 
-            //          value or a reference
-            //          Then front would work in the case below
-            //          This would also be beneficial for other cases
-            //          Obviously range aggregators such as select
-            //          can't return a reference
-            auto select_many_result = 
+            std::vector<char> select_many_result = 
                     from_array (customers) 
-                >>  select ([](customer const & c){return from (c.last_name);}) 
+                >>  select_many ([](customer const & c){return from (c.last_name);}) 
                 >>  to_vector ()
                 ;
 
-            auto x = select_many_result[0];
-
-            //if (TEST_ASSERT ((int)expected.size (), (int)select_many_result.size ()))
-            //{
-            //    for (auto index = 0U; index < expected.size (); ++index)
-            //    {
-            //        if (!TEST_ASSERT (expected[index], select_many_result[index]))
-            //        {
-            //            printf ("    @index:%d\r\n", index);
-            //        }
-            //    }
-            //}
+            if (TEST_ASSERT ((int)expected.size (), (int)select_many_result.size ()))
+            {
+                for (auto index = 0U; index < expected.size (); ++index)
+                {
+                    if (!TEST_ASSERT (expected[index], select_many_result[index]))
+                    {
+                        printf ("    @index:%d\r\n", index);
+                    }
+                }
+            }
         }
 
     }
