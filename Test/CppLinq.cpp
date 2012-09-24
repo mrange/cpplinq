@@ -668,23 +668,34 @@ namespace
                     );
             }
 
-            // TODO: figure out why I need to use from_copy
+            // TODO:    figure out why I need to use from_copy
+            //          Figured it out and it has to do with the front ()
+            //          returns a value type
+            //          Perhaps a optimization could be in order where
+            //          front depending on the preceding range returns a 
+            //          value or a reference
+            //          Then front would work in the case below
+            //          This would also be beneficial for other cases
+            //          Obviously range aggregators such as select
+            //          can't return a reference
             auto select_many_result = 
                     from_array (customers) 
-                >>  select_many ([](customer const & c){return from_copy (c.last_name);}) 
+                >>  select ([](customer const & c){return from (c.last_name);}) 
                 >>  to_vector ()
                 ;
 
-            if (TEST_ASSERT ((int)expected.size (), (int)select_many_result.size ()))
-            {
-                for (auto index = 0U; index < expected.size (); ++index)
-                {
-                    if (!TEST_ASSERT (expected[index], select_many_result[index]))
-                    {
-                        printf ("    @index:%d\r\n", index);
-                    }
-                }
-            }
+            auto x = select_many_result[0];
+
+            //if (TEST_ASSERT ((int)expected.size (), (int)select_many_result.size ()))
+            //{
+            //    for (auto index = 0U; index < expected.size (); ++index)
+            //    {
+            //        if (!TEST_ASSERT (expected[index], select_many_result[index]))
+            //        {
+            //            printf ("    @index:%d\r\n", index);
+            //        }
+            //    }
+            //}
         }
 
     }

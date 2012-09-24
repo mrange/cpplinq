@@ -10,3 +10,4 @@
 8.  Document select_many range operator
 9.  Document container range aggregator
 10. Document how to build a range source
+11. First range aggregator should take a default value
