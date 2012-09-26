@@ -750,7 +750,7 @@ namespace cpplinq
                 }
                 else
                 {
-                    return predicate (l) > predicate (r);
+                    return predicate (r) < predicate (l);
                 }
             }
 
@@ -933,7 +933,7 @@ namespace cpplinq
                 }
                 else
                 {
-                    return predicate (l) > predicate (r);
+                    return predicate (r) < predicate (l);
                 }
             }
 
@@ -1981,7 +1981,7 @@ namespace cpplinq
                 while (range.next ())
                 {
                     auto v = range.front ();
-                    if (current > v)
+                    if (v < current)
                     {
                         current = std::move (v);
                     }
