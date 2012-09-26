@@ -1645,7 +1645,7 @@ namespace cpplinq
                 range_type              range   ;
 
                 CPPLINQ_INLINEMETHOD explicit container (TRange range)
-                    :   range (range)
+                    :   range (std::move (range))
                 {
                 }
 
@@ -1690,7 +1690,7 @@ namespace cpplinq
                 template<typename TRange>
                 CPPLINQ_METHOD container<TRange> build (TRange range)
                 {
-                    return container<TRange> (range);
+                    return container<TRange> (std::move (range));
                 }
 
             };
@@ -1748,7 +1748,7 @@ namespace cpplinq
             key_predicate_type          key_predicate   ;
 
             CPPLINQ_INLINEMETHOD explicit to_map_builder (key_predicate_type key_predicate) throw ()
-                :   key_predicate   (key_predicate)
+                :   key_predicate   (std::move (key_predicate))
             {
             }
 
@@ -1799,7 +1799,7 @@ namespace cpplinq
             predicate_type          predicate;
 
             CPPLINQ_INLINEMETHOD explicit for_each_builder (predicate_type predicate) throw ()
-                :   predicate    (predicate)
+                :   predicate    (std::move (predicate))
             {
             }
 
@@ -1837,7 +1837,7 @@ namespace cpplinq
 
             CPPLINQ_INLINEMETHOD first_builder (first_builder const & v) throw ()
             {
-            }
+            }           
 
             CPPLINQ_INLINEMETHOD first_builder (first_builder && v) throw ()
             {
@@ -1914,7 +1914,7 @@ namespace cpplinq
                 {
                     sum += range.front ();
                 }
-                return sum;
+                return std::move (sum);
             }
 
         };
@@ -1950,7 +1950,8 @@ namespace cpplinq
                         current = std::move (v);
                     }
                 }
-                return current;
+
+                return std::move (current);
             }
 
         };
@@ -1986,7 +1987,8 @@ namespace cpplinq
                         current = std::move (v);
                     }
                 }
-                return current;
+
+                return std::move (current);
             }
 
         };
