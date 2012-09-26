@@ -339,7 +339,7 @@ namespace cpplinq
         //      typedef                 ...         value_type      ;
         //      typedef                 ...         return_type     ;   // value_type | value_type const &
         //      enum { returns_reference = 0|1 };
-        //      value_type front () const
+        //      return_type front () const
         //      bool next ()
         //      template<typename TRangeBuilder>
         //      typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const 
