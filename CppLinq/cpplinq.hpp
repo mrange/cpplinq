@@ -1211,6 +1211,116 @@ namespace cpplinq
 
         // -------------------------------------------------------------------------
 
+        template<typename TRange, typename TPredicate>
+        struct take_while_range : base_range
+        {
+            typedef                 take_while_range<TRange, TPredicate>    this_type       ;
+            typedef                 TRange                                  range_type      ;
+            typedef                 TPredicate                              predicate_type  ;
+
+            typedef                 typename TRange::value_type             value_type      ;
+            typedef                 typename TRange::return_type            return_type     ;
+            enum    
+            { 
+                returns_reference   = TRange::returns_reference   , 
+            };
+
+            range_type              range       ;
+            predicate_type          predicate   ;
+            bool                    done        ;
+
+
+            CPPLINQ_INLINEMETHOD take_while_range (
+                    range_type      range
+                ,   predicate_type  predicate
+                ) throw ()
+                :   range       (std::move (range))
+                ,   predicate   (std::move (predicate))
+                ,   done        (false)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD take_while_range (take_while_range const & v)
+                :   range       (v.range)
+                ,   predicate   (v.predicate)
+                ,   done        (v.done)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD take_while_range (take_while_range && v) throw ()
+                :   range       (std::move (v.range))
+                ,   predicate   (std::move (v.predicate))
+                ,   done        (std::move (v.done))
+            {
+            }
+
+            template<typename TRangeBuilder>
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            {
+                return range_builder.build (*this);
+            }
+
+            CPPLINQ_INLINEMETHOD return_type front () const 
+            {
+                return range.front ();
+            }
+
+            CPPLINQ_INLINEMETHOD bool next ()
+            {
+                if (done)
+                {
+                    return false;
+                }
+
+                if (!range.next ())
+                {
+                    done = true;
+                    return false;
+                }
+
+                if (!predicate (range.front ()))
+                {
+                    done = true;
+                    return false;
+                }
+
+                return true;
+            }
+        };
+
+        template<typename TPredicate>
+        struct take_while_builder : base_builder
+        {
+            typedef                 take_while_builder<TPredicate>  this_type       ;
+            typedef                 TPredicate                      predicate_type  ;
+
+            predicate_type          predicate   ;
+
+            CPPLINQ_INLINEMETHOD take_while_builder (predicate_type predicate) throw ()
+                :   predicate (std::move (predicate))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD take_while_builder (take_while_builder const & v) throw ()
+                :   predicate (v.predicate)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD take_while_builder (take_while_builder && v) throw ()
+                :   predicate (std::move (v.predicate))
+            {
+            }
+
+            template<typename TRange>
+            CPPLINQ_INLINEMETHOD take_while_range<TRange, TPredicate> build (TRange range) const throw ()
+            {
+                return take_while_range<TRange, TPredicate>(range, predicate);
+            }
+
+        };
+
+        // -------------------------------------------------------------------------
+
         template<typename TRange>
         struct skip_range : base_range
         {
@@ -1310,6 +1420,112 @@ namespace cpplinq
             CPPLINQ_INLINEMETHOD skip_range<TRange> build (TRange range) const throw ()
             {
                 return skip_range<TRange>(range, count);
+            }
+
+        };
+
+        // -------------------------------------------------------------------------
+
+        template<typename TRange, typename TPredicate>
+        struct skip_while_range : base_range
+        {
+            typedef                 skip_while_range<TRange, TPredicate>    this_type       ;
+            typedef                 TRange                                  range_type      ;
+            typedef                 TPredicate                              predicate_type  ;
+
+            typedef                 typename TRange::value_type     value_type      ;
+            typedef                 typename TRange::return_type    return_type     ;
+            enum    
+            { 
+                returns_reference   = TRange::returns_reference   , 
+            };
+
+            range_type              range       ;
+            predicate_type          predicate   ;
+            bool                    skipping    ;
+
+            CPPLINQ_INLINEMETHOD skip_while_range (
+                    range_type      range
+                ,   predicate_type  predicate
+                ) throw ()
+                :   range       (std::move (range))
+                ,   predicate   (std::move (predicate))
+                ,   skipping    (true)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD skip_while_range (skip_while_range const & v)
+                :   range       (v.range)
+                ,   predicate   (v.predicate)
+                ,   skipping    (v.skipping)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD skip_while_range (skip_while_range && v) throw ()
+                :   range       (std::move (v.range))
+                ,   predicate   (std::move (v.predicate))
+                ,   skipping    (std::move (v.skipping))
+            {
+            }
+
+            template<typename TRangeBuilder>
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            {
+                return range_builder.build (*this);
+            }
+
+            CPPLINQ_INLINEMETHOD return_type front () const 
+            {
+                return range.front ();
+            }
+
+            CPPLINQ_INLINEMETHOD bool next ()
+            {
+                if (!skipping)
+                {
+                    return range.next ();
+                }
+
+                while (range.next ())
+                {
+                    if (!predicate (range.front ()))
+                    {
+                        skipping = false;
+                        return true;
+                    }
+                }
+
+                return false;
+            }                
+        };
+
+        template <typename TPredicate>
+        struct skip_while_builder : base_builder
+        {
+            typedef                 skip_while_builder<TPredicate>  this_type       ;
+            typedef                 TPredicate                      predicate_type  ;
+
+            predicate_type          predicate   ;
+
+            CPPLINQ_INLINEMETHOD skip_while_builder (predicate_type predicate) throw ()
+                :   predicate (std::move (predicate))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD skip_while_builder (skip_while_builder const & v) throw ()
+                :   predicate (v.predicate)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD skip_while_builder (skip_while_builder && v) throw ()
+                :   predicate (std::move (v.predicate))
+            {
+            }
+
+            template<typename TRange>
+            CPPLINQ_INLINEMETHOD skip_while_range<TRange, TPredicate> build (TRange range) const throw ()
+            {
+                return skip_while_range<TRange, TPredicate>(range, predicate);
             }
 
         };
@@ -1551,7 +1767,7 @@ namespace cpplinq
 
                 typedef                 std::ptrdiff_t              difference_type     ;
                 typedef                 value_type*                 pointer             ;
-	            typedef                 value_type&                 reference           ;
+                typedef                 value_type&                 reference           ;
 
                 typedef                 container_iterator<TRange>  this_type   ;
                 typedef                 TRange                      range_type  ;
@@ -1565,7 +1781,7 @@ namespace cpplinq
                 }
 
                 CPPLINQ_INLINEMETHOD container_iterator (range_type r)   throw ()
-                    :   range      (std::move(r))
+                    :   range      (std::move (r))
                 {
                     has_value = range && range->next (); 
                 }
@@ -1995,6 +2211,46 @@ namespace cpplinq
 
         // -------------------------------------------------------------------------
 
+        struct avg_builder : base_builder
+        {
+            typedef                 avg_builder                         this_type       ;
+
+            CPPLINQ_INLINEMETHOD avg_builder () throw ()
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD avg_builder (avg_builder const & v) throw ()
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD avg_builder (avg_builder && v) throw ()
+            {
+            }
+
+
+            template<typename TRange>
+            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
+            {
+                auto sum = typename TRange::value_type ();
+                int  count = 0;
+                while (range.next ())
+                {
+                    sum += range.front ();
+                    ++count;
+                }
+
+                if (count == 0)
+                {
+                    return sum;
+                }
+
+                return std::move (sum/count);
+            }
+
+        };
+
+        // -------------------------------------------------------------------------
+
         template<typename TCharType>
         struct concatenate_builder : base_builder
         {
@@ -2063,6 +2319,73 @@ namespace cpplinq
                     );
             }
 
+        };
+
+        // -------------------------------------------------------------------------
+
+        struct any_builder : base_builder
+        {
+            typedef                 any_builder                   this_type       ;
+
+            CPPLINQ_INLINEMETHOD any_builder () throw ()
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD any_builder (any_builder const & v) throw ()
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD any_builder (any_builder && v) throw ()
+            {
+            }
+
+
+            template<typename TRange>
+            CPPLINQ_INLINEMETHOD bool build (TRange range)
+            {
+                return range.next ();
+            }
+
+        };
+
+        // -------------------------------------------------------------------------
+
+        template <typename TPredicate>
+        struct all_predicate_builder : base_builder
+        {
+            typedef                 all_predicate_builder<TPredicate>   this_type       ;
+            typedef                 TPredicate                          predicate_type  ;
+
+            predicate_type          predicate   ;
+
+            CPPLINQ_INLINEMETHOD all_predicate_builder (predicate_type  predicate) throw ()
+                :   predicate   (std::move (predicate))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD all_predicate_builder (all_predicate_builder const & v) throw ()
+                :   predicate   (v.predicate)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD all_predicate_builder (all_predicate_builder && v) throw ()
+                :   predicate   (std::move (v.predicate))
+            {
+            }
+
+            template<typename TRange>
+            CPPLINQ_INLINEMETHOD bool build (TRange range)
+            {
+                while (range.next ())
+                {
+                    if (!predicate (range.front ()))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
         };
 
         // -------------------------------------------------------------------------
@@ -2192,11 +2515,27 @@ namespace cpplinq
         return detail::where_builder<TPredicate> (std::move (predicate));
     }
 
+    template<typename TPredicate>
+    CPPLINQ_INLINEMETHOD detail::take_while_builder<TPredicate> take_while (
+            TPredicate        predicate
+        ) throw ()
+    {
+        return detail::take_while_builder<TPredicate> (std::move (predicate));
+    }
+
     CPPLINQ_INLINEMETHOD detail::take_builder take (
             size_type     count
         ) throw ()
     {
         return detail::take_builder (count);
+    }
+
+    template <typename TPredicate>
+    CPPLINQ_INLINEMETHOD detail::skip_while_builder<TPredicate> skip_while (
+            TPredicate        predicate
+        ) throw ()
+    {
+        return detail::skip_while_builder<TPredicate> (predicate);
     }
 
     CPPLINQ_INLINEMETHOD detail::skip_builder skip (
@@ -2276,6 +2615,11 @@ namespace cpplinq
         return detail::min_builder ();
     }
 
+    CPPLINQ_INLINEMETHOD detail::avg_builder  avg () throw ()
+    {
+        return detail::avg_builder ();
+    }
+
     CPPLINQ_INLINEMETHOD detail::concatenate_builder<char>  concatenate (
             std::string separator
         ,   size_type capacity = 16U
@@ -2296,6 +2640,19 @@ namespace cpplinq
                 std::move (separator)
             ,   capacity
             );
+    }
+
+    CPPLINQ_INLINEMETHOD detail::any_builder   any () throw ()
+    {
+        return detail::any_builder ();
+    }
+
+    template <typename TPredicate>
+    CPPLINQ_INLINEMETHOD detail::all_predicate_builder<TPredicate>   all (
+            TPredicate predicate
+        ) throw ()
+    {
+        return detail::all_predicate_builder<TPredicate> (std::move (predicate));
     }
 
     // -------------------------------------------------------------------------

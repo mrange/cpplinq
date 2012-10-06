@@ -463,6 +463,23 @@ namespace
         }
     }
 
+    void test_any ()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE ();
+
+        {
+            auto any_result = from (empty) >> any ();
+            TEST_ASSERT (false, any_result);
+        }
+
+        {
+            auto any_result = from_array (ints) >> any ();
+            TEST_ASSERT (true, any_result);
+        }
+    }
+
     void test_first ()
     {
         using namespace cpplinq;
@@ -512,6 +529,23 @@ namespace
         {
             int min_result = from_array (ints) >> min ();
             TEST_ASSERT (1, min_result);
+        }
+    }
+
+    void test_avg ()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE ();
+
+        {
+            int avg_result = from (empty) >> avg ();
+            TEST_ASSERT (0, avg_result);
+        }
+
+        {
+            int avg_result = from_array (ints) >> avg ();
+            TEST_ASSERT (4, avg_result);
         }
     }
 
@@ -574,6 +608,36 @@ namespace
             int index = 0;
             from_array (ints) >> for_each ([&](int i){test_int_at (index, i); ++index;});
             TEST_ASSERT (count_of_ints, index);
+
+        }
+    }
+
+    void test_all ()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE ();
+
+        {
+            int index = 0;
+            auto all_result = from (empty) >> all ([&](int i){test_int_at (index, i); ++index; return true;});
+            TEST_ASSERT (true, all_result);
+            TEST_ASSERT (0, index);
+        }
+
+        {
+            int index = 0;
+            auto all_result = from_array (ints) >> all ([&](int i){test_int_at (index, i); ++index; return true;});
+            TEST_ASSERT (true, all_result);
+            TEST_ASSERT (count_of_ints, index);
+
+        }
+
+        {
+            int index = 0;
+            auto all_result = from_array (ints) >> all ([&](int i){test_int_at (index, i); ++index; return index < 10;});
+            TEST_ASSERT (false, all_result);
+            TEST_ASSERT (10, index);
 
         }
     }
@@ -1112,11 +1176,14 @@ namespace
         test_from       ();
         test_range      ();
         test_count      ();
+        test_any        ();
         test_first      ();
         test_sum        ();
+        test_avg        ();
         test_max        ();
         test_min        ();
         test_concatenate();
+        test_all        ();
         test_for_each   ();
         test_to_vector  ();
         test_to_map     ();
