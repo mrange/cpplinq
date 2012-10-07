@@ -122,6 +122,9 @@ namespace
 
     int const           even_count_of_ints  = get_even_counts (ints, count_of_ints);
 
+	auto				is_even				= [](int i) {return i%2==0;};
+	auto				is_odd				= [](int i) {return i%2==1;};
+
     void test_prelude (
             char const *    file
         ,   int             line_no
@@ -494,6 +497,44 @@ namespace
         {
             int first_result = from_array (ints) >> first_or_default ();
             TEST_ASSERT (3, first_result);
+        }
+
+		{
+			int first_result = from(empty) >> first_or_default(is_even);
+			TEST_ASSERT (0, first_result);
+		}
+
+		{
+			int first_result = from_array(ints) >> first_or_default(is_even);
+			TEST_ASSERT (4, first_result);
+		}
+
+    }
+
+    void test_last_or_default ()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE ();
+
+        {
+            int first_result = from (empty) >> last_or_default ();
+            TEST_ASSERT (0, first_result);
+        }
+
+        {
+            int first_result = from_array (ints) >> last_or_default ();
+            TEST_ASSERT (5, first_result);
+        }
+
+        {
+			int first_result = from (empty) >> last_or_default (is_even);
+            TEST_ASSERT (0, first_result);
+        }
+
+        {
+			int first_result = from_array (ints) >> last_or_default (is_even);
+            TEST_ASSERT (2, first_result);
         }
     }
 
@@ -1178,6 +1219,7 @@ namespace
         test_count				();
         test_any				();
         test_first_or_default	();
+		test_last_or_default	();
         test_sum				();
         test_avg				();
         test_max				();

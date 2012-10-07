@@ -2042,6 +2042,43 @@ namespace cpplinq
         };
 
         // -------------------------------------------------------------------------
+		template<typename TPredicate>
+		struct first_or_default_predicate_builder : base_builder
+		{
+			typedef                 first_or_default_predicate_builder<TPredicate>  this_type       ;
+			typedef                 TPredicate										predicate_type  ;
+
+			predicate_type          predicate;
+
+			CPPLINQ_INLINEMETHOD first_or_default_predicate_builder (predicate_type predicate) throw ()
+				: predicate(std::move(predicate))
+			{
+			}
+
+			CPPLINQ_INLINEMETHOD first_or_default_predicate_builder (first_or_default_predicate_builder const & v) throw ()
+				: predicate(v.predicate)
+			{
+			}           
+
+			CPPLINQ_INLINEMETHOD first_or_default_predicate_builder (first_or_default_predicate_builder && v) throw ()
+				: predicate(std::move(v.predicate))
+			{
+			}
+
+			template<typename TRange>
+			CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
+			{
+				while(range.next())
+				{
+					if(predicate(range.front()))
+						return range.front();
+				}
+
+				return typename TRange::value_type ();
+			}
+
+		};
+
 
         struct first_or_default_builder : base_builder
         {
@@ -2071,6 +2108,77 @@ namespace cpplinq
             }
 
         };
+
+        // -------------------------------------------------------------------------
+		template<typename TPredicate>
+		struct last_or_default_predicate_builder : base_builder
+		{
+			typedef                 last_or_default_predicate_builder<TPredicate>	this_type       ;
+			typedef                 TPredicate										predicate_type  ;
+
+			predicate_type          predicate;
+
+			CPPLINQ_INLINEMETHOD last_or_default_predicate_builder (predicate_type predicate) throw ()
+				: predicate(std::move(predicate))
+			{
+			}
+
+			CPPLINQ_INLINEMETHOD last_or_default_predicate_builder (last_or_default_predicate_builder const & v) throw ()
+				: predicate(v.predicate)
+			{
+			}           
+
+			CPPLINQ_INLINEMETHOD last_or_default_predicate_builder (last_or_default_predicate_builder && v) throw ()
+				: predicate(std::move(v.predicate))
+			{
+			}
+
+			template<typename TRange>
+			CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
+			{
+				auto current = typename TRange::value_type ();
+
+				while (range.next ())
+				{
+					if(predicate(range.front ()))
+						current = std::move(range.front ());
+				}				
+
+				return std::move(current);
+			}
+
+		};
+
+		struct last_or_default_builder : base_builder
+		{
+			typedef                 last_or_default_builder                   this_type       ;
+
+			CPPLINQ_INLINEMETHOD last_or_default_builder () throw ()
+			{
+			}
+
+			CPPLINQ_INLINEMETHOD last_or_default_builder (last_or_default_builder const & v) throw ()
+			{
+			}           
+
+			CPPLINQ_INLINEMETHOD last_or_default_builder (last_or_default_builder && v) throw ()
+			{
+			}
+
+			template<typename TRange>
+			CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
+			{
+				auto current = typename TRange::value_type ();
+
+				while (range.next ())
+				{
+					current = std::move(range.front ());
+				}				
+
+				return std::move(current);
+			}
+
+		};
 
         // -------------------------------------------------------------------------
 
@@ -2590,9 +2698,30 @@ namespace cpplinq
         return detail::for_each_builder<TPredicate> (std::move (predicate));
     }
 
+	template <typename TPredicate>
+	CPPLINQ_INLINEMETHOD detail::first_or_default_predicate_builder<TPredicate>		first_or_default (
+			TPredicate predicate
+		) throw ()
+	{
+		return detail::first_or_default_predicate_builder<TPredicate> (predicate);
+	}
+
     CPPLINQ_INLINEMETHOD detail::first_or_default_builder   first_or_default () throw ()
     {
         return detail::first_or_default_builder ();
+    }
+
+	template <typename TPredicate>
+	CPPLINQ_INLINEMETHOD detail::last_or_default_predicate_builder<TPredicate>	last_or_default (
+			TPredicate predicate
+		) throw ()
+	{
+		return detail::last_or_default_predicate_builder<TPredicate> (predicate);
+	}
+
+    CPPLINQ_INLINEMETHOD detail::last_or_default_builder   last_or_default () throw ()
+    {
+        return detail::last_or_default_builder ();
     }
 
     CPPLINQ_INLINEMETHOD detail::count_builder   count () throw ()
