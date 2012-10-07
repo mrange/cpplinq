@@ -99,11 +99,13 @@ namespace
         return c;
     }
 
-    std::size_t         errors              = 0;
+    std::size_t				errors          = 0;
     
-    std::vector<int>    empty               ;
+    std::vector<int>		empty           ;
 
-    customer            customers[]         = 
+	std::vector<customer>	empty_customers ;
+
+    customer				customers[] = 
         {
             customer (1 , "Bill"    , "Gates"   ),
             customer (2 , "Steve"   , "Jobs"    ),
@@ -124,6 +126,8 @@ namespace
 
 	auto				is_even				= [](int i) {return i%2==0;};
 	auto				is_odd				= [](int i) {return i%2==1;};
+	auto				smaller_than_five	= [](int i) {return i < 5;};
+	auto				greater_than_five	= [](int i) {return i > 5;};
 
     void test_prelude (
             char const *    file
@@ -479,6 +483,16 @@ namespace
 
         {
             auto any_result = from_array (ints) >> any ();
+            TEST_ASSERT (true, any_result);
+        }
+
+        {
+			auto any_result = from (empty) >> any (is_even);
+            TEST_ASSERT (false, any_result);
+        }
+
+        {
+			auto any_result = from_array (ints) >> any (is_even);
             TEST_ASSERT (true, any_result);
         }
     }
@@ -1012,6 +1026,36 @@ namespace
         }
     }
 
+    void test_skip_while ()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE ();
+
+        {
+			auto q = from (empty) >> skip_while (smaller_than_five);
+            auto index = 0;
+
+            while (q.next ())
+            {
+                test_int_at (index, q.front ());
+                ++index;
+            }
+            TEST_ASSERT (0, index);
+        }
+        {
+            auto q = from_array (ints) >> skip_while (smaller_than_five);
+            auto index = 4;
+
+            while (q.next ())
+            {
+                test_int_at (index, q.front ());
+                ++index;
+            }
+            TEST_ASSERT (count_of_ints, index);
+        }
+    }
+
     void test_take ()
     {
         using namespace cpplinq;
@@ -1042,6 +1086,122 @@ namespace
             TEST_ASSERT (5, index);
         }
     }
+
+    void test_take_while ()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE ();
+
+        {
+			auto q = from (empty) >> take_while (smaller_than_five);
+            auto index = 0;
+
+            while (q.next ())
+            {
+                test_int_at (index, q.front ());
+                ++index;
+            }
+            TEST_ASSERT (0, index);
+        }
+
+        {
+			auto q = from_array (ints) >> take_while (smaller_than_five);
+            auto index = 0;
+
+            while (q.next ())
+            {
+                test_int_at (index, q.front ());
+                ++index;
+            }
+            TEST_ASSERT (4, index);
+        }
+    }
+
+	void test_contains()
+	{
+        using namespace cpplinq;
+
+        TEST_PRELUDE ();
+
+		{
+            bool result = from (empty) >> contains (1);
+            TEST_ASSERT (false, result);
+		}
+
+		{
+            bool result = from_array (ints) >> contains (1);
+            TEST_ASSERT (true, result);
+		}
+
+		{
+			bool result = 
+				from (empty_customers) 
+				>> contains (
+					customer(1, "Bill", "Gates"),
+					[](customer const& c1, customer const& c2) {return c1.id == c2.id;});
+
+            TEST_ASSERT (false, result);
+		}
+
+		{
+			bool result = 
+				from_array (customers) 
+				>> contains (
+					customer(1, "Bill", "Gates"),
+					[](customer const& c1, customer const& c2) {return c1.id == c2.id;});
+
+            TEST_ASSERT (true, result);
+		}
+
+		{
+			bool result = 
+				from_array (customers) 
+				>> contains (
+					customer(42, "Bill", "Gates"),
+					[](customer const& c1, customer const& c2) {return c1.id == c2.id;});
+
+            TEST_ASSERT (false, result);
+		}
+	}
+
+	void text_element_at_or_default()
+	{
+        using namespace cpplinq;
+
+        TEST_PRELUDE ();
+
+		{
+			auto result = from(empty) >> element_at_or_default(0);
+			TEST_ASSERT(0, result);
+		}
+
+		{
+			auto result = from(empty) >> element_at_or_default(1);
+			TEST_ASSERT(0, result);
+		}
+
+		{
+			auto result = from_array(ints) >> element_at_or_default(0);
+			TEST_ASSERT(3, result);
+		}
+
+		{
+			auto result = from_array(ints) >> element_at_or_default(1);
+			TEST_ASSERT(1, result);
+		}
+
+		{
+			auto result = from_array(ints) >> element_at_or_default(count_of_ints-1);
+			TEST_ASSERT(5, result);
+		}
+
+		{
+			auto result = from_array(ints) >> element_at_or_default(count_of_ints);
+			TEST_ASSERT(0, result);
+		}
+
+	}
 
     template<typename TPredicate>
     long long execute_testruns (
@@ -1213,29 +1373,33 @@ namespace
     bool run_all_tests (bool run_perfomance_tests)
     {
         // -------------------------------------------------------------------------
-        test_opt				();
-        test_from				();
-        test_range				();
-        test_count				();
-        test_any				();
-        test_first_or_default	();
-		test_last_or_default	();
-        test_sum				();
-        test_avg				();
-        test_max				();
-        test_min				();
-        test_concatenate		();
-        test_all				();
-        test_for_each			();
-        test_to_vector			();
-        test_to_map				();
-        test_container			();
-        test_where				();
-        test_select				();
-        test_select_many		();
-        test_orderby			();
-        test_take				();
-        test_skip				();
+		test_opt					();
+		test_from					();
+		test_range					();
+		test_count					();
+		test_any					();
+		test_first_or_default		();
+		test_last_or_default		();
+		test_sum					();
+		test_avg					();
+		test_max					();
+		test_min					();
+		test_concatenate			();
+		test_all					();
+		test_for_each				();
+		test_to_vector				();
+		test_to_map					();
+		test_container				();
+		test_where					();
+		test_select					();
+		test_select_many			();
+		test_orderby				();
+		test_take					();
+		test_skip					();
+		test_take_while				();
+		test_skip_while				();
+		test_contains				();
+		text_element_at_or_default	();
         // -------------------------------------------------------------------------
         if (run_perfomance_tests)
         {

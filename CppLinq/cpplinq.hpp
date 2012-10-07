@@ -2430,6 +2430,41 @@ namespace cpplinq
         };
 
         // -------------------------------------------------------------------------
+		template <typename TPredicate>
+		struct any_predicate_builder : base_builder
+		{
+			typedef                 any_predicate_builder<TPredicate>   this_type       ;
+			typedef                 TPredicate							predicate_type  ;
+
+			predicate_type          predicate   ;
+
+			CPPLINQ_INLINEMETHOD any_predicate_builder (predicate_type  predicate) throw ():
+				predicate   (std::move (predicate))
+			{
+			}
+
+			CPPLINQ_INLINEMETHOD any_predicate_builder (any_predicate_builder const & v) throw ():
+				predicate   (v.predicate)
+			{
+			}
+
+			CPPLINQ_INLINEMETHOD any_predicate_builder (any_predicate_builder && v) throw ():
+				predicate   (std::move (v.predicate))
+			{
+			}
+
+
+			template<typename TRange>
+			CPPLINQ_INLINEMETHOD bool build (TRange range)
+			{
+				bool any = false;
+				while (range.next () && !any)
+				{
+					any = predicate(range.front());
+				}
+				return any;
+			}
+		};
 
         struct any_builder : base_builder
         {
@@ -2496,7 +2531,135 @@ namespace cpplinq
             }
         };
 
-        // -------------------------------------------------------------------------
+		// -------------------------------------------------------------------------
+
+		template <typename TValue>
+		struct contains_builder : base_builder
+		{
+			typedef                 contains_builder<TValue>        this_type       ;
+			typedef					TValue							value_type      ;
+
+			value_type				value;
+
+			CPPLINQ_INLINEMETHOD contains_builder (value_type value) throw ():
+				value(std::move(value))
+			{
+			}
+
+			CPPLINQ_INLINEMETHOD contains_builder (contains_builder const & v) throw ():
+				value(v.value)
+			{
+			}
+
+			CPPLINQ_INLINEMETHOD contains_builder (contains_builder && v) throw ():
+				value(std::move(v.value))
+			{
+			}
+
+
+			template<typename TRange>
+			CPPLINQ_INLINEMETHOD bool build (TRange range)
+			{				
+				while (range.next ())
+				{
+					if(range.front() == value)
+						return true;
+				}
+
+				return false;
+			}
+
+		};
+
+		template <typename TValue, typename TPredicate>
+		struct contains_predicate_builder : base_builder
+		{
+			typedef                 contains_predicate_builder<TValue, TPredicate>	this_type       ;
+			typedef					TValue											value_type      ;
+			typedef                 TPredicate										predicate_type  ;
+
+			value_type				value;
+			predicate_type          predicate   ;
+
+			CPPLINQ_INLINEMETHOD contains_predicate_builder (value_type value, predicate_type predicate) throw ():
+					value(std::move(value))
+				,	predicate(std::move(predicate))
+			{
+			}
+
+			CPPLINQ_INLINEMETHOD contains_predicate_builder (contains_predicate_builder const & v) throw ():
+					value(v.value)
+				,	predicate(v.predicate)
+			{
+			}
+
+			CPPLINQ_INLINEMETHOD contains_predicate_builder (contains_predicate_builder && v) throw ():
+					value(std::move(v.value))
+				,	predicate(std::move(v.predicate))
+			{
+			}
+
+
+			template<typename TRange>
+			CPPLINQ_INLINEMETHOD bool build (TRange range)
+			{				
+				while (range.next ())
+				{
+					if(predicate(range.front(), value))
+						return true;
+				}
+
+				return false;
+			}
+
+		};
+
+		// -------------------------------------------------------------------------
+
+		struct element_at_or_default_builder : base_builder
+		{
+			typedef                 element_at_or_default_builder	this_type       ;
+
+			size_t					index;
+
+			CPPLINQ_INLINEMETHOD element_at_or_default_builder (size_t index) throw ()
+				:	index(std::move(index))
+			{
+			}
+
+			CPPLINQ_INLINEMETHOD element_at_or_default_builder (element_at_or_default_builder const & v) throw ()
+				:	index(v.index)
+			{
+			}
+
+			CPPLINQ_INLINEMETHOD element_at_or_default_builder (element_at_or_default_builder && v) throw ()
+				:	index(std::move(v.index))
+			{
+			}
+
+
+			template<typename TRange>
+			CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
+			{
+				size_t total = 0;
+				if(!range.next())
+					return typename TRange::value_type ();
+
+				++total;
+				if(index == 0)
+					return std::move(range.front());
+
+				while (range.next () && ++total <= index);
+
+				if(index < total)
+					return std::move(range.front());
+
+				return typename TRange::value_type ();
+			}
+
+		};
+		
+		// -------------------------------------------------------------------------
 
     }   // namespace detail
 
@@ -2771,6 +2934,14 @@ namespace cpplinq
             );
     }
 
+	template <typename TPredicate>
+	CPPLINQ_INLINEMETHOD detail::any_predicate_builder<TPredicate>   any (
+			TPredicate predicate
+		) throw ()
+	{
+		return detail::any_predicate_builder<TPredicate> (std::move(predicate));
+	}
+
     CPPLINQ_INLINEMETHOD detail::any_builder   any () throw ()
     {
         return detail::any_builder ();
@@ -2783,6 +2954,30 @@ namespace cpplinq
     {
         return detail::all_predicate_builder<TPredicate> (std::move (predicate));
     }
+
+	template <typename TValue>
+	CPPLINQ_INLINEMETHOD detail::contains_builder<TValue>   contains (
+			TValue value
+		) throw ()
+	{
+		return detail::contains_builder<TValue> (value);
+	}
+
+	template <typename TValue, typename TPredicate>
+	CPPLINQ_INLINEMETHOD detail::contains_predicate_builder<TValue, TPredicate>   contains (
+			TValue value
+		,	TPredicate predicate
+		) throw ()
+	{
+		return detail::contains_predicate_builder<TValue, TPredicate> (value, predicate);
+	}
+
+	CPPLINQ_INLINEMETHOD detail::element_at_or_default_builder   element_at_or_default (
+			size_t index
+		) throw ()
+	{
+		return detail::element_at_or_default_builder (index);
+	}
 
     // -------------------------------------------------------------------------
 
