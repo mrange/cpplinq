@@ -2043,19 +2043,19 @@ namespace cpplinq
 
         // -------------------------------------------------------------------------
 
-        struct first_builder : base_builder
+        struct first_or_default_builder : base_builder
         {
-            typedef                 first_builder                   this_type       ;
+            typedef                 first_or_default_builder                   this_type       ;
 
-            CPPLINQ_INLINEMETHOD first_builder () throw ()
+            CPPLINQ_INLINEMETHOD first_or_default_builder () throw ()
             {
             }
 
-            CPPLINQ_INLINEMETHOD first_builder (first_builder const & v) throw ()
+            CPPLINQ_INLINEMETHOD first_or_default_builder (first_or_default_builder const & v) throw ()
             {
             }           
 
-            CPPLINQ_INLINEMETHOD first_builder (first_builder && v) throw ()
+            CPPLINQ_INLINEMETHOD first_or_default_builder (first_or_default_builder && v) throw ()
             {
             }
 
@@ -2590,9 +2590,9 @@ namespace cpplinq
         return detail::for_each_builder<TPredicate> (std::move (predicate));
     }
 
-    CPPLINQ_INLINEMETHOD detail::first_builder   first () throw ()
+    CPPLINQ_INLINEMETHOD detail::first_or_default_builder   first_or_default () throw ()
     {
-        return detail::first_builder ();
+        return detail::first_or_default_builder ();
     }
 
     CPPLINQ_INLINEMETHOD detail::count_builder   count () throw ()

@@ -480,19 +480,19 @@ namespace
         }
     }
 
-    void test_first ()
+    void test_first_or_default ()
     {
         using namespace cpplinq;
 
         TEST_PRELUDE ();
 
         {
-            int first_result = from (empty) >> first ();
+            int first_result = from (empty) >> first_or_default ();
             TEST_ASSERT (0, first_result);
         }
 
         {
-            int first_result = from_array (ints) >> first ();
+            int first_result = from_array (ints) >> first_or_default ();
             TEST_ASSERT (3, first_result);
         }
     }
@@ -1172,28 +1172,28 @@ namespace
     bool run_all_tests (bool run_perfomance_tests)
     {
         // -------------------------------------------------------------------------
-        test_opt        ();
-        test_from       ();
-        test_range      ();
-        test_count      ();
-        test_any        ();
-        test_first      ();
-        test_sum        ();
-        test_avg        ();
-        test_max        ();
-        test_min        ();
-        test_concatenate();
-        test_all        ();
-        test_for_each   ();
-        test_to_vector  ();
-        test_to_map     ();
-        test_container  ();
-        test_where      ();
-        test_select     ();
-        test_select_many();
-        test_orderby    ();
-        test_take       ();
-        test_skip       ();
+        test_opt				();
+        test_from				();
+        test_range				();
+        test_count				();
+        test_any				();
+        test_first_or_default	();
+        test_sum				();
+        test_avg				();
+        test_max				();
+        test_min				();
+        test_concatenate		();
+        test_all				();
+        test_for_each			();
+        test_to_vector			();
+        test_to_map				();
+        test_container			();
+        test_where				();
+        test_select				();
+        test_select_many		();
+        test_orderby			();
+        test_take				();
+        test_skip				();
         // -------------------------------------------------------------------------
         if (run_perfomance_tests)
         {
