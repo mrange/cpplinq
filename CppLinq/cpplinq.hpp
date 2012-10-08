@@ -661,27 +661,17 @@ namespace cpplinq
 
             bool                    start   ;
             TValue                  value   ;
-            int                     current ;
-            int                     end     ;
-
-            static int get_current (int begin, int end)
-            {
-                return begin < end ? begin : end;
-            }
-
-            static int get_end (int begin, int end)
-            {
-                return begin < end ? end : begin;
-            }
+            size_type               current ;
+            size_type               end     ;
 
             CPPLINQ_INLINEMETHOD repeat_range (
                     value_type element
-                ,   int count
+                ,   size_type count
                 ) throw ()
                 :   start   (true)
                 ,   value   (element)
-                ,   current (get_current (0, count))
-                ,   end     (get_end (0,count))
+                ,   current (0U)
+                ,   end     (count)
             {
             }
 
@@ -760,7 +750,7 @@ namespace cpplinq
 
             CPPLINQ_INLINEMETHOD return_type front () const 
             {
-                return return_type();
+                return return_type ();
             }
 
             CPPLINQ_INLINEMETHOD bool next () throw ()
@@ -2206,27 +2196,29 @@ namespace cpplinq
             predicate_type          predicate;
 
             CPPLINQ_INLINEMETHOD first_or_default_predicate_builder (predicate_type predicate) throw ()
-                : predicate(std::move(predicate))
+                :   predicate (std::move (predicate))
             {
             }
 
             CPPLINQ_INLINEMETHOD first_or_default_predicate_builder (first_or_default_predicate_builder const & v) throw ()
-                : predicate(v.predicate)
+                :   predicate (v.predicate)
             {
             }           
 
             CPPLINQ_INLINEMETHOD first_or_default_predicate_builder (first_or_default_predicate_builder && v) throw ()
-                : predicate(std::move(v.predicate))
+                : predicate (std::move (v.predicate))
             {
             }
 
             template<typename TRange>
             CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
             {
-                while(range.next())
+                while (range.next ())
                 {
-                    if(predicate(range.front()))
-                        return range.front();
+                    if (predicate (range.front ()))
+                    {
+                        return range.front ();
+                    }
                 }
 
                 return typename TRange::value_type ();
@@ -2274,17 +2266,17 @@ namespace cpplinq
             predicate_type          predicate;
 
             CPPLINQ_INLINEMETHOD last_or_default_predicate_builder (predicate_type predicate) throw ()
-                : predicate(std::move(predicate))
+                :   predicate (std::move (predicate))
             {
             }
 
             CPPLINQ_INLINEMETHOD last_or_default_predicate_builder (last_or_default_predicate_builder const & v) throw ()
-                : predicate(v.predicate)
+                :   predicate (v.predicate)
             {
             }
 
             CPPLINQ_INLINEMETHOD last_or_default_predicate_builder (last_or_default_predicate_builder && v) throw ()
-                : predicate(std::move(v.predicate))
+                :   predicate (std::move (v.predicate))
             {
             }
 
@@ -2295,11 +2287,13 @@ namespace cpplinq
 
                 while (range.next ())
                 {
-                    if(predicate(range.front ()))
-                        current = std::move(range.front ());
+                    if (predicate (range.front ()))
+                    {
+                        current = std::move (range.front ());
+                    }
                 }
 
-                return std::move(current);
+                return std::move (current);
             }
 
         };
@@ -2327,10 +2321,10 @@ namespace cpplinq
 
                 while (range.next ())
                 {
-                    current = std::move(range.front ());
+                    current = std::move (range.front ());
                 }
 
-                return std::move(current);
+                return std::move (current);
             }
 
         };
@@ -2367,8 +2361,10 @@ namespace cpplinq
                 size_type count = 0U;
                 while (range.next ())
                 {
-                    if(predicate(range.front()))
+                    if (predicate (range.front ()))
+                    {
                         ++count;
+                    }
                 }
                 return count;
             }
@@ -2416,27 +2412,27 @@ namespace cpplinq
             selector_type           selector;
 
             CPPLINQ_INLINEMETHOD sum_selector_builder (selector_type selector) throw ()
-                :   selector(std::move(selector))
+                :   selector (std::move (selector))
             {
             }
 
             CPPLINQ_INLINEMETHOD sum_selector_builder (sum_selector_builder const & v) throw ()
-                :   selector(v.selector)
+                :   selector (v.selector)
             {
             }
 
             CPPLINQ_INLINEMETHOD sum_selector_builder (sum_selector_builder && v) throw ()
-                :   selector(std::move(v.selector))
+                :   selector (std::move (v.selector))
             {
             }
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD auto build (TRange range) -> decltype(selector(range.front()))
+            CPPLINQ_INLINEMETHOD auto build (TRange range) -> decltype (selector (range.front ()))
             {
                 auto sum = typename TRange::value_type ();
                 while (range.next ())
                 {
-                    sum += selector(range.front ());
+                    sum += selector (range.front ());
                 }
                 return std::move (sum);
             }
@@ -2483,27 +2479,27 @@ namespace cpplinq
             selector_type           selector;
 
             CPPLINQ_INLINEMETHOD max_selector_builder (selector_type selector) throw ()
-                :   selector(std::move(selector))
+                :   selector (std::move (selector))
             {
             }
 
             CPPLINQ_INLINEMETHOD max_selector_builder (max_selector_builder const & v) throw ()
-                :   selector(v.selector)
+                :   selector (v.selector)
             {
             }
 
             CPPLINQ_INLINEMETHOD max_selector_builder (max_selector_builder && v) throw ()
-                :   selector(std::move(v.selector))
+                :   selector (std::move (v.selector))
             {
             }
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD auto build (TRange range) -> decltype(selector(range.front()))
+            CPPLINQ_INLINEMETHOD auto build (TRange range) -> decltype (selector (range.front ()))
             {
                 auto current = std::numeric_limits<typename TRange::value_type>::min ();
                 while (range.next ())
                 {
-                    auto v = selector(range.front ());
+                    auto v = selector (range.front ());
                     if (current < v)
                     {
                         current = std::move (v);
@@ -2561,28 +2557,28 @@ namespace cpplinq
             selector_type           selector;
 
             CPPLINQ_INLINEMETHOD min_selector_builder (selector_type selector) throw ()
-                :   selector(std::move(selector))
+                :   selector (std::move (selector))
             {
             }
 
             CPPLINQ_INLINEMETHOD min_selector_builder (min_selector_builder const & v) throw ()
-                :   selector(v.selector)
+                :   selector (v.selector)
             {
             }
 
             CPPLINQ_INLINEMETHOD min_selector_builder (min_selector_builder && v) throw ()
-                :   selector(std::move(v.selector))
+                :   selector (std::move (v.selector))
             {
             }
 
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD auto build (TRange range) -> decltype(selector(range.front()))
+            CPPLINQ_INLINEMETHOD auto build (TRange range) -> decltype (selector (range.front ()))
             {
                 auto current = std::numeric_limits<typename TRange::value_type>::max ();
                 while (range.next ())
                 {
-                    auto v = selector(range.front ());
+                    auto v = selector (range.front ());
                     if (v < current)
                     {
                         current = std::move (v);
@@ -2640,29 +2636,29 @@ namespace cpplinq
             selector_type           selector;
 
             CPPLINQ_INLINEMETHOD avg_selector_builder (selector_type selector) throw ()
-                :   selector(std::move(selector))
+                :   selector (std::move (selector))
             {
             }
 
             CPPLINQ_INLINEMETHOD avg_selector_builder (avg_selector_builder const & v) throw ()
-                :   selector(v.selector)
+                :   selector (v.selector)
             {
             }
 
             CPPLINQ_INLINEMETHOD avg_selector_builder (avg_selector_builder && v) throw ()
-                :   selector(std::move(v.selector))
+                :   selector (std::move (v.selector))
             {
             }
 
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD auto build (TRange range) -> decltype(selector(range.front()))
+            CPPLINQ_INLINEMETHOD auto build (TRange range) -> decltype (selector (range.front ()))
             {
                 auto sum = typename TRange::value_type ();
                 int count = 0;
                 while (range.next ())
                 {
-                    sum += selector(range.front ());
+                    sum += selector (range.front ());
                     ++count;
                 }
 
@@ -2727,20 +2723,20 @@ namespace cpplinq
             accumulator_type        accumulator;
 
             CPPLINQ_INLINEMETHOD aggregate_builder (seed_type seed, accumulator_type accumulator) throw ()
-                :   seed(std::move(seed))
-                ,   accumulator(std::move(accumulator))
+                :   seed        (std::move (seed))
+                ,   accumulator (std::move (accumulator))
             {
             }
 
             CPPLINQ_INLINEMETHOD aggregate_builder (aggregate_builder const & v) throw ()
-                :   seed(v.seed)
-                ,   accumulator(v.accumulator)
+                :   seed        (v.seed)
+                ,   accumulator (v.accumulator)
             {
             }
 
             CPPLINQ_INLINEMETHOD aggregate_builder (aggregate_builder && v) throw ()
-                :   seed(std::move(v.seed))
-                ,   accumulator(std::move(v.accumulator))
+                :   seed        (std::move (v.seed))
+                ,   accumulator (std::move (v.accumulator))
             {
             }
 
@@ -2750,7 +2746,7 @@ namespace cpplinq
                 auto sum = seed;
                 while (range.next ())
                 {
-                    sum = accumulator(sum, range.front ());
+                    sum = accumulator (sum, range.front ());
                 }
                 return std::move (sum);
             }
@@ -2770,36 +2766,36 @@ namespace cpplinq
             result_selector_type    result_selector;
 
             CPPLINQ_INLINEMETHOD aggregate_result_selector_builder (seed_type seed, accumulator_type accumulator, result_selector_type result_selector) throw ()
-                :   seed(std::move(seed))
-                ,   accumulator(std::move(accumulator))
-                ,   result_selector(std::move(result_selector))
+                :   seed            (std::move (seed))
+                ,   accumulator     (std::move (accumulator))
+                ,   result_selector (std::move (result_selector))
             {
             }
 
             CPPLINQ_INLINEMETHOD aggregate_result_selector_builder (aggregate_result_selector_builder const & v) throw ()
-                :   seed(v.seed)
-                ,   accumulator(v.accumulator)
-                ,   result_selector(v.result_selector)
+                :   seed            (v.seed)
+                ,   accumulator     (v.accumulator)
+                ,   result_selector (v.result_selector)
             {
             }
 
             CPPLINQ_INLINEMETHOD aggregate_result_selector_builder (aggregate_result_selector_builder && v) throw ()
-                :   seed(std::move(v.seed))
-                ,   accumulator(std::move(v.accumulator))
-                ,   result_selector(std::move(v.result_selector))
+                :   seed            (std::move (v.seed))
+                ,   accumulator     (std::move (v.accumulator))
+                ,   result_selector (std::move (v.result_selector))
             {
             }
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD auto build (TRange range) -> decltype(result_selector(seed))
+            CPPLINQ_INLINEMETHOD auto build (TRange range) -> decltype (result_selector (seed))
             {
                 auto sum = seed;
                 while (range.next ())
                 {
-                    sum = accumulator(sum, range.front ());
+                    sum = accumulator (sum, range.front ());
                 }
 
-                return std::move (result_selector(sum));
+                return std::move (result_selector (sum));
             }
 
         };
@@ -2907,7 +2903,7 @@ namespace cpplinq
                 bool any = false;
                 while (range.next () && !any)
                 {
-                    any = predicate(range.front());
+                    any = predicate (range.front ());
                 }
                 return any;
             }
@@ -2989,17 +2985,17 @@ namespace cpplinq
             value_type              value;
 
             CPPLINQ_INLINEMETHOD contains_builder (value_type value) throw ()
-                :   value(std::move(value))
+                :   value (std::move (value))
             {
             }
 
             CPPLINQ_INLINEMETHOD contains_builder (contains_builder const & v) throw ()
-                :   value(v.value)
+                :   value (v.value)
             {
             }
 
             CPPLINQ_INLINEMETHOD contains_builder (contains_builder && v) throw ()
-                :   value(std::move(v.value))
+                :   value (std::move (v.value))
             {
             }
 
@@ -3009,8 +3005,10 @@ namespace cpplinq
             {
                 while (range.next ())
                 {
-                    if(range.front() == value)
+                    if (range.front () == value)
+                    {
                         return true;
+                    }
                 }
 
                 return false;
@@ -3029,20 +3027,20 @@ namespace cpplinq
             predicate_type          predicate   ;
 
             CPPLINQ_INLINEMETHOD contains_predicate_builder (value_type value, predicate_type predicate) throw ()
-                :   value(std::move(value))
-                ,   predicate(std::move(predicate))
+                :   value       (std::move (value))
+                ,   predicate   (std::move (predicate))
             {
             }
 
             CPPLINQ_INLINEMETHOD contains_predicate_builder (contains_predicate_builder const & v) throw ()
-                :   value(v.value)
-                ,   predicate(v.predicate)
+                :   value       (v.value)
+                ,   predicate   (v.predicate)
             {
             }
 
             CPPLINQ_INLINEMETHOD contains_predicate_builder (contains_predicate_builder && v) throw ()
-                :   value(std::move(v.value))
-                ,   predicate(std::move(v.predicate))
+                :   value       (std::move (v.value))
+                ,   predicate   (std::move (v.predicate))
             {
             }
 
@@ -3052,8 +3050,10 @@ namespace cpplinq
             {
                 while (range.next ())
                 {
-                    if(predicate(range.front(), value))
+                    if (predicate (range.front (), value))
+                    {
                         return true;
+                    }
                 }
 
                 return false;
@@ -3067,20 +3067,20 @@ namespace cpplinq
         {
             typedef                 element_at_or_default_builder   this_type       ;
 
-            size_t                  index;
+            size_type               index;
 
-            CPPLINQ_INLINEMETHOD element_at_or_default_builder (size_t index) throw ()
-                :   index(std::move(index))
+            CPPLINQ_INLINEMETHOD element_at_or_default_builder (size_type index) throw ()
+                :   index (std::move (index))
             {
             }
 
             CPPLINQ_INLINEMETHOD element_at_or_default_builder (element_at_or_default_builder const & v) throw ()
-                :   index(v.index)
+                :   index (v.index)
             {
             }
 
             CPPLINQ_INLINEMETHOD element_at_or_default_builder (element_at_or_default_builder && v) throw ()
-                :   index(std::move(v.index))
+                :   index (std::move (v.index))
             {
             }
 
@@ -3088,20 +3088,22 @@ namespace cpplinq
             template<typename TRange>
             CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
             {
-                size_t total = 0;
-                if(!range.next())
-                    return typename TRange::value_type ();
+                size_type current = 0U;
 
-                ++total;
-                if(index == 0)
-                    return std::move(range.front());
-
-                while (range.next () && ++total <= index);
-
-                if(index < total)
-                    return std::move(range.front());
+                while (range.next ())
+                {
+                    if (current < index)
+                    {
+                        ++current;
+                    }
+                    else
+                    {
+                        return range.front ();
+                    }
+                }
 
                 return typename TRange::value_type ();
+
             }
 
         };
@@ -3330,7 +3332,7 @@ namespace cpplinq
     }
 
     CPPLINQ_INLINEMETHOD detail::element_at_or_default_builder   element_at_or_default (
-            size_t index
+            size_type   index
         ) throw ()
     {
         return detail::element_at_or_default_builder (index);
@@ -3371,7 +3373,7 @@ namespace cpplinq
         TPredicate predicate
         ) throw ()
     {
-        return detail::any_predicate_builder<TPredicate> (std::move(predicate));
+        return detail::any_predicate_builder<TPredicate> (std::move (predicate));
     }
 
     CPPLINQ_INLINEMETHOD detail::any_builder   any () throw ()
@@ -3411,7 +3413,7 @@ namespace cpplinq
             TPredicate predicate
         ) throw ()
     {
-        return detail::count_predicate_builder<TPredicate> (std::move(predicate));
+        return detail::count_predicate_builder<TPredicate> (std::move (predicate));
     }
 
     CPPLINQ_INLINEMETHOD detail::count_builder   count () throw ()
@@ -3437,7 +3439,7 @@ namespace cpplinq
             TSelector selector
         ) throw ()
     {
-        return detail::max_selector_builder<TSelector> (std::move(selector));
+        return detail::max_selector_builder<TSelector> (std::move (selector));
     }
 
     CPPLINQ_INLINEMETHOD detail::max_builder  max () throw ()
@@ -3450,7 +3452,7 @@ namespace cpplinq
             TSelector selector
         ) throw ()
     {
-        return detail::min_selector_builder<TSelector> (std::move(selector));
+        return detail::min_selector_builder<TSelector> (std::move (selector));
     }
 
     CPPLINQ_INLINEMETHOD detail::min_builder  min () throw ()
@@ -3463,7 +3465,7 @@ namespace cpplinq
             TSelector selector
         ) throw ()
     {
-        return detail::avg_selector_builder<TSelector> (std::move(selector));
+        return detail::avg_selector_builder<TSelector> (std::move (selector));
     }
 
     CPPLINQ_INLINEMETHOD detail::avg_builder  avg () throw ()

@@ -136,7 +136,7 @@ namespace
     int const           even_count_of_ints  = get_even_counts (ints, count_of_ints);
 
     int                 simple_ints[]       = {1,2,3,4,5,6,7,8,9};
-    int const           count_of_simple_ints= get_array_size(simple_ints);
+    int const           count_of_simple_ints= get_array_size (simple_ints);
 
     auto                is_even             = [](int i) {return i%2==0;};
     auto                is_odd              = [](int i) {return i%2==1;};
@@ -145,7 +145,7 @@ namespace
     auto                double_it           = [](int i) {return i+i;};
     auto                sum_aggregator      = [](int s, int i) {return s+i;};
     auto                mul_aggregator      = [](int s, int i) {return s*i;};
-    auto                to_string           = [](int i) {std::stringstream sstr; sstr<<i; return sstr.str();};
+    auto                to_string           = [](int i) {std::stringstream sstr; sstr<<i; return sstr.str ();};
 
     void test_prelude (
             char const *    file
@@ -359,7 +359,7 @@ namespace
             TEST_ASSERT (true, (bool)o2);
             TEST_ASSERT ("Test3", *o2);
 
-            o1.swap(o2);
+            o1.swap (o2);
             TEST_ASSERT (true, o1.has_value ());
             TEST_ASSERT (true, (bool)o1);
             TEST_ASSERT ("Test3", *o1);
@@ -498,14 +498,14 @@ namespace
         }
     }
 
-    void test_repeat()
+    void test_repeat ()
     {
         using namespace cpplinq;
 
         TEST_PRELUDE ();
 
         {
-            auto r = repeat(42, -1);
+            auto r = repeat (42, 0);
 
             typedef decltype (r.front ())   return_type;
             static_assert (
@@ -513,23 +513,9 @@ namespace
                 ,   "front () must return non-reference when value_type = int"
                 );
 
-            bool isempty = !r.next();
+            bool isempty = !r.next ();
 
-            TEST_ASSERT(true, isempty);
-        }
-
-        {
-            auto r = repeat(42, 0);
-
-            typedef decltype (r.front ())   return_type;
-            static_assert (
-                    !std::is_reference<return_type>::value 
-                ,   "front () must return non-reference when value_type = int"
-                );
-
-            bool isempty = !r.next();
-
-            TEST_ASSERT(true, isempty);
+            TEST_ASSERT (true, isempty);
         }
 
         {
@@ -537,7 +523,7 @@ namespace
             int count = 10;
             int total = 0;
 
-            auto r = repeat(value, count);
+            auto r = repeat (value, count);
 
             typedef decltype (r.front ())   return_type;
             static_assert (
@@ -561,7 +547,7 @@ namespace
             int count = 10;
             int total = 0;
 
-            auto r = repeat(value, count);
+            auto r = repeat (value, count);
 
             while (r.next ())
             {
@@ -575,7 +561,7 @@ namespace
         }
     }
 
-    void test_empty()
+    void test_empty ()
     {
         using namespace cpplinq;
 
@@ -590,17 +576,17 @@ namespace
                 ,   "front () must return non-reference when value_type = int"
                 );
 
-            bool isempty = !r.next();
+            bool isempty = !r.next ();
 
-            TEST_ASSERT(true, isempty);
+            TEST_ASSERT (true, isempty);
         }
 
         {
             auto r = empty<customer>();
 
-            bool isempty = !r.next();
+            bool isempty = !r.next ();
 
-            TEST_ASSERT(true, isempty);
+            TEST_ASSERT (true, isempty);
         }
 
     }
@@ -677,12 +663,12 @@ namespace
         }
 
         {
-            int first_result = from(empty_vector) >> first_or_default(is_even);
+            int first_result = from (empty_vector) >> first_or_default (is_even);
             TEST_ASSERT (0, first_result);
         }
 
         {
-            int first_result = from_array(ints) >> first_or_default(is_even);
+            int first_result = from_array (ints) >> first_or_default (is_even);
             TEST_ASSERT (4, first_result);
         }
 
@@ -977,7 +963,7 @@ namespace
             std::list<int> to_list_result = from_array (ints) >> to_list ();
             TEST_ASSERT (count_of_ints, (int)to_list_result.size ());
 
-            auto pos = to_list_result.begin();
+            auto pos = to_list_result.begin ();
             for (auto index = 0U; index < to_list_result.size (); ++index)
             {
                 test_int_at (index, *pos++);
@@ -1347,7 +1333,7 @@ namespace
         }
     }
 
-    void test_contains()
+    void test_contains ()
     {
         using namespace cpplinq;
 
@@ -1367,7 +1353,7 @@ namespace
             bool result = 
                 from (empty_customers) 
                 >> contains (
-                    customer(1, "Bill", "Gates"),
+                    customer (1, "Bill", "Gates"),
                     [](customer const& c1, customer const& c2) {return c1.id == c2.id;});
 
             TEST_ASSERT (false, result);
@@ -1377,7 +1363,7 @@ namespace
             bool result = 
                 from_array (customers) 
                 >> contains (
-                    customer(1, "Bill", "Gates"),
+                    customer (1, "Bill", "Gates"),
                     [](customer const& c1, customer const& c2) {return c1.id == c2.id;});
 
             TEST_ASSERT (true, result);
@@ -1387,47 +1373,47 @@ namespace
             bool result = 
                 from_array (customers) 
                 >> contains (
-                    customer(42, "Bill", "Gates"),
+                    customer (42, "Bill", "Gates"),
                     [](customer const& c1, customer const& c2) {return c1.id == c2.id;});
 
             TEST_ASSERT (false, result);
         }
     }
 
-    void test_element_at_or_default()
+    void test_element_at_or_default ()
     {
         using namespace cpplinq;
 
         TEST_PRELUDE ();
 
         {
-            auto result = from(empty_vector) >> element_at_or_default(0);
-            TEST_ASSERT(0, result);
+            auto result = from (empty_vector) >> element_at_or_default (0);
+            TEST_ASSERT (0, result);
         }
 
         {
-            auto result = from(empty_vector) >> element_at_or_default(1);
-            TEST_ASSERT(0, result);
+            auto result = from (empty_vector) >> element_at_or_default (1);
+            TEST_ASSERT (0, result);
         }
 
         {
-            auto result = from_array(ints) >> element_at_or_default(0);
-            TEST_ASSERT(3, result);
+            auto result = from_array (ints) >> element_at_or_default (0);
+            TEST_ASSERT (3, result);
         }
 
         {
-            auto result = from_array(ints) >> element_at_or_default(1);
-            TEST_ASSERT(1, result);
+            auto result = from_array (ints) >> element_at_or_default (1);
+            TEST_ASSERT (1, result);
         }
 
         {
-            auto result = from_array(ints) >> element_at_or_default(count_of_ints-1);
-            TEST_ASSERT(5, result);
+            auto result = from_array (ints) >> element_at_or_default (count_of_ints-1);
+            TEST_ASSERT (5, result);
         }
 
         {
-            auto result = from_array(ints) >> element_at_or_default(count_of_ints);
-            TEST_ASSERT(0, result);
+            auto result = from_array (ints) >> element_at_or_default (count_of_ints);
+            TEST_ASSERT (0, result);
         }
 
     }
@@ -1461,13 +1447,13 @@ namespace
         }
 
         {
-            auto sum_of_simple_ints = to_string(std::accumulate (simple_ints, simple_ints + count_of_simple_ints, 0));
+            auto sum_of_simple_ints = to_string (std::accumulate (simple_ints, simple_ints + count_of_simple_ints, 0));
             auto sum_result = from_array (simple_ints) >> aggregate (0, sum_aggregator, to_string);
             TEST_ASSERT (sum_of_simple_ints, sum_result);
         }
 
         {
-            auto prod_of_simple_ints = to_string(std::accumulate (simple_ints, simple_ints + count_of_simple_ints, 1, mul_aggregator));
+            auto prod_of_simple_ints = to_string (std::accumulate (simple_ints, simple_ints + count_of_simple_ints, 1, mul_aggregator));
             auto sum_result = from_array (simple_ints) >> aggregate (1, mul_aggregator, to_string);
             TEST_ASSERT (prod_of_simple_ints, sum_result);
         }
