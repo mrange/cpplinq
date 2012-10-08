@@ -21,6 +21,7 @@
 #include <string>
 #include <type_traits>
 #include <vector>
+#include <list>
 // ----------------------------------------------------------------------------
 #ifdef _MSC_VER 
 #   pragma warning (push)
@@ -642,6 +643,119 @@ namespace cpplinq
                 }
 
                 return current < end;
+            }
+        };
+
+        // -------------------------------------------------------------------------
+
+        template <typename TValue>
+        struct repeat_range : base_range
+        {
+            typedef                 repeat_range<TValue>                this_type       ;
+            typedef                 TValue                              value_type      ;
+            typedef                 TValue                              return_type     ;
+            enum    
+            { 
+                returns_reference = 0   , 
+            };
+
+            bool                    start   ;
+            TValue                  value   ;
+            size_type               current ;
+            size_type               end     ;
+
+            CPPLINQ_INLINEMETHOD repeat_range (
+                    value_type element
+                ,   size_type count
+                ) throw ()
+                :   start   (true)
+                ,   value   (element)
+                ,   current (0U)
+                ,   end     (count)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD repeat_range (repeat_range const & v) throw ()
+                :   start   (v.start)
+                ,   value   (v.value)
+                ,   current (v.current)
+                ,   end     (v.end)
+            {
+            }
+        
+            CPPLINQ_INLINEMETHOD repeat_range (repeat_range && v) throw ()
+                :   start   (std::move (v.start))
+                ,   value   (std::move (v.value))
+                ,   current (std::move (v.current))
+                ,   end     (std::move (v.end))
+            {
+            }
+        
+            template<typename TRangeBuilder>
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            {
+                return range_builder.build (*this);
+            }
+
+            CPPLINQ_INLINEMETHOD return_type front () const 
+            {
+                return value;
+            }
+
+            CPPLINQ_INLINEMETHOD bool next () throw ()
+            {
+                if (start)
+                {
+                    start = false;
+                }
+                else if (current < end)
+                {
+                    ++current;
+                }
+
+                return current < end;
+            }
+        };
+
+        // -------------------------------------------------------------------------
+
+        template <typename TValue>
+        struct empty_range : base_range
+        {
+            typedef                 repeat_range<TValue>                this_type       ;
+            typedef                 TValue                              value_type      ;
+            typedef                 TValue                              return_type     ;
+            enum    
+            { 
+                returns_reference = 0   , 
+            };
+
+            CPPLINQ_INLINEMETHOD empty_range () throw ()
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD empty_range (empty_range const & v) throw ()
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD empty_range (empty_range && v) throw ()
+            {
+            }
+
+            template<typename TRangeBuilder>
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            {
+                return range_builder.build (*this);
+            }
+
+            CPPLINQ_INLINEMETHOD return_type front () const 
+            {
+                return return_type ();
+            }
+
+            CPPLINQ_INLINEMETHOD bool next () throw ()
+            {
+                return false;
             }
         };
 
@@ -1951,6 +2065,37 @@ namespace cpplinq
 
         };
 
+        struct to_list_builder : base_builder
+        {
+            typedef                 to_list_builder       this_type       ;
+
+            CPPLINQ_INLINEMETHOD explicit to_list_builder () throw ()
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD to_list_builder (to_list_builder const & v) throw ()
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD to_list_builder (to_list_builder && v) throw ()
+            {
+            }
+
+            template<typename TRange>
+            CPPLINQ_METHOD std::list<typename TRange::value_type> build (TRange range)
+            {
+                std::list<typename TRange::value_type> result;
+
+                while (range.next ())
+                {
+                    result.push_back (range.front ());
+                }
+
+                return std::move (result);
+            }
+
+        };
+
         // -------------------------------------------------------------------------
 
         template<typename TKeyPredicate>
@@ -2042,20 +2187,59 @@ namespace cpplinq
         };
 
         // -------------------------------------------------------------------------
-
-        struct first_builder : base_builder
+        template<typename TPredicate>
+        struct first_or_default_predicate_builder : base_builder
         {
-            typedef                 first_builder                   this_type       ;
+            typedef                 first_or_default_predicate_builder<TPredicate>  this_type       ;
+            typedef                 TPredicate                                      predicate_type  ;
 
-            CPPLINQ_INLINEMETHOD first_builder () throw ()
+            predicate_type          predicate;
+
+            CPPLINQ_INLINEMETHOD first_or_default_predicate_builder (predicate_type predicate) throw ()
+                :   predicate (std::move (predicate))
             {
             }
 
-            CPPLINQ_INLINEMETHOD first_builder (first_builder const & v) throw ()
+            CPPLINQ_INLINEMETHOD first_or_default_predicate_builder (first_or_default_predicate_builder const & v) throw ()
+                :   predicate (v.predicate)
             {
             }           
 
-            CPPLINQ_INLINEMETHOD first_builder (first_builder && v) throw ()
+            CPPLINQ_INLINEMETHOD first_or_default_predicate_builder (first_or_default_predicate_builder && v) throw ()
+                : predicate (std::move (v.predicate))
+            {
+            }
+
+            template<typename TRange>
+            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
+            {
+                while (range.next ())
+                {
+                    if (predicate (range.front ()))
+                    {
+                        return range.front ();
+                    }
+                }
+
+                return typename TRange::value_type ();
+            }
+
+        };
+
+
+        struct first_or_default_builder : base_builder
+        {
+            typedef                 first_or_default_builder                   this_type       ;
+
+            CPPLINQ_INLINEMETHOD first_or_default_builder () throw ()
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD first_or_default_builder (first_or_default_builder const & v) throw ()
+            {
+            }           
+
+            CPPLINQ_INLINEMETHOD first_or_default_builder (first_or_default_builder && v) throw ()
             {
             }
 
@@ -2073,6 +2257,119 @@ namespace cpplinq
         };
 
         // -------------------------------------------------------------------------
+        template<typename TPredicate>
+        struct last_or_default_predicate_builder : base_builder
+        {
+            typedef                 last_or_default_predicate_builder<TPredicate>   this_type       ;
+            typedef                 TPredicate                                      predicate_type  ;
+
+            predicate_type          predicate;
+
+            CPPLINQ_INLINEMETHOD last_or_default_predicate_builder (predicate_type predicate) throw ()
+                :   predicate (std::move (predicate))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD last_or_default_predicate_builder (last_or_default_predicate_builder const & v) throw ()
+                :   predicate (v.predicate)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD last_or_default_predicate_builder (last_or_default_predicate_builder && v) throw ()
+                :   predicate (std::move (v.predicate))
+            {
+            }
+
+            template<typename TRange>
+            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
+            {
+                auto current = typename TRange::value_type ();
+
+                while (range.next ())
+                {
+                    if (predicate (range.front ()))
+                    {
+                        current = std::move (range.front ());
+                    }
+                }
+
+                return std::move (current);
+            }
+
+        };
+
+        struct last_or_default_builder : base_builder
+        {
+            typedef                 last_or_default_builder                   this_type       ;
+
+            CPPLINQ_INLINEMETHOD last_or_default_builder () throw ()
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD last_or_default_builder (last_or_default_builder const & v) throw ()
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD last_or_default_builder (last_or_default_builder && v) throw ()
+            {
+            }
+
+            template<typename TRange>
+            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
+            {
+                auto current = typename TRange::value_type ();
+
+                while (range.next ())
+                {
+                    current = std::move (range.front ());
+                }
+
+                return std::move (current);
+            }
+
+        };
+
+        // -------------------------------------------------------------------------
+
+        template <typename TPredicate>
+        struct count_predicate_builder : base_builder
+        {
+            typedef                 count_predicate_builder<TPredicate>     this_type       ;
+            typedef                 TPredicate                              predicate_type  ;
+
+            predicate_type          predicate   ;
+
+            CPPLINQ_INLINEMETHOD count_predicate_builder (predicate_type  predicate) throw ()
+                :   predicate   (std::move (predicate))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD count_predicate_builder (count_predicate_builder const & v) throw ()
+                :   predicate   (v.predicate)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD count_predicate_builder (count_predicate_builder && v) throw ()
+                :   predicate   (std::move (v.predicate))
+            {
+            }
+
+
+            template<typename TRange>
+            CPPLINQ_INLINEMETHOD size_type build (TRange range)
+            {
+                size_type count = 0U;
+                while (range.next ())
+                {
+                    if (predicate (range.front ()))
+                    {
+                        ++count;
+                    }
+                }
+                return count;
+            }
+
+        };
 
         struct count_builder : base_builder
         {
@@ -2106,6 +2403,42 @@ namespace cpplinq
 
         // -------------------------------------------------------------------------
 
+        template <typename TSelector>
+        struct sum_selector_builder : base_builder
+        {
+            typedef                 sum_selector_builder<TSelector>     this_type       ;
+            typedef                 TSelector                           selector_type   ;
+
+            selector_type           selector;
+
+            CPPLINQ_INLINEMETHOD sum_selector_builder (selector_type selector) throw ()
+                :   selector (std::move (selector))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD sum_selector_builder (sum_selector_builder const & v) throw ()
+                :   selector (v.selector)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD sum_selector_builder (sum_selector_builder && v) throw ()
+                :   selector (std::move (v.selector))
+            {
+            }
+
+            template<typename TRange>
+            CPPLINQ_INLINEMETHOD auto build (TRange range) -> decltype (selector (range.front ()))
+            {
+                auto sum = typename TRange::value_type ();
+                while (range.next ())
+                {
+                    sum += selector (range.front ());
+                }
+                return std::move (sum);
+            }
+
+        };
+
         struct sum_builder : base_builder
         {
             typedef                 sum_builder                     this_type       ;
@@ -2136,6 +2469,47 @@ namespace cpplinq
         };
 
         // -------------------------------------------------------------------------
+
+        template <typename TSelector>
+        struct max_selector_builder : base_builder
+        {
+            typedef                 max_selector_builder<TSelector>     this_type       ;
+            typedef                 TSelector                           selector_type   ;
+
+            selector_type           selector;
+
+            CPPLINQ_INLINEMETHOD max_selector_builder (selector_type selector) throw ()
+                :   selector (std::move (selector))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD max_selector_builder (max_selector_builder const & v) throw ()
+                :   selector (v.selector)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD max_selector_builder (max_selector_builder && v) throw ()
+                :   selector (std::move (v.selector))
+            {
+            }
+
+            template<typename TRange>
+            CPPLINQ_INLINEMETHOD auto build (TRange range) -> decltype (selector (range.front ()))
+            {
+                auto current = std::numeric_limits<typename TRange::value_type>::min ();
+                while (range.next ())
+                {
+                    auto v = selector (range.front ());
+                    if (current < v)
+                    {
+                        current = std::move (v);
+                    }
+                }
+
+                return std::move (current);
+            }
+
+        };
 
         struct max_builder : base_builder
         {
@@ -2174,6 +2548,48 @@ namespace cpplinq
 
         // -------------------------------------------------------------------------
 
+        template <typename TSelector>
+        struct min_selector_builder : base_builder
+        {
+            typedef                 min_selector_builder<TSelector>     this_type       ;
+            typedef                 TSelector                           selector_type   ;
+
+            selector_type           selector;
+
+            CPPLINQ_INLINEMETHOD min_selector_builder (selector_type selector) throw ()
+                :   selector (std::move (selector))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD min_selector_builder (min_selector_builder const & v) throw ()
+                :   selector (v.selector)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD min_selector_builder (min_selector_builder && v) throw ()
+                :   selector (std::move (v.selector))
+            {
+            }
+
+
+            template<typename TRange>
+            CPPLINQ_INLINEMETHOD auto build (TRange range) -> decltype (selector (range.front ()))
+            {
+                auto current = std::numeric_limits<typename TRange::value_type>::max ();
+                while (range.next ())
+                {
+                    auto v = selector (range.front ());
+                    if (v < current)
+                    {
+                        current = std::move (v);
+                    }
+                }
+
+                return std::move (current);
+            }
+
+        };
+
         struct min_builder : base_builder
         {
             typedef                 min_builder                         this_type       ;
@@ -2211,6 +2627,51 @@ namespace cpplinq
 
         // -------------------------------------------------------------------------
 
+        template <typename TSelector>
+        struct avg_selector_builder : base_builder
+        {
+            typedef                 avg_selector_builder<TSelector>     this_type       ;
+            typedef                 TSelector                           selector_type   ;
+
+            selector_type           selector;
+
+            CPPLINQ_INLINEMETHOD avg_selector_builder (selector_type selector) throw ()
+                :   selector (std::move (selector))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD avg_selector_builder (avg_selector_builder const & v) throw ()
+                :   selector (v.selector)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD avg_selector_builder (avg_selector_builder && v) throw ()
+                :   selector (std::move (v.selector))
+            {
+            }
+
+
+            template<typename TRange>
+            CPPLINQ_INLINEMETHOD auto build (TRange range) -> decltype (selector (range.front ()))
+            {
+                auto sum = typename TRange::value_type ();
+                int count = 0;
+                while (range.next ())
+                {
+                    sum += selector (range.front ());
+                    ++count;
+                }
+
+                if (count == 0)
+                {
+                    return sum;
+                }
+
+                return std::move (sum/count);
+            }
+
+        };
+
         struct avg_builder : base_builder
         {
             typedef                 avg_builder                         this_type       ;
@@ -2245,6 +2706,96 @@ namespace cpplinq
                 }
 
                 return std::move (sum/count);
+            }
+
+        };
+
+        // -------------------------------------------------------------------------
+
+        template <typename TAccumulate, typename TAccumulator>
+        struct aggregate_builder : base_builder
+        {
+            typedef                 aggregate_builder<TAccumulate, TAccumulator>    this_type       ;
+            typedef                 TAccumulator                                    accumulator_type;
+            typedef                 TAccumulate                                     seed_type;
+
+            seed_type               seed;
+            accumulator_type        accumulator;
+
+            CPPLINQ_INLINEMETHOD aggregate_builder (seed_type seed, accumulator_type accumulator) throw ()
+                :   seed        (std::move (seed))
+                ,   accumulator (std::move (accumulator))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD aggregate_builder (aggregate_builder const & v) throw ()
+                :   seed        (v.seed)
+                ,   accumulator (v.accumulator)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD aggregate_builder (aggregate_builder && v) throw ()
+                :   seed        (std::move (v.seed))
+                ,   accumulator (std::move (v.accumulator))
+            {
+            }
+
+            template<typename TRange>
+            CPPLINQ_INLINEMETHOD seed_type build (TRange range)
+            {
+                auto sum = seed;
+                while (range.next ())
+                {
+                    sum = accumulator (sum, range.front ());
+                }
+                return std::move (sum);
+            }
+
+        };
+
+        template <typename TAccumulate, typename TAccumulator, typename TSelector>
+        struct aggregate_result_selector_builder : base_builder
+        {
+            typedef                 aggregate_result_selector_builder<TAccumulate, TAccumulator, TSelector> this_type       ;
+            typedef                 TAccumulator                                                            accumulator_type;
+            typedef                 TAccumulate                                                             seed_type;
+            typedef                 TSelector                                                               result_selector_type;
+
+            seed_type               seed;
+            accumulator_type        accumulator;
+            result_selector_type    result_selector;
+
+            CPPLINQ_INLINEMETHOD aggregate_result_selector_builder (seed_type seed, accumulator_type accumulator, result_selector_type result_selector) throw ()
+                :   seed            (std::move (seed))
+                ,   accumulator     (std::move (accumulator))
+                ,   result_selector (std::move (result_selector))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD aggregate_result_selector_builder (aggregate_result_selector_builder const & v) throw ()
+                :   seed            (v.seed)
+                ,   accumulator     (v.accumulator)
+                ,   result_selector (v.result_selector)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD aggregate_result_selector_builder (aggregate_result_selector_builder && v) throw ()
+                :   seed            (std::move (v.seed))
+                ,   accumulator     (std::move (v.accumulator))
+                ,   result_selector (std::move (v.result_selector))
+            {
+            }
+
+            template<typename TRange>
+            CPPLINQ_INLINEMETHOD auto build (TRange range) -> decltype (result_selector (seed))
+            {
+                auto sum = seed;
+                while (range.next ())
+                {
+                    sum = accumulator (sum, range.front ());
+                }
+
+                return std::move (result_selector (sum));
             }
 
         };
@@ -2322,6 +2873,41 @@ namespace cpplinq
         };
 
         // -------------------------------------------------------------------------
+        template <typename TPredicate>
+        struct any_predicate_builder : base_builder
+        {
+            typedef                 any_predicate_builder<TPredicate>   this_type       ;
+            typedef                 TPredicate                          predicate_type  ;
+
+            predicate_type          predicate   ;
+
+            CPPLINQ_INLINEMETHOD any_predicate_builder (predicate_type  predicate) throw ()
+                :   predicate   (std::move (predicate))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD any_predicate_builder (any_predicate_builder const & v) throw ()
+                :   predicate   (v.predicate)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD any_predicate_builder (any_predicate_builder && v) throw ()
+                :   predicate   (std::move (v.predicate))
+            {
+            }
+
+
+            template<typename TRange>
+            CPPLINQ_INLINEMETHOD bool build (TRange range)
+            {
+                bool any = false;
+                while (range.next () && !any)
+                {
+                    any = predicate (range.front ());
+                }
+                return any;
+            }
+        };
 
         struct any_builder : base_builder
         {
@@ -2390,6 +2976,140 @@ namespace cpplinq
 
         // -------------------------------------------------------------------------
 
+        template <typename TValue>
+        struct contains_builder : base_builder
+        {
+            typedef                 contains_builder<TValue>        this_type       ;
+            typedef                 TValue                          value_type      ;
+
+            value_type              value;
+
+            CPPLINQ_INLINEMETHOD contains_builder (value_type value) throw ()
+                :   value (std::move (value))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD contains_builder (contains_builder const & v) throw ()
+                :   value (v.value)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD contains_builder (contains_builder && v) throw ()
+                :   value (std::move (v.value))
+            {
+            }
+
+
+            template<typename TRange>
+            CPPLINQ_INLINEMETHOD bool build (TRange range)
+            {
+                while (range.next ())
+                {
+                    if (range.front () == value)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+        };
+
+        template <typename TValue, typename TPredicate>
+        struct contains_predicate_builder : base_builder
+        {
+            typedef                 contains_predicate_builder<TValue, TPredicate>  this_type       ;
+            typedef                 TValue                                          value_type      ;
+            typedef                 TPredicate                                      predicate_type  ;
+
+            value_type              value;
+            predicate_type          predicate   ;
+
+            CPPLINQ_INLINEMETHOD contains_predicate_builder (value_type value, predicate_type predicate) throw ()
+                :   value       (std::move (value))
+                ,   predicate   (std::move (predicate))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD contains_predicate_builder (contains_predicate_builder const & v) throw ()
+                :   value       (v.value)
+                ,   predicate   (v.predicate)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD contains_predicate_builder (contains_predicate_builder && v) throw ()
+                :   value       (std::move (v.value))
+                ,   predicate   (std::move (v.predicate))
+            {
+            }
+
+
+            template<typename TRange>
+            CPPLINQ_INLINEMETHOD bool build (TRange range)
+            {
+                while (range.next ())
+                {
+                    if (predicate (range.front (), value))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+        };
+
+        // -------------------------------------------------------------------------
+
+        struct element_at_or_default_builder : base_builder
+        {
+            typedef                 element_at_or_default_builder   this_type       ;
+
+            size_type               index;
+
+            CPPLINQ_INLINEMETHOD element_at_or_default_builder (size_type index) throw ()
+                :   index (std::move (index))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD element_at_or_default_builder (element_at_or_default_builder const & v) throw ()
+                :   index (v.index)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD element_at_or_default_builder (element_at_or_default_builder && v) throw ()
+                :   index (std::move (v.index))
+            {
+            }
+
+
+            template<typename TRange>
+            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
+            {
+                size_type current = 0U;
+
+                while (range.next ())
+                {
+                    if (current < index)
+                    {
+                        ++current;
+                    }
+                    else
+                    {
+                        return range.front ();
+                    }
+                }
+
+                return typename TRange::value_type ();
+
+            }
+
+        };
+
+        // -------------------------------------------------------------------------
+
     }   // namespace detail
 
     // -------------------------------------------------------------------------
@@ -2445,17 +3165,67 @@ namespace cpplinq
             );
     }
 
-    CPPLINQ_INLINEMETHOD detail::int_range range (
-            int         start
-        ,   int         count
+    // Restriction operators
+
+    template<typename TPredicate>
+    CPPLINQ_INLINEMETHOD detail::where_builder<TPredicate> where (
+            TPredicate      predicate
         ) throw ()
     {
-        auto c      = count > 0 ? count : 0;
-        auto end    = (INT_MAX - c) > start ? (start + c) : INT_MAX;
-        return detail::int_range (start, end);
+        return detail::where_builder<TPredicate> (std::move (predicate));
     }
 
-    // Range operators
+    // Projection operators
+
+    template<typename TPredicate>
+    CPPLINQ_INLINEMETHOD detail::select_builder<TPredicate> select (
+            TPredicate      predicate
+        ) throw ()
+    {
+        return detail::select_builder<TPredicate> (std::move (predicate));
+    }
+
+    template<typename TPredicate>
+    CPPLINQ_INLINEMETHOD detail::select_many_builder<TPredicate> select_many (
+            TPredicate      predicate
+        ) throw ()
+    {
+        return detail::select_many_builder<TPredicate> (std::move (predicate));
+    }
+
+    // Partitioning operators
+
+    template<typename TPredicate>
+    CPPLINQ_INLINEMETHOD detail::take_while_builder<TPredicate> take_while (
+            TPredicate        predicate
+        ) throw ()
+    {
+        return detail::take_while_builder<TPredicate> (std::move (predicate));
+    }
+
+    CPPLINQ_INLINEMETHOD detail::take_builder take (
+            size_type     count
+        ) throw ()
+    {
+        return detail::take_builder (count);
+    }
+
+    template <typename TPredicate>
+    CPPLINQ_INLINEMETHOD detail::skip_while_builder<TPredicate> skip_while (
+            TPredicate        predicate
+        ) throw ()
+    {
+        return detail::skip_while_builder<TPredicate> (predicate);
+    }
+
+    CPPLINQ_INLINEMETHOD detail::skip_builder skip (
+            size_type       count
+        ) throw ()
+    {
+        return detail::skip_builder (count);
+    }
+
+    // Ordering operators
 
     template<typename TPredicate>
     CPPLINQ_INLINEMETHOD detail::orderby_builder<TPredicate> orderby (
@@ -2507,61 +3277,7 @@ namespace cpplinq
         return detail::thenby_builder<TPredicate> (std::move (predicate), false);
     }
 
-    template<typename TPredicate>
-    CPPLINQ_INLINEMETHOD detail::where_builder<TPredicate> where (
-            TPredicate      predicate
-        ) throw ()
-    {
-        return detail::where_builder<TPredicate> (std::move (predicate));
-    }
-
-    template<typename TPredicate>
-    CPPLINQ_INLINEMETHOD detail::take_while_builder<TPredicate> take_while (
-            TPredicate        predicate
-        ) throw ()
-    {
-        return detail::take_while_builder<TPredicate> (std::move (predicate));
-    }
-
-    CPPLINQ_INLINEMETHOD detail::take_builder take (
-            size_type     count
-        ) throw ()
-    {
-        return detail::take_builder (count);
-    }
-
-    template <typename TPredicate>
-    CPPLINQ_INLINEMETHOD detail::skip_while_builder<TPredicate> skip_while (
-            TPredicate        predicate
-        ) throw ()
-    {
-        return detail::skip_while_builder<TPredicate> (predicate);
-    }
-
-    CPPLINQ_INLINEMETHOD detail::skip_builder skip (
-            size_type       count
-        ) throw ()
-    {
-        return detail::skip_builder (count);
-    }
-
-    template<typename TPredicate>
-    CPPLINQ_INLINEMETHOD detail::select_builder<TPredicate> select (
-            TPredicate      predicate
-        ) throw ()
-    {
-        return detail::select_builder<TPredicate> (std::move (predicate));
-    }
-
-    template<typename TPredicate>
-    CPPLINQ_INLINEMETHOD detail::select_many_builder<TPredicate> select_many (
-            TPredicate      predicate
-        ) throw ()
-    {
-        return detail::select_many_builder<TPredicate> (std::move (predicate));
-    }
-
-    // Range aggregators
+    // Conversion operators
 
     namespace experimental
     {
@@ -2576,23 +3292,128 @@ namespace cpplinq
         return detail::to_vector_builder (capacity);
     }
 
+    CPPLINQ_INLINEMETHOD detail::to_list_builder    to_list () throw ()
+    {
+        return detail::to_list_builder ();
+    }
+
     template<typename TKeyPredicate>
     CPPLINQ_INLINEMETHOD detail::to_map_builder<TKeyPredicate>  to_map (TKeyPredicate key_predicate) throw ()
     {
         return detail::to_map_builder<TKeyPredicate>(std::move (key_predicate));
     }
 
-    template<typename TPredicate>
-    CPPLINQ_INLINEMETHOD detail::for_each_builder<TPredicate> for_each (
+    // Element operators
+
+    template <typename TPredicate>
+    CPPLINQ_INLINEMETHOD detail::first_or_default_predicate_builder<TPredicate> first_or_default (
             TPredicate predicate
         ) throw ()
     {
-        return detail::for_each_builder<TPredicate> (std::move (predicate));
+        return detail::first_or_default_predicate_builder<TPredicate> (predicate);
     }
 
-    CPPLINQ_INLINEMETHOD detail::first_builder   first () throw ()
+    CPPLINQ_INLINEMETHOD detail::first_or_default_builder   first_or_default () throw ()
     {
-        return detail::first_builder ();
+        return detail::first_or_default_builder ();
+    }
+
+    template <typename TPredicate>
+    CPPLINQ_INLINEMETHOD detail::last_or_default_predicate_builder<TPredicate>  last_or_default (
+            TPredicate predicate
+        ) throw ()
+    {
+        return detail::last_or_default_predicate_builder<TPredicate> (predicate);
+    }
+
+    CPPLINQ_INLINEMETHOD detail::last_or_default_builder   last_or_default () throw ()
+    {
+        return detail::last_or_default_builder ();
+    }
+
+    CPPLINQ_INLINEMETHOD detail::element_at_or_default_builder   element_at_or_default (
+            size_type   index
+        ) throw ()
+    {
+        return detail::element_at_or_default_builder (index);
+    }
+
+    // Generation operators
+
+    CPPLINQ_INLINEMETHOD detail::int_range range (
+            int         start
+        ,   int         count
+        ) throw ()
+    {
+        auto c      = count > 0 ? count : 0;
+        auto end    = (INT_MAX - c) > start ? (start + c) : INT_MAX;
+        return detail::int_range (start, end);
+    }
+
+    template <typename TValue>
+    CPPLINQ_INLINEMETHOD detail::repeat_range<TValue> repeat (
+            TValue      element
+        ,   int         count
+        ) throw ()
+    {
+        auto c      = count > 0 ? count : 0;
+        return detail::repeat_range<TValue> (element, c);
+    }
+
+    template <typename TValue>
+    CPPLINQ_INLINEMETHOD detail::empty_range<TValue> empty () throw ()
+    {
+        return detail::empty_range<TValue> ();
+    }
+
+    // Quantifiers
+
+    template <typename TPredicate>
+    CPPLINQ_INLINEMETHOD detail::any_predicate_builder<TPredicate>   any (
+        TPredicate predicate
+        ) throw ()
+    {
+        return detail::any_predicate_builder<TPredicate> (std::move (predicate));
+    }
+
+    CPPLINQ_INLINEMETHOD detail::any_builder   any () throw ()
+    {
+        return detail::any_builder ();
+    }
+
+    template <typename TPredicate>
+    CPPLINQ_INLINEMETHOD detail::all_predicate_builder<TPredicate>   all (
+            TPredicate predicate
+        ) throw ()
+    {
+        return detail::all_predicate_builder<TPredicate> (std::move (predicate));
+    }
+
+    template <typename TValue>
+    CPPLINQ_INLINEMETHOD detail::contains_builder<TValue>   contains (
+            TValue value
+        ) throw ()
+    {
+        return detail::contains_builder<TValue> (value);
+    }
+
+    template <typename TValue, typename TPredicate>
+    CPPLINQ_INLINEMETHOD detail::contains_predicate_builder<TValue, TPredicate>   contains (
+            TValue value
+        ,   TPredicate predicate
+        ) throw ()
+    {
+        return detail::contains_predicate_builder<TValue, TPredicate> (value, predicate);
+    }
+
+    // Aggregate operators
+
+    template <typename TPredicate>
+    CPPLINQ_INLINEMETHOD detail::count_predicate_builder<TPredicate>   count (
+            TPredicate predicate
+        ) throw ()
+    {
+        return detail::count_predicate_builder<TPredicate> (std::move (predicate));
     }
 
     CPPLINQ_INLINEMETHOD detail::count_builder   count () throw ()
@@ -2600,9 +3421,25 @@ namespace cpplinq
         return detail::count_builder ();
     }
 
+    template<typename TSelector>
+    CPPLINQ_INLINEMETHOD detail::sum_selector_builder<TSelector>  sum (
+            TSelector selector
+        ) throw ()
+    {
+        return detail::sum_selector_builder<TSelector> (std::move (selector));
+    }
+
     CPPLINQ_INLINEMETHOD detail::sum_builder  sum () throw ()
     {
         return detail::sum_builder ();
+    }
+
+    template<typename TSelector>
+    CPPLINQ_INLINEMETHOD detail::max_selector_builder<TSelector>  max (
+            TSelector selector
+        ) throw ()
+    {
+        return detail::max_selector_builder<TSelector> (std::move (selector));
     }
 
     CPPLINQ_INLINEMETHOD detail::max_builder  max () throw ()
@@ -2610,14 +3447,59 @@ namespace cpplinq
         return detail::max_builder ();
     }
 
+    template<typename TSelector>
+    CPPLINQ_INLINEMETHOD detail::min_selector_builder<TSelector>  min (
+            TSelector selector
+        ) throw ()
+    {
+        return detail::min_selector_builder<TSelector> (std::move (selector));
+    }
+
     CPPLINQ_INLINEMETHOD detail::min_builder  min () throw ()
     {
         return detail::min_builder ();
     }
 
+    template<typename TSelector>
+    CPPLINQ_INLINEMETHOD detail::avg_selector_builder<TSelector>  avg (
+            TSelector selector
+        ) throw ()
+    {
+        return detail::avg_selector_builder<TSelector> (std::move (selector));
+    }
+
     CPPLINQ_INLINEMETHOD detail::avg_builder  avg () throw ()
     {
         return detail::avg_builder ();
+    }
+
+    template <typename TAccumulate, typename TAccumulator>
+    CPPLINQ_INLINEMETHOD detail::aggregate_builder<TAccumulate, TAccumulator>   aggregate (
+            TAccumulate seed
+        ,   TAccumulator accumulator
+        ) throw ()
+    {
+        return detail::aggregate_builder<TAccumulate, TAccumulator> (seed, accumulator);
+    }
+
+    template <typename TAccumulate, typename TAccumulator, typename TSelector>
+    CPPLINQ_INLINEMETHOD detail::aggregate_result_selector_builder<TAccumulate, TAccumulator, TSelector>   aggregate (
+            TAccumulate seed
+        ,   TAccumulator accumulator
+        ,   TSelector result_selector
+        ) throw ()
+    {
+        return detail::aggregate_result_selector_builder<TAccumulate, TAccumulator, TSelector> (seed, accumulator, result_selector);
+    }
+
+    // other operators
+
+    template<typename TPredicate>
+    CPPLINQ_INLINEMETHOD detail::for_each_builder<TPredicate> for_each (
+            TPredicate predicate
+        ) throw ()
+    {
+        return detail::for_each_builder<TPredicate> (std::move (predicate));
     }
 
     CPPLINQ_INLINEMETHOD detail::concatenate_builder<char>  concatenate (
@@ -2640,19 +3522,6 @@ namespace cpplinq
                 std::move (separator)
             ,   capacity
             );
-    }
-
-    CPPLINQ_INLINEMETHOD detail::any_builder   any () throw ()
-    {
-        return detail::any_builder ();
-    }
-
-    template <typename TPredicate>
-    CPPLINQ_INLINEMETHOD detail::all_predicate_builder<TPredicate>   all (
-            TPredicate predicate
-        ) throw ()
-    {
-        return detail::all_predicate_builder<TPredicate> (std::move (predicate));
     }
 
     // -------------------------------------------------------------------------
