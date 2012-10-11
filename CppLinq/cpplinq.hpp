@@ -947,7 +947,7 @@ namespace cpplinq
             template<typename TRange>
             CPPLINQ_INLINEMETHOD orderby_range<TRange, TPredicate> build (TRange range) const throw ()
             {
-                return orderby_range<TRange, TPredicate>(range, predicate, sort_ascending);
+                return orderby_range<TRange, TPredicate>(std::move (range), predicate, sort_ascending);
             }
 
         };
@@ -1124,7 +1124,7 @@ namespace cpplinq
             template<typename TRange>
             CPPLINQ_INLINEMETHOD thenby_range<TRange, TPredicate> build (TRange range) const throw ()
             {
-                return thenby_range<TRange, TPredicate>(range, predicate, sort_ascending);
+                return thenby_range<TRange, TPredicate>(std::move (range), predicate, sort_ascending);
             }
 
         };
@@ -1220,7 +1220,7 @@ namespace cpplinq
             template<typename TRange>
             CPPLINQ_INLINEMETHOD where_range<TRange, TPredicate> build (TRange range) const throw ()
             {
-                return where_range<TRange, TPredicate>(range, predicate);
+                return where_range<TRange, TPredicate>(std::move (range), predicate);
             }
 
         };
@@ -1318,7 +1318,7 @@ namespace cpplinq
             template<typename TRange>
             CPPLINQ_INLINEMETHOD take_range<TRange> build (TRange range) const throw ()
             {
-                return take_range<TRange>(range, count);
+                return take_range<TRange>(std::move (range), count);
             }
 
         };
@@ -1428,7 +1428,7 @@ namespace cpplinq
             template<typename TRange>
             CPPLINQ_INLINEMETHOD take_while_range<TRange, TPredicate> build (TRange range) const throw ()
             {
-                return take_while_range<TRange, TPredicate>(range, predicate);
+                return take_while_range<TRange, TPredicate>(std::move (range), predicate);
             }
 
         };
@@ -1533,7 +1533,7 @@ namespace cpplinq
             template<typename TRange>
             CPPLINQ_INLINEMETHOD skip_range<TRange> build (TRange range) const throw ()
             {
-                return skip_range<TRange>(range, count);
+                return skip_range<TRange>(std::move (range), count);
             }
 
         };
@@ -1639,7 +1639,7 @@ namespace cpplinq
             template<typename TRange>
             CPPLINQ_INLINEMETHOD skip_while_range<TRange, TPredicate> build (TRange range) const throw ()
             {
-                return skip_while_range<TRange, TPredicate>(range, predicate);
+                return skip_while_range<TRange, TPredicate>(std::move (range), predicate);
             }
 
         };
@@ -1732,7 +1732,7 @@ namespace cpplinq
             template<typename TRange>
             CPPLINQ_INLINEMETHOD select_range<TRange, TPredicate> build (TRange range) const throw ()
             {
-                return select_range<TRange, TPredicate>(range, predicate);
+                return select_range<TRange, TPredicate>(std::move (range), predicate);
             }
 
         };
@@ -1857,10 +1857,236 @@ namespace cpplinq
             template<typename TRange>
             CPPLINQ_INLINEMETHOD select_many_range<TRange, TPredicate> build (TRange range) const throw ()
             {
-                return select_many_range<TRange, TPredicate>(range, predicate);
+                return select_many_range<TRange, TPredicate>(std::move (range), predicate);
             }
 
         };
+
+        // -------------------------------------------------------------------------
+
+        template<
+                typename TRange
+            ,   typename TOtherRange
+            ,   typename TKeySelector
+            ,   typename TOtherKeySelector
+            ,   typename TCombiner
+            >
+        struct join_range : base_range
+        {
+            static typename TRange::value_type      get_source ()               ;
+            static typename TOtherRange::value_type get_other_source ()         ;
+            static          TKeySelector            get_key_selector ()         ;
+            static          TOtherKeySelector       get_other_key_selector ()   ;
+            static          TCombiner               get_combiner ()             ;
+
+            typedef         decltype (get_key_selector () (get_source ())) raw_key_type    ;
+            typedef        typename cleanup_type<raw_key_type>::type    key_type        ;
+
+            typedef         decltype (get_other_key_selector () (get_other_source ()))  
+                                                                            raw_other_key_type  ;
+            typedef        typename cleanup_type<raw_other_key_type>::type  other_key_type      ;
+
+            typedef         decltype (get_combiner () (get_source (), get_other_source ()))  
+                                                                        raw_value_type  ;
+            typedef        typename cleanup_type<raw_value_type>::type  value_type      ;
+            typedef                 value_type                          return_type     ;
+            enum    
+            { 
+                returns_reference   = 0   , 
+            };
+
+            typedef                 join_range<
+                    TRange
+                ,   TOtherRange
+                ,   TKeySelector
+                ,   TOtherKeySelector
+                ,   TCombiner
+                >                                               this_type               ;        
+            typedef                 TRange                      range_type              ;
+            typedef                 TOtherRange                 other_range_type        ;
+            typedef                 TKeySelector                key_selector_type       ;
+            typedef                 TOtherKeySelector           other_key_selector_type ;
+            typedef                 TCombiner                   combiner_type           ;
+            typedef                 std::multimap<
+                                        other_key_type, 
+                                        typename TOtherRange::value_type
+                                        >                       map_type                ;
+            typedef     typename    map_type::const_iterator    map_iterator_type       ;
+
+            range_type                  range               ;
+            other_range_type            other_range         ;
+            key_selector_type           key_selector        ;
+            other_key_selector_type     other_key_selector  ;
+            combiner_type               combiner            ;
+
+            bool                        start               ;
+            map_type                    map                 ;
+            map_iterator_type           current             ;
+
+            CPPLINQ_INLINEMETHOD join_range (
+                    range_type              range
+                ,   other_range_type        other_range         
+                ,   key_selector_type       key_selector        
+                ,   other_key_selector_type other_key_selector  
+                ,   combiner_type           combiner                
+                ) throw ()
+                :   range              (std::move (range))
+                ,   other_range        (std::move (other_range))
+                ,   key_selector       (std::move (key_selector))
+                ,   other_key_selector (std::move (other_key_selector))
+                ,   combiner           (std::move (combiner))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD join_range (join_range const & v)
+                :   range              (std::move (v.range))
+                ,   other_range        (std::move (v.other_range))
+                ,   key_selector       (std::move (v.key_selector))
+                ,   other_key_selector (std::move (v.other_key_selector))
+                ,   combiner           (std::move (v.combiner))
+                ,   start              (std::move (v.start))
+                ,   map                (std::move (v.map))
+                ,   current            (std::move (v.current)) 
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD join_range (join_range && v) throw ()
+                :   range              (v.range)
+                ,   other_range        (v.other_range)
+                ,   key_selector       (v.key_selector)
+                ,   other_key_selector (v.other_key_selector)
+                ,   combiner           (v.combiner)
+                ,   start              (v.start)
+                ,   map                (v.map)
+                ,   current            (v.current) 
+            {
+            }
+
+            template<typename TRangeBuilder>
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            {
+                return range_builder.build (*this);
+            }
+
+            CPPLINQ_INLINEMETHOD return_type front () const 
+            {
+                assert (current != map.end ());
+                return combiner (range.front (), current->second);
+            }
+
+            CPPLINQ_INLINEMETHOD bool next ()
+            {
+                if (start)
+                {
+                    start = false;
+                    while (other_range.next ())
+                    {
+                        auto other_value    = other_range.front ();
+                        auto other_key      = other_key_selector (other_value);
+                        map.insert (typename map_type::value_type (std::move (other_key), std::move (other_value)));
+                    }
+
+                    current = map.end ();
+                    if (map.size () == 0U)
+                    {
+                        return false;
+                    }
+                }
+
+                if (current != map.end ())
+                {
+                    auto previous = current;
+                    ++current;
+                    if (current != map.end () && !(previous->first < current->first))
+                    {
+                        return true;
+                    }
+                }
+
+                while (range.next ())
+                {
+                    auto value  = range.front ();
+                    auto key    = key_selector (value);
+
+                    current     = map.find (key);
+                    if (current != map.end ())
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        };
+
+        template<
+                typename TOtherRange
+            ,   typename TKeySelector
+            ,   typename TOtherKeySelector
+            ,   typename TCombiner
+            >
+        struct join_builder : base_builder
+        {
+            typedef                 join_builder<
+                    TOtherRange
+                ,   TKeySelector
+                ,   TOtherKeySelector
+                ,   TCombiner
+                >                                               this_type               ;        
+            
+            typedef                 TOtherRange                 other_range_type        ;
+            typedef                 TKeySelector                key_selector_type       ;
+            typedef                 TOtherKeySelector           other_key_selector_type ;
+            typedef                 TCombiner                   combiner_type           ;
+
+            other_range_type        other_range         ;
+            key_selector_type       key_selector        ;
+            other_key_selector_type other_key_selector  ;
+            combiner_type           combiner            ;
+
+            CPPLINQ_INLINEMETHOD join_builder (
+                    other_range_type        other_range         
+                ,   key_selector_type       key_selector        
+                ,   other_key_selector_type other_key_selector  
+                ,   combiner_type           combiner                
+                ) throw ()
+                :   other_range        (std::move (other_range))
+                ,   key_selector       (std::move (key_selector))
+                ,   other_key_selector (std::move (other_key_selector))
+                ,   combiner           (std::move (combiner))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD join_builder (join_builder const & v)
+                :   other_range        (v.other_range)
+                ,   key_selector       (v.key_selector)
+                ,   other_key_selector (v.other_key_selector)
+                ,   combiner           (v.combiner)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD join_builder (join_builder && v) throw ()
+                :   other_range        (std::move (v.other_range))
+                ,   key_selector       (std::move (v.key_selector))
+                ,   other_key_selector (std::move (v.other_key_selector))
+                ,   combiner           (std::move (v.combiner))
+            {
+            }
+
+            template<typename TRange>
+            CPPLINQ_INLINEMETHOD join_range<TRange, TOtherRange, TKeySelector, TOtherKeySelector, TCombiner> build (TRange range) const throw ()
+            {
+                return join_range<TRange, TOtherRange, TKeySelector, TOtherKeySelector, TCombiner> (
+                        std::move (range)
+                    ,   other_range       
+                    ,   key_selector      
+                    ,   other_key_selector
+                    ,   combiner          
+                    );
+            }
+        };
+
+        // -------------------------------------------------------------------------
 
         namespace experimental
         {
@@ -3191,6 +3417,38 @@ namespace cpplinq
         ) throw ()
     {
         return detail::select_many_builder<TPredicate> (std::move (predicate));
+    }
+
+    template<
+                typename TOtherRange
+            ,   typename TKeySelector
+            ,   typename TOtherKeySelector
+            ,   typename TCombiner
+            >
+    CPPLINQ_INLINEMETHOD detail::join_builder<
+                TOtherRange
+            ,   TKeySelector
+            ,   TOtherKeySelector
+            ,   TCombiner
+            > join (
+                TOtherRange         other_range
+            ,   TKeySelector        key_selector
+            ,   TOtherKeySelector   other_key_selector
+            ,   TCombiner           combiner
+        ) throw ()
+    {
+        return detail::join_builder<
+                TOtherRange
+            ,   TKeySelector
+            ,   TOtherKeySelector
+            ,   TCombiner
+            >   
+            (
+                std::move (other_range)
+            ,   std::move (key_selector)
+            ,   std::move (other_key_selector)
+            ,   std::move (combiner)
+            );
     }
 
     // Partitioning operators
