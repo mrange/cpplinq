@@ -613,7 +613,7 @@ namespace
 
         {
             auto customers = empty<customer>() >> to_list();
-            TEST_ASSERT(0, customers.size());
+            TEST_ASSERT(0, (int)customers.size());
         }
 
     }
