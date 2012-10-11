@@ -44,7 +44,7 @@ namespace
         std::string     first_name  ;
         std::string     last_name   ;
 
-        customer (std::size_t id, std::string first_name, std::string last_name)
+        customer (std::size_t id = 0, std::string first_name = "", std::string last_name = "")
             :   id          (std::move (id))
             ,   first_name  (std::move (first_name))
             ,   last_name   (std::move (last_name))
@@ -609,6 +609,11 @@ namespace
             bool isempty = !r.next ();
 
             TEST_ASSERT (true, isempty);
+        }
+
+        {
+            auto customers = empty<customer>() >> to_list();
+            TEST_ASSERT(0, customers.size());
         }
 
     }
