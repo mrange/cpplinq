@@ -44,7 +44,7 @@ namespace
         std::string     first_name  ;
         std::string     last_name   ;
 
-        customer (std::size_t id, std::string first_name, std::string last_name)
+        customer (std::size_t id = 0, std::string first_name = "", std::string last_name = "")
             :   id          (std::move (id))
             ,   first_name  (std::move (first_name))
             ,   last_name   (std::move (last_name))
@@ -79,15 +79,30 @@ namespace
         {
         }
 
-        bool operator==(const customer& c)
+        bool operator==(customer const & c) const
         {
             return id == c.id && first_name == c.first_name && last_name == c.last_name;
         }
 
-        bool operator !=(const customer& c)
+        bool operator !=(customer const & c) const
         {
             return !(*this == c);
         }
+    };
+
+    struct  customer_address
+    {
+        std::size_t     id          ;
+        std::size_t     customer_id ;
+        std::string     country     ;
+
+        customer_address (std::size_t id, std::size_t customer_id, std::string country)
+            :   id          (std::move (id))
+            ,   customer_id (std::move (customer_id))
+            ,   country     (std::move (country))
+        {
+        }
+
     };
 
     template<typename TValueArray>
@@ -129,6 +144,13 @@ namespace
             customer (21, "Melinda" , "Gates"   ),
         };
     int const           count_of_customers  = get_array_size (customers); 
+
+    customer_address        customer_addresses[] =
+        {
+            customer_address (1, 1, "USA"       ),
+            customer_address (2, 4, "Finland"   ),
+            customer_address (3, 4, "USA"       ),
+        };
 
     int                 ints[]              = {3,1,4,1,5,9,2,6,5,3,5,8,9,7,9,3,2,3,8,4,6,2,6,4,3,3,8,3,2,7,9,5};
     int const           count_of_ints       = get_array_size (ints);
@@ -259,9 +281,9 @@ namespace
                     "%s(%d): ERROR_EXPECTED: (%d,%s,%s)(%s), FOUND: (%d,%s,%s)(%s)\r\n"
                 ,   file
                 ,   line_no
-                ,   expected.id, expected.first_name.c_str(), expected.last_name.c_str()
+                ,   expected.id, expected.first_name.c_str (), expected.last_name.c_str ()
                 ,   expected_name
-                ,   found.id, found.first_name.c_str(), found.last_name.c_str()
+                ,   found.id, found.first_name.c_str (), found.last_name.c_str ()
                 ,   found_name
                 );
         }
@@ -587,6 +609,11 @@ namespace
             bool isempty = !r.next ();
 
             TEST_ASSERT (true, isempty);
+        }
+
+        {
+            auto customers = empty<customer>() >> to_list ();
+            TEST_ASSERT (0, (int)customers.size ());
         }
 
     }
@@ -1062,6 +1089,60 @@ namespace
             TEST_ASSERT (count_of_customers, (int)select_result.size ());
         }
 
+    }
+
+    void test_join ()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE ();
+
+        {
+            auto cs     = empty<customer> ();
+            auto cas    = empty<customer_address> ();
+
+            auto join_result = cs
+                >> join (
+                        cas
+                    ,   [](customer const & c) {return c.id;}
+                    ,   [](customer_address const & ca) {return ca.customer_id;}
+                    ,   [](customer const & c, customer_address const & ca) {return std::make_pair (c, ca);}
+                    )
+                >> to_vector ()
+                ;
+
+            TEST_ASSERT (0, (int)join_result.size ());
+        }
+        {
+            auto join_result = from_array (customers)
+                >> join (
+                        from_array (customer_addresses)
+                    ,   [](customer const & c) {return c.id;}
+                    ,   [](customer_address const & ca) {return ca.customer_id;}
+                    ,   [](customer const & c, customer_address const & ca) {return std::make_pair (c, ca);}
+                    )
+                >> to_vector ()
+                ;
+
+            if (TEST_ASSERT (3, (int)join_result.size ()))
+            {
+                {
+                    auto result = join_result[0];
+                    TEST_ASSERT (1, (int)result.first.id);
+                    TEST_ASSERT (1, (int)result.second.id);
+                }
+                {
+                    auto result = join_result[1];
+                    TEST_ASSERT (4, (int)result.first.id);
+                    TEST_ASSERT (2, (int)result.second.id);
+                }
+                {
+                    auto result = join_result[2];
+                    TEST_ASSERT (4, (int)result.first.id);
+                    TEST_ASSERT (3, (int)result.second.id);
+                }
+            }
+        }
     }
 
     void test_select_many ()
@@ -1652,6 +1733,7 @@ namespace
         test_where                  ();
         test_select                 ();
         test_select_many            ();
+        test_join                   ();
         test_orderby                ();
         test_take                   ();
         test_skip                   ();
