@@ -52,16 +52,16 @@ namespace cpplinq
     // -------------------------------------------------------------------------
     struct base_exception : std::exception
     {
-        explicit base_exception (char const * v)
-            :   std::exception (v ? v : "unknown")
+        virtual const char* what ()  const throw ()
         {
+            return "base_exception";
         }
     };
     struct programming_error_exception : base_exception
     {
-        explicit programming_error_exception ()
-            :   base_exception ("programming_error")
+        virtual const char* what ()  const throw ()
         {
+            return "programming_error_exception";
         }
     };
     // -------------------------------------------------------------------------
