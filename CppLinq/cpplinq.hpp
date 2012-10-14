@@ -15,6 +15,7 @@
 // ----------------------------------------------------------------------------
 #include <algorithm>
 #include <cassert>
+#include <exception>
 #include <iterator>
 #include <map>
 #include <numeric>
@@ -48,6 +49,21 @@ namespace cpplinq
 
     size_type const small_pod_size = sizeof (double);
 
+    // -------------------------------------------------------------------------
+    struct base_exception : std::exception
+    {
+        explicit base_exception (char const * v)
+            :   std::exception (v ? v : "unknown")
+        {
+        }
+    };
+    struct programming_error_exception : base_exception
+    {
+        explicit programming_error_exception ()
+            :   base_exception ("programming_error")
+        {
+        }
+    };
     // -------------------------------------------------------------------------
 
     // -------------------------------------------------------------------------
@@ -722,7 +738,7 @@ namespace cpplinq
         template <typename TValue>
         struct empty_range : base_range
         {
-            typedef                 repeat_range<TValue>                this_type       ;
+            typedef                 empty_range<TValue>                 this_type       ;
             typedef                 TValue                              value_type      ;
             typedef                 TValue                              return_type     ;
             enum    
@@ -750,7 +766,8 @@ namespace cpplinq
 
             CPPLINQ_INLINEMETHOD return_type front () const 
             {
-                return return_type ();
+                assert (false);
+                throw programming_error_exception ();
             }
 
             CPPLINQ_INLINEMETHOD bool next () throw ()

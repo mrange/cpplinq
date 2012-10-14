@@ -148,8 +148,8 @@ namespace
     customer_address        customer_addresses[] =
         {
             customer_address (1, 1, "USA"       ),
-            customer_address (1, 4, "Finland"   ),
-            customer_address (1, 4, "USA"       ),
+            customer_address (2, 4, "Finland"   ),
+            customer_address (3, 4, "USA"       ),
         };
 
     int                 ints[]              = {3,1,4,1,5,9,2,6,5,3,5,8,9,7,9,3,2,3,8,4,6,2,6,4,3,3,8,3,2,7,9,5};
@@ -612,8 +612,8 @@ namespace
         }
 
         {
-            auto customers = empty<customer>() >> to_list();
-            TEST_ASSERT(0, (int)customers.size());
+            auto customers = empty<customer>() >> to_list ();
+            TEST_ASSERT (0, (int)customers.size ());
         }
 
     }
@@ -1101,6 +1101,17 @@ namespace
             auto cs     = empty<customer> ();
             auto cas    = empty<customer_address> ();
 
+            auto join_result = cs
+                >> join (
+                        cas
+                    ,   [](customer const & c) {return c.id;}
+                    ,   [](customer_address const & ca) {return ca.customer_id;}
+                    ,   [](customer const & c, customer_address const & ca) {return std::make_pair (c, ca);}
+                    )
+                >> to_vector ()
+                ;
+
+            TEST_ASSERT (0, (int)join_result.size ());
         }
         {
             auto join_result = from_array (customers)
@@ -1113,7 +1124,24 @@ namespace
                 >> to_vector ()
                 ;
 
-            TEST_ASSERT (3, (int)join_result.size ());
+            if (TEST_ASSERT (3, (int)join_result.size ()))
+            {
+                {
+                    auto result = join_result[0];
+                    TEST_ASSERT (1, (int)result.first.id);
+                    TEST_ASSERT (1, (int)result.second.id);
+                }
+                {
+                    auto result = join_result[1];
+                    TEST_ASSERT (4, (int)result.first.id);
+                    TEST_ASSERT (2, (int)result.second.id);
+                }
+                {
+                    auto result = join_result[2];
+                    TEST_ASSERT (4, (int)result.first.id);
+                    TEST_ASSERT (3, (int)result.second.id);
+                }
+            }
         }
     }
 
