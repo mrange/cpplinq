@@ -1952,6 +1952,7 @@ namespace cpplinq
                 ,   key_selector       (std::move (key_selector))
                 ,   other_key_selector (std::move (other_key_selector))
                 ,   combiner           (std::move (combiner))
+                ,   start              (true)
             {
             }
 
