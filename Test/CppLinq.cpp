@@ -1114,6 +1114,36 @@ namespace
             TEST_ASSERT (0, (int)join_result.size ());
         }
         {
+            auto cas    = empty<customer_address> ();
+
+            auto join_result = from_array (customers)
+                >> join (
+                        cas
+                    ,   [](customer const & c) {return c.id;}
+                    ,   [](customer_address const & ca) {return ca.customer_id;}
+                    ,   [](customer const & c, customer_address const & ca) {return std::make_pair (c, ca);}
+                    )
+                >> to_vector ()
+                ;
+
+            TEST_ASSERT (0, (int)join_result.size ());
+        }
+        {
+            auto cs     = empty<customer> ();
+
+            auto join_result = cs
+                >> join (
+                        from_array (customer_addresses)
+                    ,   [](customer const & c) {return c.id;}
+                    ,   [](customer_address const & ca) {return ca.customer_id;}
+                    ,   [](customer const & c, customer_address const & ca) {return std::make_pair (c, ca);}
+                    )
+                >> to_vector ()
+                ;
+
+            TEST_ASSERT (0, (int)join_result.size ());
+        }
+        {
             auto join_result = from_array (customers)
                 >> join (
                         from_array (customer_addresses)
