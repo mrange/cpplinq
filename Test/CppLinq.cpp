@@ -1359,13 +1359,13 @@ namespace
         // reverse an empty range
         {
             auto result = empty<int>() >> reverse() >> to_vector();
-            TEST_ASSERT(0, result.size());
+            TEST_ASSERT(0, (int)result.size());
         }
 
         // reverse an empty range
         {
             auto result = from(empty_vector) >> reverse() >> to_vector();
-            TEST_ASSERT(0, result.size());
+            TEST_ASSERT(0, (int)result.size());
         }
 
         // reverse a non-empty range
@@ -1640,7 +1640,7 @@ namespace
         
         {
             auto d = from(empty_vector) >> distinct() >> to_vector();
-            TEST_ASSERT(0, d.size());
+            TEST_ASSERT(0, (int)d.size());
         }
         
         {
@@ -1673,7 +1673,7 @@ namespace
         // union of two empty ranges
         {
             auto result = from(empty_vector) >> union_with( from(empty_vector) ) >> to_vector();
-            TEST_ASSERT(0, result.size());
+            TEST_ASSERT(0, (int)result.size());
         }
 
         // union of an empty range with a non-empty range
@@ -1746,31 +1746,31 @@ namespace
         // intersection of two empty ranges
         {
             auto result = from(empty_vector) >> intersect_with( from(empty_vector) ) >> to_vector();
-            TEST_ASSERT(0, result.size());
+            TEST_ASSERT(0, (int)result.size());
         }
 
         // intersection of an empty range with a non-empty range
         {
             auto result = empty<int>() >> intersect_with( range(0, 10) ) >> to_vector();
-            TEST_ASSERT(0, result.size());
+            TEST_ASSERT(0, (int)result.size());
         }
 
         // intersection of an empty range with a non-empty range
         {
             auto result = from(empty_vector) >> intersect_with( from_array(set1) ) >> to_vector();
-            TEST_ASSERT(0, result.size());
+            TEST_ASSERT(0, (int)result.size());
         }
 
         // intersection of a non-empty range with an empty range
         {
             auto result = range(0, 10) >> intersect_with( empty<int>() ) >> to_vector();
-            TEST_ASSERT(0, result.size());
+            TEST_ASSERT(0, (int)result.size());
         }
 
         // intersection of a non-empty range with an empty range
         {
             auto result = from_array(set1) >> intersect_with( from(empty_vector) ) >> to_vector();
-            TEST_ASSERT(0, result.size());
+            TEST_ASSERT(0, (int)result.size());
         }
 
         // intersection of two non-empty ranges
@@ -1814,19 +1814,19 @@ namespace
         // difference of two empty ranges
         {
             auto result = from(empty_vector) >> except( from(empty_vector) ) >> to_vector();
-            TEST_ASSERT(0, result.size());
+            TEST_ASSERT(0, (int)result.size());
         }
 
         // difference of an empty range with a non-empty range
         {
             auto result = empty<int>() >> except( range(0, 10) ) >> to_vector();
-            TEST_ASSERT(0, result.size());
+            TEST_ASSERT(0, (int)result.size());
         }
 
         // difference of an empty range with a non-empty range
         {
             auto result = from(empty_vector) >> except( from_array(set1) ) >> to_vector();
-            TEST_ASSERT(0, result.size());
+            TEST_ASSERT(0, (int)result.size());
         }
 
         // difference of a non-empty range with an empty range

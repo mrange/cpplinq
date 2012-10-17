@@ -2065,18 +2065,6 @@ namespace cpplinq
             }
 
             CPPLINQ_INLINEMETHOD join_range (join_range const & v)
-                :   range              (std::move (v.range))
-                ,   other_range        (std::move (v.other_range))
-                ,   key_selector       (std::move (v.key_selector))
-                ,   other_key_selector (std::move (v.other_key_selector))
-                ,   combiner           (std::move (v.combiner))
-                ,   start              (std::move (v.start))
-                ,   map                (std::move (v.map))
-                ,   current            (std::move (v.current)) 
-            {
-            }
-
-            CPPLINQ_INLINEMETHOD join_range (join_range && v) throw ()
                 :   range              (v.range)
                 ,   other_range        (v.other_range)
                 ,   key_selector       (v.key_selector)
@@ -2085,6 +2073,18 @@ namespace cpplinq
                 ,   start              (v.start)
                 ,   map                (v.map)
                 ,   current            (v.current) 
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD join_range (join_range && v) throw ()
+                :   range              (std::move (v.range))
+                ,   other_range        (std::move (v.other_range))
+                ,   key_selector       (std::move (v.key_selector))
+                ,   other_key_selector (std::move (v.other_key_selector))
+                ,   combiner           (std::move (v.combiner))
+                ,   start              (std::move (v.start))
+                ,   map                (std::move (v.map))
+                ,   current            (std::move (v.current)) 
             {
             }
 
