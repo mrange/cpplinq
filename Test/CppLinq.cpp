@@ -88,6 +88,11 @@ namespace
         {
             return !(*this == c);
         }
+
+        bool operator<(customer const & c) const 
+        {
+            return id < c.id;
+        }
     };
 
     struct  customer_address
@@ -152,22 +157,46 @@ namespace
             customer_address (3, 4, "USA"       ),
         };
 
-    int                 ints[]              = {3,1,4,1,5,9,2,6,5,3,5,8,9,7,9,3,2,3,8,4,6,2,6,4,3,3,8,3,2,7,9,5};
-    int const           count_of_ints       = get_array_size (ints);
+    customer                customers_set1[] = 
+        {
+            customer (1 , "Bill"    , "Gates"   ),
+            customer (2 , "Steve"   , "Jobs"    ),
+            customer (3 , "Richard" , "Stallman"),
+            customer (4 , "Linus"   , "Torvalds"),
+            customer (3 , "Richard" , "Stallman"),
+            customer (2 , "Steve"   , "Jobs"    ),
+            customer (1 , "Bill"    , "Gates"   ),
+        };
 
-    int const           even_count_of_ints  = get_even_counts (ints, count_of_ints);
+    customer                customers_set2[] = 
+        {
+            customer (1 , "Bill"    , "Gates"   ),
+            customer (11, "Steve"   , "Ballmer" ),
+            customer (12, "Tim"     , "Cook"    ),
+        };
 
-    int                 simple_ints[]       = {1,2,3,4,5,6,7,8,9};
-    int const           count_of_simple_ints= get_array_size (simple_ints);
+    int                 ints[]                  = {3,1,4,1,5,9,2,6,5,3,5,8,9,7,9,3,2,3,8,4,6,2,6,4,3,3,8,3,2,7,9,5};
+    int const           count_of_ints           = get_array_size (ints);
 
-    auto                is_even             = [](int i) {return i%2==0;};
-    auto                is_odd              = [](int i) {return i%2==1;};
-    auto                smaller_than_five   = [](int i) {return i < 5;};
-    auto                greater_than_five   = [](int i) {return i > 5;};
-    auto                double_it           = [](int i) {return i+i;};
-    auto                sum_aggregator      = [](int s, int i) {return s+i;};
-    auto                mul_aggregator      = [](int s, int i) {return s*i;};
-    auto                to_string           = [](int i) {std::stringstream sstr; sstr<<i; return sstr.str ();};
+    int const           even_count_of_ints      = get_even_counts (ints, count_of_ints);
+
+    int                 simple_ints[]           = {1,2,3,4,5,6,7,8,9};
+    int const           count_of_simple_ints    = get_array_size (simple_ints);
+
+    int                 set1[]                  = {5,4,3,2,1,2,3,4,5};
+    int const           count_of_set1           = get_array_size (set1);
+    int                 set2[]                  = {9,8,4,5,6,7,1,8,9};
+    int const           count_of_set2           = get_array_size (set2);
+
+    auto                is_even                 = [](int i) {return i%2==0;};
+    auto                is_odd                  = [](int i) {return i%2==1;};
+    auto                smaller_than_five       = [](int i) {return i < 5;};
+    auto                greater_than_five       = [](int i) {return i > 5;};
+    auto                double_it               = [](int i) {return i+i;};
+    auto                sum_aggregator          = [](int s, int i) {return s+i;};
+    auto                mul_aggregator          = [](int s, int i) {return s*i;};
+    auto                to_string               = [](int i) {std::stringstream sstr; sstr<<i; return sstr.str ();};
+
 
     void test_prelude (
             char const *    file
@@ -1321,6 +1350,39 @@ namespace
         }
     }
 
+    void test_reverse()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE ();
+
+        // reverse an empty range
+        {
+            auto result = empty<int>() >> reverse() >> to_vector();
+            TEST_ASSERT(0, result.size());
+        }
+
+        // reverse an empty range
+        {
+            auto result = from(empty_vector) >> reverse() >> to_vector();
+            TEST_ASSERT(0, result.size());
+        }
+
+        // reverse a non-empty range
+        {
+            int expected[] = {9,8,7,6,5,4,3,2,1,0};
+            int expected_size = get_array_size(expected);
+
+            auto result = range(0, 10) >> reverse() >> to_vector();
+            TEST_ASSERT(expected_size, (int)result.size());
+
+            for(int i = 0; i < expected_size && i < (int)result.size(); ++i)
+            {
+                TEST_ASSERT(expected[i], result[i]);
+            }
+        }
+    }
+
     void test_skip ()
     {
         using namespace cpplinq;
@@ -1570,6 +1632,257 @@ namespace
         }
     }
 
+    void test_distinct()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE ();
+        
+        {
+            auto d = from(empty_vector) >> distinct() >> to_vector();
+            TEST_ASSERT(0, d.size());
+        }
+        
+        {
+            int expected[] = {5,4,3,2,1};
+            const int expected_size = (int)(sizeof(expected)/sizeof(int));
+
+            auto result = from_array(set1) >> distinct() >> to_vector();
+            auto result_size = (int)result.size();
+
+            TEST_ASSERT(expected_size, result_size);
+            for(int i =0; i < expected_size && i < result_size; ++i)
+            {
+                TEST_ASSERT(expected[i], result[i]);
+            }
+        }
+
+        {
+            auto d = from_array(customers_set1) >> distinct() >> to_vector();
+            TEST_ASSERT(4, (int)d.size());
+        }
+
+    }
+
+    void test_union_with()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE ();
+        
+        // union of two empty ranges
+        {
+            auto result = from(empty_vector) >> union_with( from(empty_vector) ) >> to_vector();
+            TEST_ASSERT(0, result.size());
+        }
+
+        // union of an empty range with a non-empty range
+        {
+            auto result = empty<int>() >> union_with( range(0, 10) ) >> to_vector();
+            TEST_ASSERT(10, (int)result.size());
+            for(int i = 0; i < 10 && i < (int)result.size(); ++i)
+            {
+                TEST_ASSERT(i, result[i]);
+            }
+        }
+
+        // union of an empty range with a non-empty range
+        {
+            int expected[] = {5,4,3,2,1};
+            int expected_size = get_array_size(expected);
+            auto result = from(empty_vector) >> union_with( from_array(set1) ) >> to_vector();
+            TEST_ASSERT(expected_size, (int)result.size());
+
+            for(int i = 0; i < (int)result.size() && i < expected_size; ++i)
+            {
+                TEST_ASSERT(expected[i], result[i]);
+            }
+        }
+
+        // union of a non-empty range with an empty range
+        {
+            auto result = range(0, 10) >> union_with( empty<int>() ) >> to_vector();
+            TEST_ASSERT(10, (int)result.size());
+            for(int i = 0; i < 10 && i < (int)result.size(); ++i)
+            {
+                TEST_ASSERT(i, result[i]);
+            }
+        }
+
+        // union of a non-empty range with an empty range
+        {
+            int expected[] = {5,4,3,2,1};
+            int expected_size = get_array_size(expected);
+            auto result = from_array(set1) >> union_with( from(empty_vector) ) >> to_vector();
+            TEST_ASSERT(expected_size, (int)result.size());
+            for(int i = 0; i < expected_size && i < (int)result.size(); ++i)
+            {
+                TEST_ASSERT(expected[i], result[i]);
+            }
+        }
+
+        // union of two non-empty ranges
+        {
+            int expected[] = {5,4,3,2,1,9,8,6,7};
+            const int expected_size = sizeof(expected)/sizeof(int);
+
+            auto result = from_array(set1) >> union_with(from_array(set2)) >> to_vector();
+            auto result_size = (int)result.size();
+
+            TEST_ASSERT(expected_size, result_size);
+            for(int i =0; i < expected_size && i < result_size; ++i)
+            {
+                TEST_ASSERT(expected[i], result[i]);
+            }
+        }
+    }
+
+    void test_intersect_with()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE ();
+        
+        // intersection of two empty ranges
+        {
+            auto result = from(empty_vector) >> intersect_with( from(empty_vector) ) >> to_vector();
+            TEST_ASSERT(0, result.size());
+        }
+
+        // intersection of an empty range with a non-empty range
+        {
+            auto result = empty<int>() >> intersect_with( range(0, 10) ) >> to_vector();
+            TEST_ASSERT(0, result.size());
+        }
+
+        // intersection of an empty range with a non-empty range
+        {
+            auto result = from(empty_vector) >> intersect_with( from_array(set1) ) >> to_vector();
+            TEST_ASSERT(0, result.size());
+        }
+
+        // intersection of a non-empty range with an empty range
+        {
+            auto result = range(0, 10) >> intersect_with( empty<int>() ) >> to_vector();
+            TEST_ASSERT(0, result.size());
+        }
+
+        // intersection of a non-empty range with an empty range
+        {
+            auto result = from_array(set1) >> intersect_with( from(empty_vector) ) >> to_vector();
+            TEST_ASSERT(0, result.size());
+        }
+
+        // intersection of two non-empty ranges
+        {
+            int expected[] = {5,4,1};
+            const int expected_size = sizeof(expected)/sizeof(int);
+
+            auto result = from_array(set1) >> intersect_with(from_array(set2)) >> to_vector();
+            auto result_size = (int)result.size();
+
+            TEST_ASSERT(expected_size, result_size);
+            for(int i =0; i < expected_size && i < result_size; ++i)
+            {
+                TEST_ASSERT(expected[i], result[i]);
+            }
+        }
+
+        // intersection of two non-empty ranges
+        {
+            int expected[] = {4,5,1};
+            const int expected_size = sizeof(expected)/sizeof(int);
+
+            auto result = from_array(set2) >> intersect_with(from_array(set1)) >> to_vector();
+            auto result_size = (int)result.size();
+
+            TEST_ASSERT(expected_size, result_size);
+            for(int i =0; i < expected_size && i < result_size; ++i)
+            {
+                TEST_ASSERT(expected[i], result[i]);
+            }
+        }
+
+    }
+
+    void test_except()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE ();
+        
+        // difference of two empty ranges
+        {
+            auto result = from(empty_vector) >> except( from(empty_vector) ) >> to_vector();
+            TEST_ASSERT(0, result.size());
+        }
+
+        // difference of an empty range with a non-empty range
+        {
+            auto result = empty<int>() >> except( range(0, 10) ) >> to_vector();
+            TEST_ASSERT(0, result.size());
+        }
+
+        // difference of an empty range with a non-empty range
+        {
+            auto result = from(empty_vector) >> except( from_array(set1) ) >> to_vector();
+            TEST_ASSERT(0, result.size());
+        }
+
+        // difference of a non-empty range with an empty range
+        {
+            auto result = range(0, 10) >> except( empty<int>() ) >> to_vector();
+            TEST_ASSERT(10, (int)result.size());
+            for(int i = 0; i < 10 && i < (int)result.size(); ++i)
+            {
+                TEST_ASSERT(i, result[i]);
+            }
+        }
+
+        // difference of a non-empty range with an empty range
+        {
+            int expected[] = {5,4,3,2,1};
+            const int expected_size = sizeof(expected)/sizeof(int);
+
+            auto result = from_array(set1) >> except( from(empty_vector) ) >> to_vector();
+            TEST_ASSERT(expected_size, (int)result.size());
+            for(int i = 0; i < expected_size && i < (int)result.size(); ++i)
+            {
+                TEST_ASSERT(expected[i], result[i]);
+            }
+        }
+
+        // difference of two non-empty ranges
+        {
+            int expected[] = {3,2};
+            const int expected_size = sizeof(expected)/sizeof(int);
+
+            auto result = from_array(set1) >> except(from_array(set2)) >> to_vector();
+            auto result_size = (int)result.size();
+
+            TEST_ASSERT(expected_size, result_size);
+            for(int i =0; i < expected_size && i < result_size; ++i)
+            {
+                TEST_ASSERT(expected[i], result[i]);
+            }
+        }
+
+        // difference of two non-empty ranges
+        {
+            int expected[] = {9,8,6,7};
+            const int expected_size = sizeof(expected)/sizeof(int);
+
+            auto result = from_array(set2) >> except(from_array(set1)) >> to_vector();
+            auto result_size = (int)result.size();
+
+            TEST_ASSERT(expected_size, result_size);
+            for(int i =0; i < expected_size && i < result_size; ++i)
+            {
+                TEST_ASSERT(expected[i], result[i]);
+            }
+        }
+    }
+
     template<typename TPredicate>
     long long execute_testruns (
             std::size_t test_runs
@@ -1765,6 +2078,7 @@ namespace
         test_select_many            ();
         test_join                   ();
         test_orderby                ();
+        test_reverse                ();
         test_take                   ();
         test_skip                   ();
         test_take_while             ();
@@ -1772,6 +2086,10 @@ namespace
         test_contains               ();
         test_element_at_or_default  ();
         test_aggregate              ();
+        test_distinct               ();
+        test_union_with             ();
+        test_intersect_with         ();
+        test_except                 ();
         // -------------------------------------------------------------------------
         if (run_perfomance_tests)
         {
