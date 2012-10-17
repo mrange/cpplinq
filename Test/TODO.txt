@@ -1,6 +1,4 @@
 NEXT:20
-17. Unit test: take_while
-18. Unit test: skip_while
 19. Unit test: join
 
 8.  Document select_many range operator
