@@ -18,9 +18,12 @@
 #include <algorithm>
 #include <chrono>
 #include <cassert>
+#include <exception>
 #include <iterator>
+#include <list>
 #include <map>
 #include <numeric>
+#include <set>
 #include <string>
 #include <type_traits>
 #include <vector>

@@ -17,15 +17,14 @@
 #include <cassert>
 #include <exception>
 #include <iterator>
+#include <list>
 #include <map>
 #include <numeric>
+#include <set>
 #include <string>
 #include <type_traits>
 #include <vector>
-#include <list>
-#include <set>
-#include <stack>
-// ----------------------------------------------------------------------------
+#// ----------------------------------------------------------------------------
 #ifdef _MSC_VER 
 #   pragma warning (push)
 #       pragma warning (disable:4512)
@@ -1157,42 +1156,43 @@ namespace cpplinq
             typedef                 TRange                                      range_type          ;
 
             typedef                 typename TRange::value_type                 value_type          ;
-            typedef                 typename TRange::return_type                return_type         ;
+            typedef                 value_type const &                          return_type         ;
 
-            typedef                 std::stack<value_type>                      stack_type          ;
+            typedef                 std::vector<value_type>                      stack_type          ;
 
             enum    
             { 
-                returns_reference   = TRange::returns_reference   , 
+                returns_reference   = 1     , 
             };
 
 
             range_type                  range               ;
-            stack_type                  stack               ;
-            value_type                  current             ;
+            size_type                   capacity            ;
+            std::vector<value_type>     reversed            ;
             bool                        start               ;
 
             CPPLINQ_INLINEMETHOD reverse_range (
-                        range_type          range
+                    range_type          range
+                ,   size_type           capacity
                 ) throw ()
                 :   range               (std::move (range))
-                ,   current             (value_type())
+                ,   capacity            (capacity)
                 ,   start               (true)
             {
             }
 
             CPPLINQ_INLINEMETHOD reverse_range (reverse_range const & v) throw()
                 :   range               (v.range)
-                ,   stack               (v.stack)
-                ,   current             (v.current)
+                ,   capacity            (v.capacity)
+                ,   reversed            (v.reversed)
                 ,   start               (v.start)
             {
             }
 
             CPPLINQ_INLINEMETHOD reverse_range (reverse_range && v) throw ()
                 :   range               (std::move (v.range))
-                ,   stack               (std::move (v.stack))
-                ,   current             (std::move (v.current))
+                ,   capacity            (std::move (v.capacity))
+                ,   reversed            (std::move (v.reversed))
                 ,   start               (std::move (v.start))
             {
             }
@@ -1203,9 +1203,11 @@ namespace cpplinq
                 return range_builder.build (*this);
             }
 
-            CPPLINQ_INLINEMETHOD return_type front () const 
+            CPPLINQ_INLINEMETHOD return_type front () const throw ()
             {
-                return current;
+                assert (!start);
+                assert (!reversed.empty ());
+                return reversed[reversed.size () - 1];
             }
 
             CPPLINQ_INLINEMETHOD bool next ()
@@ -1214,43 +1216,53 @@ namespace cpplinq
                 {
                     start = false;
 
+                    reversed.clear ();
+                    reversed.reserve (capacity);
+
                     while(range.next())
                     {
-                        stack.push(range.front());
+                        reversed.push_back (range.front());
                     }
+
+                    return !reversed.empty ();
                 }
 
-                if(!stack.empty())
+                if (reversed.empty ())
                 {
-                    current = stack.top();
-                    stack.pop();
-                    return true;
+                    return false;
                 }
 
-                return false;
+                reversed.pop_back ();
+
+                return !reversed.empty ();
             }
         };
         
         struct reverse_builder : base_builder
         {
-            typedef                 reverse_builder                    this_type               ;  
+            typedef             reverse_builder     this_type   ;  
             
-            CPPLINQ_INLINEMETHOD reverse_builder () throw ()
+            size_type           capacity                        ;
+
+            CPPLINQ_INLINEMETHOD reverse_builder (size_type capacity) throw ()
+                :   capacity (capacity)
             {
             }
 
             CPPLINQ_INLINEMETHOD reverse_builder (reverse_builder const & v) throw ()
+                :   capacity (v.capacity)
             {
             }
 
             CPPLINQ_INLINEMETHOD reverse_builder (reverse_builder && v) throw ()
+                :   capacity (std::move (v.capacity))
             {
             }
 
             template<typename TRange>
             CPPLINQ_INLINEMETHOD reverse_range<TRange> build (TRange range) const throw ()
             {
-                return reverse_range<TRange> (std::move (range));
+                return reverse_range<TRange> (std::move (range), capacity);
             }
         };
 
@@ -4122,9 +4134,9 @@ namespace cpplinq
         return detail::thenby_builder<TPredicate> (std::move (predicate), false);
     }
 
-    CPPLINQ_INLINEMETHOD detail::reverse_builder   reverse () throw ()
+    CPPLINQ_INLINEMETHOD detail::reverse_builder   reverse (size_type capacity = 16U) throw ()
     {
-        return detail::reverse_builder ();
+        return detail::reverse_builder (capacity);
     }
 
 
