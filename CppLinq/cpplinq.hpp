@@ -1158,7 +1158,7 @@ namespace cpplinq
             typedef                 typename TRange::value_type                 value_type          ;
             typedef                 value_type const &                          return_type         ;
 
-            typedef                 std::vector<value_type>                      stack_type          ;
+            typedef                 std::vector<value_type>                     stack_type          ;
 
             enum    
             { 
@@ -2016,17 +2016,17 @@ namespace cpplinq
             static          TOtherKeySelector       get_other_key_selector ()   ;
             static          TCombiner               get_combiner ()             ;
 
-            typedef         decltype (get_key_selector () (get_source ())) raw_key_type    ;
-            typedef        typename cleanup_type<raw_key_type>::type    key_type        ;
+            typedef         decltype (get_key_selector () (get_source ()))      raw_key_type    ;
+            typedef         typename cleanup_type<raw_key_type>::type           key_type        ;
 
             typedef         decltype (get_other_key_selector () (get_other_source ()))  
-                                                                            raw_other_key_type  ;
-            typedef        typename cleanup_type<raw_other_key_type>::type  other_key_type      ;
+                                                                                raw_other_key_type  ;
+            typedef         typename cleanup_type<raw_other_key_type>::type     other_key_type      ;
 
             typedef         decltype (get_combiner () (get_source (), get_other_source ()))  
-                                                                        raw_value_type  ;
-            typedef        typename cleanup_type<raw_value_type>::type  value_type      ;
-            typedef                 value_type                          return_type     ;
+                                                                                raw_value_type  ;
+            typedef         typename cleanup_type<raw_value_type>::type         value_type      ;
+            typedef                 value_type                                  return_type     ;
             enum    
             { 
                 returns_reference   = 0   , 
@@ -2682,6 +2682,110 @@ namespace cpplinq
             CPPLINQ_INLINEMETHOD except_range<TRange, TOtherRange> build (TRange range) const throw ()
             {
                 return except_range<TRange, TOtherRange> (std::move (range), std::move(other_range));
+            }
+        };
+
+        // -------------------------------------------------------------------------
+
+        template<typename TRange, typename TOtherRange>
+        struct concat_range : base_range
+        {
+            typedef                 concat_range<TRange, TOtherRange>           this_type           ;
+            typedef                 TRange                                      range_type          ;
+            typedef                 TOtherRange                                 other_range_type    ;
+
+            typedef                 typename TRange::value_type                 value_type          ;
+            typedef                 typename TRange::return_type                return_type         ;
+
+            enum    
+            { 
+                returns_reference   = TRange::returns_reference   , 
+            };
+
+            range_type                  range               ;
+            other_range_type            other_range         ;
+            return_type                 current             ;
+
+            CPPLINQ_INLINEMETHOD concat_range (
+                        range_type          range
+                    ,   other_range_type    other_range
+                ) throw ()
+                :   range               (std::move (range))
+                ,   other_range         (std::move (other_range))
+                ,   current             (return_type())
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD concat_range (concat_range const & v) throw()
+                :   range               (v.range)
+                ,   other_range         (v.other_range)
+                ,   current             (v.current)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD concat_range (concat_range && v) throw ()
+                :   range               (std::move (v.range))
+                ,   other_range         (std::move (v.other_range))
+                ,   current             (std::move (v.current))
+            {
+            }
+
+            template<typename TRangeBuilder>
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            {
+                return range_builder.build (*this);
+            }
+
+            CPPLINQ_INLINEMETHOD return_type front () const 
+            {
+                return current;
+            }
+
+            CPPLINQ_INLINEMETHOD bool next ()
+            {
+                while(range.next())
+                {
+                    current = range.front();
+                    return true;
+                }
+
+                while(other_range.next())
+                {
+                    current = other_range.front();
+                    return true;
+                }
+
+                return false;
+            }
+        };
+        
+        template <typename TOtherRange>
+        struct concat_builder : base_builder
+        {
+            typedef                 concat_builder<TOtherRange>             this_type       ;  
+            typedef                 TOtherRange                             other_range_type;
+
+            other_range_type        other_range         ;
+            
+            CPPLINQ_INLINEMETHOD concat_builder (TOtherRange other_range) throw ()
+                : other_range(std::move (other_range))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD concat_builder (concat_builder const & v) throw ()
+                : other_range(v.other_range)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD concat_builder (concat_builder && v) throw ()
+                : other_range(std::move(v.other_range))
+            {
+            }
+
+            template <typename TRange>
+            CPPLINQ_INLINEMETHOD concat_range<TRange, TOtherRange> build (TRange range) const throw ()
+            {
+                return concat_range<TRange, TOtherRange> (std::move (range), std::move(other_range));
             }
         };
 
@@ -3626,6 +3730,113 @@ namespace cpplinq
         };
 
         // -------------------------------------------------------------------------
+        
+        template <typename TOtherRange, typename TComparer>
+        struct sequence_equal_predicate_builder : base_builder
+        {
+            typedef                 sequence_equal_predicate_builder<TOtherRange,TComparer>     this_type       ;  
+            typedef                 TOtherRange                                                 other_range_type;
+            typedef                 TComparer                                                   comparer_type   ;
+
+            other_range_type        other_range         ;
+            comparer_type           comparer            ;
+            
+            CPPLINQ_INLINEMETHOD sequence_equal_predicate_builder (
+                    TOtherRange     other_range
+                ,   comparer_type   comparer) throw ()
+                :   other_range (std::move (other_range))
+                ,   comparer    (std::move (comparer))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD sequence_equal_predicate_builder (sequence_equal_predicate_builder const & v) throw ()
+                :   other_range (v.other_range)
+                ,   comparer    (v.comparer)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD sequence_equal_predicate_builder (sequence_equal_predicate_builder && v) throw ()
+                :   other_range (std::move (v.other_range))
+                ,   comparer    (std::move (v.comparer))
+            {
+            }
+
+            template <typename TRange>
+            CPPLINQ_INLINEMETHOD bool build (TRange range) throw ()
+            {
+#ifdef _MSC_VER 
+#pragma warning (push )
+#pragma warning (disable : 4127)
+#endif
+                while(true)
+                {
+                    bool next1 = range.next();
+                    bool next2 = other_range.next();
+
+                    // sequences are not of same length
+                    if(next1 != next2) return false;
+                    // both sequences are over, next1 = next2 = false
+                    if(!next1) return true;
+
+                    if(!comparer(range.front(), other_range.front()))
+                        return false;
+                }
+#ifdef _MSC_VER 
+#pragma warning (pop)
+#endif
+            }
+        };
+
+        template <typename TOtherRange>
+        struct sequence_equal_builder : base_builder
+        {
+            typedef                 sequence_equal_builder<TOtherRange>     this_type       ;  
+            typedef                 TOtherRange                             other_range_type;
+
+            other_range_type        other_range         ;
+            
+            CPPLINQ_INLINEMETHOD sequence_equal_builder (TOtherRange other_range) throw ()
+                : other_range(std::move (other_range))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD sequence_equal_builder (sequence_equal_builder const & v) throw ()
+                : other_range(v.other_range)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD sequence_equal_builder (sequence_equal_builder && v) throw ()
+                : other_range(std::move(v.other_range))
+            {
+            }
+
+            template <typename TRange>
+            CPPLINQ_INLINEMETHOD bool build (TRange range) throw ()
+            {
+#ifdef _MSC_VER 
+#pragma warning (push )
+#pragma warning (disable : 4127)
+#endif
+                while(true)
+                {
+                    bool next1 = range.next();
+                    bool next2 = other_range.next();
+
+                    // sequences are not of same length
+                    if(next1 != next2) return false;
+                    // both sequences are over, next1 = next2 = false
+                    if(!next1) return true;
+
+                    if(range.front() != other_range.front())
+                        return false;
+                }
+#ifdef _MSC_VER 
+#pragma warning (pop)
+#endif
+            }
+        };
+
+        // -------------------------------------------------------------------------
 
         template<typename TCharType>
         struct concatenate_builder : base_builder
@@ -4050,6 +4261,14 @@ namespace cpplinq
             );
     }
 
+    // Concatenation operators
+
+    template <typename TOtherRange>
+    CPPLINQ_INLINEMETHOD detail::concat_builder<TOtherRange>  concat (TOtherRange other_range) throw ()
+    {
+        return detail::concat_builder<TOtherRange> (std::move(other_range));
+    }
+
     // Partitioning operators
 
     template<typename TPredicate>
@@ -4164,6 +4383,21 @@ namespace cpplinq
     CPPLINQ_INLINEMETHOD detail::to_map_builder<TKeyPredicate>  to_map (TKeyPredicate key_predicate) throw ()
     {
         return detail::to_map_builder<TKeyPredicate>(std::move (key_predicate));
+    }
+
+    // Equality operators
+    template <typename TOtherRange>
+    CPPLINQ_INLINEMETHOD detail::sequence_equal_builder<TOtherRange>  sequence_equal (TOtherRange other_range) throw ()
+    {
+        return detail::sequence_equal_builder<TOtherRange> (std::move(other_range));
+    }
+
+    template <typename TOtherRange, typename TComparer>
+    CPPLINQ_INLINEMETHOD detail::sequence_equal_predicate_builder<TOtherRange, TComparer>  sequence_equal (
+            TOtherRange other_range
+        ,   TComparer   comparer) throw ()
+    {
+        return detail::sequence_equal_predicate_builder<TOtherRange, TComparer> (std::move(other_range), std::move(comparer));
     }
 
     // Element operators

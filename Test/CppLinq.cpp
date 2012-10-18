@@ -296,6 +296,34 @@ namespace
     bool test_assert (
             char const *    file
         ,   int             line_no
+        ,   size_t          expected
+        ,   char const *    expected_name
+        ,   size_t          found
+        ,   char const *    found_name
+        ,   bool            result
+        )
+    {
+        if (!result)
+        {
+            ++errors;
+            printf (
+                    "%s(%d): ERROR_EXPECTED: %d(%s), FOUND: %d(%s)\r\n"
+                ,   file
+                ,   line_no
+                ,   expected
+                ,   expected_name
+                ,   found
+                ,   found_name
+                );
+        }
+
+        return result;
+    }
+
+
+    bool test_assert (
+            char const *    file
+        ,   int             line_no
         ,   customer        expected
         ,   char const *    expected_name
         ,   customer        found
@@ -1883,6 +1911,214 @@ namespace
         }
     }
 
+    void test_concat()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE ();
+
+        // concat two empty ranges
+        {
+            auto result = empty<int>() >> concat(empty<int>()) >> to_vector();
+            TEST_ASSERT(0U, result.size());
+        }
+
+        // concat two empty ranges
+        {
+            auto result = from(empty_vector) >> concat(empty<int>()) >> to_vector();
+            TEST_ASSERT(0U, result.size());
+        }
+
+        // concat an empty range with a non empty range
+        {
+            auto expected = range(0,10);
+            auto expected_result = expected >> to_vector();
+            auto result = empty<int>() >> concat(expected) >> to_vector();
+            TEST_ASSERT(expected_result.size(), result.size());
+            for(size_t i = 0; i < expected_result.size() && i < result.size();++i)
+            {
+                TEST_ASSERT(expected_result[i], result[i]);
+            }
+        }
+
+        // concat an empty range with a non empty range
+        {
+            auto result = empty<int>() >> concat(from_array(ints)) >> to_vector();
+            TEST_ASSERT(count_of_ints, (int)result.size());
+            for(int i = 0; i < count_of_ints && i < (int)result.size();++i)
+            {
+                TEST_ASSERT(ints[i], result[i]);
+            }
+        }
+
+        // concat a non empty range with an empty range
+        {
+            auto expected = range(0,10);
+            auto expected_result = expected >> to_vector();
+            auto result = expected >> concat(empty<int>()) >> to_vector();
+            TEST_ASSERT(expected_result.size(), result.size());
+            for(size_t i = 0; i < expected_result.size() && i < result.size();++i)
+            {
+                TEST_ASSERT(expected_result[i], result[i]);
+            }
+        }
+
+        // concat a non empty range with an empty range
+        {
+            auto result = from_array(ints) >> concat(empty<int>()) >> to_vector();
+            TEST_ASSERT(count_of_ints, (int)result.size());
+            for(int i = 0; i < count_of_ints && i < (int)result.size();++i)
+            {
+                TEST_ASSERT(ints[i], result[i]);
+            }
+        }
+
+        // concat two non-empty ranges
+        {
+            int set1[] = {0,1,2,3,4,5};
+            int set2[] = {6,7,8,9};
+            auto result = from_array(set1) >> concat(from_array(set2)) >> to_vector();
+            TEST_ASSERT(10U, result.size());
+            for(int i = 0; i < 10 && i < (int)result.size(); ++i)
+            {
+                TEST_ASSERT(i, result[i]);
+            }
+        }
+
+    }
+
+    void test_sequence_equal()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE ();
+
+        // test two empty sequences
+        {
+            auto result = empty<int>() >> sequence_equal(empty<int>());
+            TEST_ASSERT(true, result);
+        }
+
+        // test two empty sequences
+        {
+            auto result = from(empty_vector) >> sequence_equal(empty<int>());
+            TEST_ASSERT(true, result);
+        }
+
+        // test empty sequence with non-empty sequence
+        {
+            auto result = empty<int>() >> sequence_equal(range(0,10));
+            TEST_ASSERT(false, result);
+        }
+
+        // test empty sequence with non-empty sequence
+        {
+            auto result = from(empty_vector) >> sequence_equal(from_array(ints));
+            TEST_ASSERT(false, result);
+        }
+
+        // test non-empty sequence with empty sequence
+        {
+            auto result = range(0, 10) >> sequence_equal(empty<int>());
+            TEST_ASSERT(false, result);
+        }
+
+        // test non-empty sequence with empty sequence
+        {
+            auto result = from_array(ints) >> sequence_equal(from(empty_vector));
+            TEST_ASSERT(false, result);
+        }
+
+        // test non-empty inequal sequences
+        {
+            auto result = range(0,5) >> sequence_equal(range(0,4));
+            TEST_ASSERT(false, result);
+        }
+
+        // test non-empty inequal sequences
+        {
+            auto result = from_array(set1) >> sequence_equal(from_array(set2));
+            TEST_ASSERT(false, result);
+        }
+
+        // test non-empty equal sequences
+        {
+            auto result = from_array(ints) >> sequence_equal(from_array(ints));
+            TEST_ASSERT(true, result);
+        }
+
+        // test non-empty equal sequences
+        {
+            auto result = range(0,10) >> sequence_equal(range(0,10));
+            TEST_ASSERT(true, result);
+        }
+
+        // test against self
+        {
+            auto seq = from_array(ints);
+            auto result = seq >> sequence_equal(seq);
+            TEST_ASSERT(true, result);
+        }
+
+        auto comparer = [](customer const& c1, customer const& c2) 
+        {return c1.first_name == c2.first_name && c1.last_name == c2.last_name;};
+
+        customer customers1[] = {
+            customer (1 , "Bill"    , "Gates"   ),
+            customer (2 , "Steve"   , "Jobs"    ),
+            customer (3 , "Richard" , "Stallman"),
+        };
+
+        customer customers2[] = {
+            customer (11 , "Bill"    , "Gates"   ),
+            customer (12 , "Steve"   , "Jobs"    ),
+            customer (13 , "Richard" , "Stallman"),
+        };
+
+        customer customers3[] = {
+            customer (1 , "Bill"    , "Gates"   ),
+            customer (2 , "Steve"   , "Jobs"    ),
+            customer (3 , "Steve"   , "Ballmer" ),
+        };
+
+        // test empty with comparer
+        {
+            auto result = empty<customer>() >> sequence_equal(empty<customer>(), comparer);
+            TEST_ASSERT(true, result);
+        }
+
+        // test empty with non-empty with comparer
+        {
+            auto result = from(empty_customers) >> sequence_equal(from_array(customers), comparer);
+            TEST_ASSERT(false, result);
+        }
+
+        // test non-empty with empty with comparer
+        {
+            auto result = from_array(customers) >> sequence_equal(from(empty_customers), comparer);
+            TEST_ASSERT(false, result);
+        }
+
+        // test two equal non-empty sequences with comparer
+        {
+            auto result = from_array(customers1) >> sequence_equal(from_array(customers2), comparer);
+            TEST_ASSERT(true, result);
+        }
+
+        // test two inequal non-empty sequences with comparer
+        {
+            auto result = from_array(customers1) >> sequence_equal(from_array(customers3), comparer);
+            TEST_ASSERT(false, result);
+        }
+
+        // test against self with comparer
+        {
+            auto seq = from_array(customers1);
+            auto result = seq >> sequence_equal(seq, comparer);
+            TEST_ASSERT(true, result);
+        }
+    }
+
     template<typename TPredicate>
     long long execute_testruns (
             std::size_t test_runs
@@ -2090,6 +2326,8 @@ namespace
         test_union_with             ();
         test_intersect_with         ();
         test_except                 ();
+        test_concat                 ();
+        test_sequence_equal         ();
         // -------------------------------------------------------------------------
         if (run_perfomance_tests)
         {
