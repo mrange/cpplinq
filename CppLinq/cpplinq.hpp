@@ -425,7 +425,7 @@ namespace cpplinq
                     auto value  = range.front ();
                     auto key    = selector (value);
                     v.push_back (std::move (value));
-                    k.push_back (keys_type::value_type (std::move (key), index));
+                    k.push_back (typename keys_type::value_type (std::move (key), index));
                     ++index;
                 }
 
@@ -437,7 +437,7 @@ namespace cpplinq
                 std::sort (
                         k.begin ()
                     ,   k.end ()
-                    ,   [] (keys_type::value_type const & l, keys_type::value_type const & r)
+                    ,   [] (typename keys_type::value_type const & l, typename keys_type::value_type const & r)
                         {
                             return l.first < r.first;
                         }
@@ -454,7 +454,7 @@ namespace cpplinq
                 if (iter != end)
                 {
                     values.push_back (std::move (v[iter->second]));
-                    keys.push_back (keys_type::value_type (iter->first, index));
+                    keys.push_back (typename keys_type::value_type (iter->first, index));
                 }
 
                 auto previous   = iter;
@@ -467,7 +467,7 @@ namespace cpplinq
 
                     if (previous->first < iter->first)
                     {
-                        keys.push_back (keys_type::value_type (iter->first, index));
+                        keys.push_back (typename keys_type::value_type (iter->first, index));
                     }
 
                     previous = iter;
@@ -529,7 +529,7 @@ namespace cpplinq
                     returns_reference = 1 , 
                 };
 
-                typedef         value_type                  value_type      ;
+                typedef         TValue                      value_type      ;
                 typedef         value_type const &          return_type     ;
 
                 enum state
@@ -630,8 +630,8 @@ namespace cpplinq
                 auto find = std::lower_bound (
                         keys.begin ()
                     ,   keys.end  ()
-                    ,   keys_type::value_type (key, 0U)   
-                    ,   [](keys_type::value_type const & l, keys_type::value_type const & r)
+                    ,   typename keys_type::value_type (key, 0U)   
+                    ,   [](typename keys_type::value_type const & l, typename keys_type::value_type const & r)
                         {
                             return l.first < r.first;
                         });
