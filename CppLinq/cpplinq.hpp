@@ -346,31 +346,6 @@ namespace cpplinq
 
         };
 
-        // -------------------------------------------------------------------------
-        // The generic interface
-        // -------------------------------------------------------------------------
-        // _range classes:
-        //      inherit base_range
-        //      COPYABLE
-        //      MOVEABLE (movesemantics)
-        //      typedef                 ...         this_type       ;
-        //      typedef                 ...         value_type      ;
-        //      typedef                 ...         return_type     ;   // value_type | value_type const &
-        //      enum { returns_reference = 0|1 };
-        //      return_type front () const
-        //      bool next ()
-        //      template<typename TRangeBuilder>
-        //      typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const 
-        // -------------------------------------------------------------------------
-        // _builder classes:
-        //      inherit base_builder
-        //      COPYABLE
-        //      MOVEABLE (movesemantics)
-        //      typedef                 ...         this_type       ;
-        //      template<typename TRange>
-        //      TAggregated build (TRange range) const
-        // -------------------------------------------------------------------------
-
         struct base_range 
         {
 #ifdef CPPLINQ_DETECT_INVALID_METHODS
@@ -427,6 +402,293 @@ namespace cpplinq
 #endif
         };
 
+        template<typename TKey, typename TValue>
+        struct lookup
+        {
+            typedef     TKey    key_type    ;
+            typedef     TValue  value_type  ;
+
+            typedef     std::vector<std::pair<key_type, size_type>>     keys_type   ;
+            typedef     std::vector<value_type>                         values_type ;
+
+            template<typename TRange, typename TSelector>
+            CPPLINQ_INLINEMETHOD lookup (size_type capacity, TRange range, TSelector selector)
+            {
+                keys_type   k;
+                values_type v;
+                k.reserve (capacity);
+                v.reserve (capacity);
+
+                auto index = 0U;
+                while (range.next ())
+                {
+                    auto value  = range.front ();
+                    auto key    = selector (value);
+                    v.push_back (std::move (value));
+                    k.push_back (keys_type::value_type (std::move (key), index));
+                    ++index;
+                }
+
+                if (v.size () == 0)
+                {
+                    return;
+                }
+
+                std::sort (
+                        k.begin ()
+                    ,   k.end ()
+                    ,   [] (keys_type::value_type const & l, keys_type::value_type const & r)
+                        {
+                            return l.first < r.first;
+                        }
+                    );
+
+                keys.reserve (k.size ());
+                values.reserve (v.size ());
+
+                auto iter       = k.begin ();
+                auto end        = k.end ();
+
+                index = 0U;
+
+                if (iter != end)
+                {
+                    values.push_back (std::move (v[iter->second]));
+                    keys.push_back (keys_type::value_type (iter->first, index));
+                }
+
+                auto previous   = iter;
+                ++iter;
+                ++index;
+
+                while (iter != end)
+                {
+                    values.push_back (v[iter->second]);
+
+                    if (previous->first < iter->first)
+                    {
+                        keys.push_back (keys_type::value_type (iter->first, index));
+                    }
+
+                    previous = iter;
+                    ++iter;
+                    ++index;
+                }
+            }
+            
+            CPPLINQ_INLINEMETHOD lookup (lookup const & v)
+                :   values  (v.values)
+                ,   keys    (v.keys)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD lookup (lookup && v) throw ()
+                :   values  (std::move (v.values))
+                ,   keys    (std::move (v.keys))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD void swap (lookup & v) throw ()
+            {
+                values.swap (v.values);
+                keys.swap (v.keys);
+            }
+
+            CPPLINQ_INLINEMETHOD lookup & operator= (lookup const & v)
+            {
+                if (this == std::addressof (v))
+                {
+                    return *this;
+                }
+
+                lookup tmp (v);
+
+                swap (tmp);
+
+                return *this;
+            }
+
+            CPPLINQ_INLINEMETHOD lookup & operator= (lookup && v) throw ()
+            {
+                if (this == std::addressof (v))
+                {
+                    return *this;
+                }
+
+                swap (v);
+
+                return *this;
+            }
+
+            struct lookup_range : base_range
+            {
+                typedef         lookup_range                this_type       ;
+
+                enum    
+                { 
+                    returns_reference = 1 , 
+                };
+
+                typedef         value_type                  value_type      ;
+                typedef         value_type const &          return_type     ;
+
+                enum state
+                {
+                    state_initial   ,
+                    state_iterating ,
+                    state_end       ,
+                };
+
+                values_type const *     values  ;
+                size_type               iter    ;
+                size_type               end     ;
+                state                   state   ;
+
+                CPPLINQ_INLINEMETHOD lookup_range (
+                        values_type const *     values  
+                    ,   size_type               iter
+                    ,   size_type               end     
+                    ) throw ()
+                    :   values  (values)
+                    ,   iter    (iter)
+                    ,   end     (end)
+                    ,   state   (state_initial)
+                {
+                    assert (values);
+                }
+
+                CPPLINQ_INLINEMETHOD lookup_range (lookup_range const & v) throw ()
+                    :   values  (v.values)
+                    ,   iter    (v.iter)
+                    ,   end     (v.end)
+                    ,   state   (v.state)
+                {
+                }
+
+                CPPLINQ_INLINEMETHOD lookup_range (lookup_range && v) throw ()
+                    :   values  (std::move (v.values))
+                    ,   iter    (std::move (v.iter))
+                    ,   end     (std::move (v.end))
+                    ,   state   (std::move (v.state))
+                {
+                }
+
+                template<typename TRangeBuilder>
+                CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+                {
+                    return range_builder.build (*this);
+                }
+
+                CPPLINQ_INLINEMETHOD return_type front () const throw ()
+                {
+                    assert (state == state_iterating);
+                    assert (iter < end);
+
+                    return (*values)[iter];
+                }
+
+                CPPLINQ_INLINEMETHOD bool next () throw ()
+                {
+                    switch (state)
+                    {
+                    case state_initial:
+                        {
+                            auto has_elements = iter < end;
+                            state = has_elements ? state_iterating : state_end;
+                            return has_elements;
+                        }
+                        break;
+                    case state_iterating:
+                        {
+                            ++iter;
+
+                            auto has_elements = iter < end;
+                            state = has_elements ? state_iterating : state_end;
+                            return has_elements;
+                        }
+                        break;
+                    case state_end:
+                    default:
+                        return false;
+                    }
+                }
+
+            };
+
+            CPPLINQ_INLINEMETHOD lookup_range operator[](key_type const & key) const throw ()
+            {
+                if (values.empty ())
+                {
+                    return lookup_range (std::addressof (values), 0U, 0U);
+                }
+
+                if (keys.empty ())
+                {
+                    return lookup_range (std::addressof (values), 0U, 0U);
+                }
+
+                auto find = std::lower_bound (
+                        keys.begin ()
+                    ,   keys.end  ()
+                    ,   keys_type::value_type (key, 0U)   
+                    ,   [](keys_type::value_type const & l, keys_type::value_type const & r)
+                        {
+                            return l.first < r.first;
+                        });
+
+                if (find == keys.end ())
+                {
+                    return lookup_range (std::addressof (values), 0U, 0U);
+                }
+
+                auto next = find + 1;
+                if (next == keys.end ())
+                {
+                    return lookup_range (std::addressof (values), find->second, values.size ());
+                }
+
+                return lookup_range (std::addressof (values), find->second, next->second);
+            }
+
+            size_type size_of_keys () const throw ()
+            {
+                return keys.size ();
+            }
+
+            size_type size_of_values () const throw ()
+            {
+                return values.size ();
+            }
+
+        private:
+            values_type values  ;
+            keys_type   keys    ;
+        };
+
+        // -------------------------------------------------------------------------
+        // The generic interface
+        // -------------------------------------------------------------------------
+        // _range classes:
+        //      inherit base_range
+        //      COPYABLE
+        //      MOVEABLE (movesemantics)
+        //      typedef                 ...         this_type       ;
+        //      typedef                 ...         value_type      ;
+        //      typedef                 ...         return_type     ;   // value_type | value_type const &
+        //      enum { returns_reference = 0|1 };
+        //      return_type front () const
+        //      bool next ()
+        //      template<typename TRangeBuilder>
+        //      typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const 
+        // -------------------------------------------------------------------------
+        // _builder classes:
+        //      inherit base_builder
+        //      COPYABLE
+        //      MOVEABLE (movesemantics)
+        //      typedef                 ...         this_type       ;
+        //      template<typename TRange>
+        //      TAggregated build (TRange range) const
+        // -------------------------------------------------------------------------
 
         template<typename TValueIterator>
         struct from_range : base_range
@@ -1158,7 +1420,7 @@ namespace cpplinq
             typedef                 typename TRange::value_type                 value_type          ;
             typedef                 value_type const &                          return_type         ;
 
-            typedef                 std::vector<value_type>                      stack_type          ;
+            typedef                 std::vector<value_type>                     stack_type          ;
 
             enum    
             { 
@@ -1181,7 +1443,7 @@ namespace cpplinq
             {
             }
 
-            CPPLINQ_INLINEMETHOD reverse_range (reverse_range const & v) throw()
+            CPPLINQ_INLINEMETHOD reverse_range (reverse_range const & v) throw ()
                 :   range               (v.range)
                 ,   capacity            (v.capacity)
                 ,   reversed            (v.reversed)
@@ -1212,16 +1474,16 @@ namespace cpplinq
 
             CPPLINQ_INLINEMETHOD bool next ()
             {
-                if(start)
+                if (start)
                 {
                     start = false;
 
                     reversed.clear ();
                     reversed.reserve (capacity);
 
-                    while(range.next())
+                    while (range.next ())
                     {
-                        reversed.push_back (range.front());
+                        reversed.push_back (range.front ());
                     }
 
                     return !reversed.empty ();
@@ -2016,17 +2278,17 @@ namespace cpplinq
             static          TOtherKeySelector       get_other_key_selector ()   ;
             static          TCombiner               get_combiner ()             ;
 
-            typedef         decltype (get_key_selector () (get_source ())) raw_key_type    ;
-            typedef        typename cleanup_type<raw_key_type>::type    key_type        ;
+            typedef         decltype (get_key_selector () (get_source ()))      raw_key_type    ;
+            typedef         typename cleanup_type<raw_key_type>::type           key_type        ;
 
             typedef         decltype (get_other_key_selector () (get_other_source ()))  
-                                                                            raw_other_key_type  ;
-            typedef        typename cleanup_type<raw_other_key_type>::type  other_key_type      ;
+                                                                                raw_other_key_type  ;
+            typedef         typename cleanup_type<raw_other_key_type>::type     other_key_type      ;
 
             typedef         decltype (get_combiner () (get_source (), get_other_source ()))  
-                                                                        raw_value_type  ;
-            typedef        typename cleanup_type<raw_value_type>::type  value_type      ;
-            typedef                 value_type                          return_type     ;
+                                                                                raw_value_type  ;
+            typedef         typename cleanup_type<raw_value_type>::type         value_type      ;
+            typedef                 value_type                                  return_type     ;
             enum    
             { 
                 returns_reference   = 0   , 
@@ -2256,7 +2518,7 @@ namespace cpplinq
             {
             }
 
-            CPPLINQ_INLINEMETHOD distinct_range (distinct_range const & v) throw()
+            CPPLINQ_INLINEMETHOD distinct_range (distinct_range const & v) throw ()
                 :   range               (v.range)
                 ,   set                 (v.set)
                 ,   current             (v.current)
@@ -2283,10 +2545,10 @@ namespace cpplinq
 
             CPPLINQ_INLINEMETHOD bool next ()
             {
-                while(range.next())
+                while (range.next ())
                 {
-                    auto result = set.insert(range.front());
-                    if(result.second)
+                    auto result = set.insert (range.front ());
+                    if (result.second)
                     {
                         current = result.first;
                         return true;
@@ -2355,7 +2617,7 @@ namespace cpplinq
             {
             }
 
-            CPPLINQ_INLINEMETHOD union_range (union_range const & v) throw()
+            CPPLINQ_INLINEMETHOD union_range (union_range const & v) throw ()
                 :   range               (v.range)
                 ,   other_range         (v.other_range)
                 ,   set                 (v.set)
@@ -2384,20 +2646,20 @@ namespace cpplinq
 
             CPPLINQ_INLINEMETHOD bool next ()
             {
-                while(range.next())
+                while (range.next ())
                 {
-                    auto result = set.insert(range.front());
-                    if(result.second)
+                    auto result = set.insert (range.front ());
+                    if (result.second)
                     {
                         current = result.first;
                         return true;
                     }
                 }
 
-                while(other_range.next())
+                while (other_range.next ())
                 {
-                    auto result = set.insert(other_range.front());
-                    if(result.second)
+                    auto result = set.insert (other_range.front ());
+                    if (result.second)
                     {
                         current = result.first;
                         return true;
@@ -2417,24 +2679,24 @@ namespace cpplinq
             other_range_type        other_range         ;
             
             CPPLINQ_INLINEMETHOD union_builder (TOtherRange other_range) throw ()
-                : other_range(std::move (other_range))
+                : other_range (std::move (other_range))
             {
             }
 
             CPPLINQ_INLINEMETHOD union_builder (union_builder const & v) throw ()
-                : other_range(v.other_range)
+                : other_range (v.other_range)
             {
             }
 
             CPPLINQ_INLINEMETHOD union_builder (union_builder && v) throw ()
-                : other_range(std::move(v.other_range))
+                : other_range (std::move (v.other_range))
             {
             }
 
             template <typename TRange>
             CPPLINQ_INLINEMETHOD union_range<TRange, TOtherRange> build (TRange range) const throw ()
             {
-                return union_range<TRange, TOtherRange> (std::move (range), std::move(other_range));
+                return union_range<TRange, TOtherRange> (std::move (range), std::move (other_range));
             }
         };
 
@@ -2471,12 +2733,12 @@ namespace cpplinq
                 ) throw ()
                 :   range               (std::move (range))
                 ,   other_range         (std::move (other_range))
-                ,   current             (return_type())
+                ,   current             (return_type ())
                 ,   start               (true)
             {
             }
 
-            CPPLINQ_INLINEMETHOD intersect_range (intersect_range const & v) throw()
+            CPPLINQ_INLINEMETHOD intersect_range (intersect_range const & v) throw ()
                 :   range               (v.range)
                 ,   other_range         (v.other_range)
                 ,   set                 (v.set)
@@ -2507,25 +2769,27 @@ namespace cpplinq
 
             CPPLINQ_INLINEMETHOD bool next ()
             {
-                if(start)
+                if (start)
                 {
                     start = true;
 
-                    while(other_range.next())
+                    while (other_range.next ())
                     {
-                        set.insert(other_range.front());
+                        set.insert (other_range.front ());
                     }
                 }
 
-                if(set.empty())
-                    return false;
-
-                while(range.next())
+                if (set.empty ())
                 {
-                    auto result = set.erase(range.front());
-                    if(result == 1)
+                    return false;
+                }
+
+                while (range.next ())
+                {
+                    auto result = set.erase (range.front ());
+                    if (result == 1)
                     {
-                        current = range.front();
+                        current = range.front ();
                         return true;
                     }
                 }                
@@ -2543,24 +2807,24 @@ namespace cpplinq
             other_range_type        other_range         ;
             
             CPPLINQ_INLINEMETHOD intersect_builder (TOtherRange other_range) throw ()
-                : other_range(std::move (other_range))
+                : other_range (std::move (other_range))
             {
             }
 
             CPPLINQ_INLINEMETHOD intersect_builder (intersect_builder const & v) throw ()
-                : other_range(v.other_range)
+                : other_range (v.other_range)
             {
             }
 
             CPPLINQ_INLINEMETHOD intersect_builder (intersect_builder && v) throw ()
-                : other_range(std::move(v.other_range))
+                : other_range (std::move (v.other_range))
             {
             }
 
             template <typename TRange>
             CPPLINQ_INLINEMETHOD intersect_range<TRange, TOtherRange> build (TRange range) const throw ()
             {
-                return intersect_range<TRange, TOtherRange> (std::move (range), std::move(other_range));
+                return intersect_range<TRange, TOtherRange> (std::move (range), std::move (other_range));
             }
         };
 
@@ -2601,7 +2865,7 @@ namespace cpplinq
             {
             }
 
-            CPPLINQ_INLINEMETHOD except_range (except_range const & v) throw()
+            CPPLINQ_INLINEMETHOD except_range (except_range const & v) throw ()
                 :   range               (v.range)
                 ,   other_range         (v.other_range)
                 ,   set                 (v.set)
@@ -2632,19 +2896,19 @@ namespace cpplinq
 
             CPPLINQ_INLINEMETHOD bool next ()
             {
-                if(start)
+                if (start)
                 {
                     start = false;
-                    while(other_range.next())
+                    while (other_range.next ())
                     {
-                        set.insert(other_range.front());
+                        set.insert (other_range.front ());
                     }
                 }
 
-                while(range.next())
+                while (range.next ())
                 {
-                    auto result = set.insert(range.front());
-                    if(result.second)
+                    auto result = set.insert (range.front ());
+                    if (result.second)
                     {
                         current = result.first;
                         return true;
@@ -2664,24 +2928,173 @@ namespace cpplinq
             other_range_type        other_range         ;
             
             CPPLINQ_INLINEMETHOD except_builder (TOtherRange other_range) throw ()
-                : other_range(std::move (other_range))
+                : other_range (std::move (other_range))
             {
             }
 
             CPPLINQ_INLINEMETHOD except_builder (except_builder const & v) throw ()
-                : other_range(v.other_range)
+                : other_range (v.other_range)
             {
             }
 
             CPPLINQ_INLINEMETHOD except_builder (except_builder && v) throw ()
-                : other_range(std::move(v.other_range))
+                : other_range (std::move (v.other_range))
             {
             }
 
             template <typename TRange>
             CPPLINQ_INLINEMETHOD except_range<TRange, TOtherRange> build (TRange range) const throw ()
             {
-                return except_range<TRange, TOtherRange> (std::move (range), std::move(other_range));
+                return except_range<TRange, TOtherRange> (std::move (range), std::move (other_range));
+            }
+        };
+
+        // -------------------------------------------------------------------------
+
+        template<typename TRange, typename TOtherRange>
+        struct concat_range : base_range
+        {
+            typedef                 concat_range<TRange, TOtherRange>           this_type           ;
+            typedef                 TRange                                      range_type          ;
+            typedef                 TOtherRange                                 other_range_type    ;
+
+            typedef                 typename TRange::value_type                 value_type          ;
+            typedef                 typename TRange::return_type                return_type         ;
+
+            enum    
+            { 
+                returns_reference   = TRange::returns_reference   , 
+            };
+
+            enum state
+            {
+                state_initial                 ,
+                state_iterating_range         ,
+                state_iterating_other_range   ,
+                state_end                     ,
+            };
+
+            range_type                  range               ;
+            other_range_type            other_range         ;
+            state                       state               ;
+
+            CPPLINQ_INLINEMETHOD concat_range (
+                        range_type          range
+                    ,   other_range_type    other_range
+                ) throw ()
+                :   range               (std::move (range))
+                ,   other_range         (std::move (other_range))
+                ,   state               (state_initial)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD concat_range (concat_range const & v) throw ()
+                :   range               (v.range)
+                ,   other_range         (v.other_range)
+                ,   state               (v.state)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD concat_range (concat_range && v) throw ()
+                :   range               (std::move (v.range))
+                ,   other_range         (std::move (v.other_range))
+                ,   state               (std::move (v.state))
+            {
+            }
+
+            template<typename TRangeBuilder>
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            {
+                return range_builder.build (*this);
+            }
+
+            CPPLINQ_INLINEMETHOD return_type front () const 
+            {
+                switch(state)
+                {
+                case state_initial:
+                case state_end:
+                default:
+                    assert (false);       // Intentionally falls through
+                case state_iterating_range:
+                    return range.front ();
+                case state_iterating_other_range:
+                    return other_range.front ();
+                };
+            }
+
+            CPPLINQ_INLINEMETHOD bool next ()
+            {
+                switch (state)
+                {
+                case state_initial:
+                    if (range.next ())
+                    {
+                        state = state_iterating_range;
+                        return true;
+                    }
+
+                    if (other_range.next ())
+                    {
+                        state = state_iterating_other_range;
+                        return true;
+                    }
+
+                    return false;
+                case state_iterating_range:
+                    if (range.next ())
+                    {
+                        return true;
+                    }
+
+                    if (other_range.next ())
+                    {
+                        state = state_iterating_other_range;
+                        return true;
+                    }
+
+                    return false;
+                case state_iterating_other_range:
+                    if (other_range.next ())
+                    {
+                        return true;
+                    }
+
+                    return false;
+                case state_end:
+                default:
+                    return false;
+                }
+            }
+        };
+        
+        template <typename TOtherRange>
+        struct concat_builder : base_builder
+        {
+            typedef                 concat_builder<TOtherRange>             this_type       ;  
+            typedef                 TOtherRange                             other_range_type;
+
+            other_range_type        other_range         ;
+            
+            CPPLINQ_INLINEMETHOD concat_builder (TOtherRange other_range) throw ()
+                : other_range (std::move (other_range))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD concat_builder (concat_builder const & v) throw ()
+                : other_range (v.other_range)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD concat_builder (concat_builder && v) throw ()
+                : other_range (std::move (v.other_range))
+            {
+            }
+
+            template <typename TRange>
+            CPPLINQ_INLINEMETHOD concat_range<TRange, TOtherRange> build (TRange range) const throw ()
+            {
+                return concat_range<TRange, TOtherRange> (std::move (range), std::move (other_range));
             }
         };
 
@@ -2928,8 +3341,8 @@ namespace cpplinq
         {
             static TKeyPredicate get_key_predicate ();
 
-            typedef                     to_map_builder<TKeyPredicate>  this_type           ;
-            typedef                     TKeyPredicate               key_predicate_type  ;
+            typedef                     to_map_builder<TKeyPredicate>   this_type           ;
+            typedef                     TKeyPredicate                   key_predicate_type  ;
 
             key_predicate_type          key_predicate   ;
 
@@ -2968,6 +3381,51 @@ namespace cpplinq
                     
                     result.insert (typename result_type::value_type (std::move (k), std::move (v)));
                 }
+
+                return std::move (result);
+            }
+
+        };
+
+        // -------------------------------------------------------------------------
+
+        template<typename TKeyPredicate>
+        struct to_lookup_builder : base_builder
+        {
+            static TKeyPredicate get_key_predicate ();
+
+            typedef                     to_lookup_builder<TKeyPredicate>    this_type           ;
+            typedef                     TKeyPredicate                       key_predicate_type  ;
+
+            key_predicate_type          key_predicate   ;
+
+            CPPLINQ_INLINEMETHOD explicit to_lookup_builder (key_predicate_type key_predicate) throw ()
+                :   key_predicate   (std::move (key_predicate))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD to_lookup_builder (to_lookup_builder const & v)
+                :   key_predicate (v.key_predicate)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD to_lookup_builder (to_lookup_builder && v) throw ()
+                :   key_predicate (std::move (v.key_predicate))
+            {
+            }
+
+            template<typename TRange>
+            CPPLINQ_METHOD lookup<
+                    typename get_transformed_type<key_predicate_type, typename TRange::value_type>::type
+                ,   typename TRange::value_type
+                > build (TRange range)
+            {
+                typedef lookup<
+                    typename get_transformed_type<key_predicate_type, typename TRange::value_type>::type
+                ,   typename TRange::value_type
+                >   result_type;
+
+                result_type result (16U, range, key_predicate);
 
                 return std::move (result);
             }
@@ -3626,6 +4084,111 @@ namespace cpplinq
         };
 
         // -------------------------------------------------------------------------
+        
+        template <typename TOtherRange, typename TComparer>
+        struct sequence_equal_predicate_builder : base_builder
+        {
+            typedef                 sequence_equal_predicate_builder<TOtherRange,TComparer>     this_type       ;  
+            typedef                 TOtherRange                                                 other_range_type;
+            typedef                 TComparer                                                   comparer_type   ;
+
+            other_range_type        other_range         ;
+            comparer_type           comparer            ;
+            
+            CPPLINQ_INLINEMETHOD sequence_equal_predicate_builder (
+                    TOtherRange     other_range
+                ,   comparer_type   comparer) throw ()
+                :   other_range (std::move (other_range))
+                ,   comparer    (std::move (comparer))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD sequence_equal_predicate_builder (sequence_equal_predicate_builder const & v) throw ()
+                :   other_range (v.other_range)
+                ,   comparer    (v.comparer)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD sequence_equal_predicate_builder (sequence_equal_predicate_builder && v) throw ()
+                :   other_range (std::move (v.other_range))
+                ,   comparer    (std::move (v.comparer))
+            {
+            }
+
+            template <typename TRange>
+            CPPLINQ_INLINEMETHOD bool build (TRange range) throw ()
+            {
+#ifdef _MSC_VER 
+#pragma warning (push )
+#pragma warning (disable : 4127)
+#endif
+                while (true)
+                {
+                    bool next1 = range.next ();
+                    bool next2 = other_range.next ();
+
+                    // sequences are not of same length
+                    if (next1 != next2) return false;
+                    // both sequences are over, next1 = next2 = false
+                    if (!next1) return true;
+
+                    if (!comparer (range.front (), other_range.front ())) return false;
+                }
+#ifdef _MSC_VER 
+#pragma warning (pop)
+#endif
+            }
+        };
+
+        template <typename TOtherRange>
+        struct sequence_equal_builder : base_builder
+        {
+            typedef                 sequence_equal_builder<TOtherRange>     this_type       ;  
+            typedef                 TOtherRange                             other_range_type;
+
+            other_range_type        other_range         ;
+            
+            CPPLINQ_INLINEMETHOD sequence_equal_builder (TOtherRange other_range) throw ()
+                : other_range (std::move (other_range))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD sequence_equal_builder (sequence_equal_builder const & v) throw ()
+                : other_range (v.other_range)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD sequence_equal_builder (sequence_equal_builder && v) throw ()
+                : other_range (std::move (v.other_range))
+            {
+            }
+
+            template <typename TRange>
+            CPPLINQ_INLINEMETHOD bool build (TRange range) throw ()
+            {
+#ifdef _MSC_VER 
+#pragma warning (push )
+#pragma warning (disable : 4127)
+#endif
+                while (true)
+                {
+                    bool next1 = range.next ();
+                    bool next2 = other_range.next ();
+
+                    // sequences are not of same length
+                    if (next1 != next2) return false;
+                    // both sequences are over, next1 = next2 = false
+                    if (!next1) return true;
+
+                    if (range.front () != other_range.front ()) return false;
+                }
+#ifdef _MSC_VER 
+#pragma warning (pop)
+#endif
+            }
+        };
+
+        // -------------------------------------------------------------------------
 
         template<typename TCharType>
         struct concatenate_builder : base_builder
@@ -4050,6 +4613,14 @@ namespace cpplinq
             );
     }
 
+    // Concatenation operators
+
+    template <typename TOtherRange>
+    CPPLINQ_INLINEMETHOD detail::concat_builder<TOtherRange>  concat (TOtherRange other_range) throw ()
+    {
+        return detail::concat_builder<TOtherRange> (std::move (other_range));
+    }
+
     // Partitioning operators
 
     template<typename TPredicate>
@@ -4164,6 +4735,27 @@ namespace cpplinq
     CPPLINQ_INLINEMETHOD detail::to_map_builder<TKeyPredicate>  to_map (TKeyPredicate key_predicate) throw ()
     {
         return detail::to_map_builder<TKeyPredicate>(std::move (key_predicate));
+    }
+
+    template<typename TKeyPredicate>
+    CPPLINQ_INLINEMETHOD detail::to_lookup_builder<TKeyPredicate>  to_lookup (TKeyPredicate key_predicate) throw ()
+    {
+        return detail::to_lookup_builder<TKeyPredicate>(std::move (key_predicate));
+    }
+
+    // Equality operators
+    template <typename TOtherRange>
+    CPPLINQ_INLINEMETHOD detail::sequence_equal_builder<TOtherRange>  sequence_equal (TOtherRange other_range) throw ()
+    {
+        return detail::sequence_equal_builder<TOtherRange> (std::move (other_range));
+    }
+
+    template <typename TOtherRange, typename TComparer>
+    CPPLINQ_INLINEMETHOD detail::sequence_equal_predicate_builder<TOtherRange, TComparer>  sequence_equal (
+            TOtherRange other_range
+        ,   TComparer   comparer) throw ()
+    {
+        return detail::sequence_equal_predicate_builder<TOtherRange, TComparer> (std::move (other_range), std::move (comparer));
     }
 
     // Element operators
@@ -4364,19 +4956,19 @@ namespace cpplinq
     template <typename TOtherRange>
     CPPLINQ_INLINEMETHOD detail::union_builder<TOtherRange>  union_with (TOtherRange other_range) throw ()
     {
-        return detail::union_builder<TOtherRange> (std::move(other_range));
+        return detail::union_builder<TOtherRange> (std::move (other_range));
     }
 
     template <typename TOtherRange>
     CPPLINQ_INLINEMETHOD detail::intersect_builder<TOtherRange>  intersect_with (TOtherRange other_range) throw ()
     {
-        return detail::intersect_builder<TOtherRange> (std::move(other_range));
+        return detail::intersect_builder<TOtherRange> (std::move (other_range));
     }
 
     template <typename TOtherRange>
     CPPLINQ_INLINEMETHOD detail::except_builder<TOtherRange>  except (TOtherRange other_range) throw ()
     {
-        return detail::except_builder<TOtherRange> (std::move(other_range));
+        return detail::except_builder<TOtherRange> (std::move (other_range));
     }
 
     // other operators
