@@ -2966,9 +2966,17 @@ namespace cpplinq
                 returns_reference   = TRange::returns_reference   , 
             };
 
+            enum state
+            {
+                state_initial                 ,
+                state_iterating_range         ,
+                state_iterating_other_range   ,
+                state_end                     ,
+            };
+
             range_type                  range               ;
             other_range_type            other_range         ;
-            return_type                 current             ;
+            state                       state               ;
 
             CPPLINQ_INLINEMETHOD concat_range (
                         range_type          range
@@ -2976,21 +2984,21 @@ namespace cpplinq
                 ) throw ()
                 :   range               (std::move (range))
                 ,   other_range         (std::move (other_range))
-                ,   current             (return_type ())
+                ,   state               (state_initial)
             {
             }
 
             CPPLINQ_INLINEMETHOD concat_range (concat_range const & v) throw ()
                 :   range               (v.range)
                 ,   other_range         (v.other_range)
-                ,   current             (v.current)
+                ,   state               (v.state)
             {
             }
 
             CPPLINQ_INLINEMETHOD concat_range (concat_range && v) throw ()
                 :   range               (std::move (v.range))
                 ,   other_range         (std::move (v.other_range))
-                ,   current             (std::move (v.current))
+                ,   state               (std::move (v.state))
             {
             }
 
@@ -3002,24 +3010,61 @@ namespace cpplinq
 
             CPPLINQ_INLINEMETHOD return_type front () const 
             {
-                return current;
+                switch(state)
+                {
+                case state_initial:
+                case state_end:
+                default:
+                    assert (false);       // Intentionally falls through
+                case state_iterating_range:
+                    return range.front ();
+                case state_iterating_other_range:
+                    return other_range.front ();
+                };
             }
 
             CPPLINQ_INLINEMETHOD bool next ()
             {
-                while (range.next ())
+                switch (state)
                 {
-                    current = range.front ();
-                    return true;
-                }
+                case state_initial:
+                    if (range.next ())
+                    {
+                        state = state_iterating_range;
+                        return true;
+                    }
 
-                while (other_range.next ())
-                {
-                    current = other_range.front ();
-                    return true;
-                }
+                    if (other_range.next ())
+                    {
+                        state = state_iterating_other_range;
+                        return true;
+                    }
 
-                return false;
+                    return false;
+                case state_iterating_range:
+                    if (range.next ())
+                    {
+                        return true;
+                    }
+
+                    if (other_range.next ())
+                    {
+                        state = state_iterating_other_range;
+                        return true;
+                    }
+
+                    return false;
+                case state_iterating_other_range:
+                    if (other_range.next ())
+                    {
+                        return true;
+                    }
+
+                    return false;
+                case state_end:
+                default:
+                    return false;
+                }
             }
         };
         
