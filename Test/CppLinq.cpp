@@ -1118,6 +1118,79 @@ namespace
         }
     }
 
+    void test_to_lookup ()
+    {
+        using namespace cpplinq;
+        using namespace cpplinq::detail;
+
+        TEST_PRELUDE ();
+
+        {
+            auto lookup = from (empty_customers) >> to_lookup ([] (customer const & c){return c.id;}); 
+
+            TEST_ASSERT (0, (int)lookup.size_of_keys ());
+            TEST_ASSERT (0, (int)lookup.size_of_values ());
+        }
+
+        {
+            auto lookup = from_array (customers) >> to_lookup ([] (customer const & c){return c.id;}); 
+
+            TEST_ASSERT (count_of_customers, (int)lookup.size_of_keys ());
+            TEST_ASSERT (count_of_customers, (int)lookup.size_of_values ());
+
+            for (auto customer : customers)
+            {
+                auto results = lookup[customer.id] >> to_vector ();
+                if (TEST_ASSERT (1, (int)results.size ()))
+                {
+                    auto result = results.front ();
+
+                    if (!TEST_ASSERT (customer.id, result.id))
+                    {
+                        printf ("    @id:%d\r\n", customer.id);
+                    }
+                }
+                else
+                {
+                    printf ("    @id:%d\r\n", customer.id);
+                }
+            }
+        }
+
+        {
+            auto lookup = from_array (customer_addresses) >> to_lookup ([] (customer_address const & ca){return ca.customer_id;}); 
+
+            TEST_ASSERT (2, (int)lookup.size_of_keys ());
+            TEST_ASSERT (count_of_customer_addresses, (int)lookup.size_of_values ());
+
+            {
+                auto results = lookup[1] >> to_vector ();
+                if (TEST_ASSERT (1, (int)results.size ()))
+                {
+                    auto result = results.front ();
+                    TEST_ASSERT (1, (int)result.id);
+                }
+            }
+
+            {
+                auto results = lookup[4] >> to_vector ();
+                if (TEST_ASSERT (2, (int)results.size ()))
+                {
+                    auto result1 = results[0];
+                    TEST_ASSERT (2, (int)result1.id);
+
+                    auto result2 = results[1];
+                    TEST_ASSERT (3, (int)result2.id);
+                }
+            }
+
+            {
+                auto results = lookup[999] >> to_vector ();
+                TEST_ASSERT (0, (int)results.size ());
+            }
+        }
+    }
+
     void test_to_list ()
     {
         using namespace cpplinq;
@@ -2394,6 +2467,7 @@ namespace
         test_for_each               ();
         test_to_vector              ();
         test_to_map                 ();
+        test_to_lookup              ();
         test_to_list                ();
         test_container              ();
         test_where                  ();

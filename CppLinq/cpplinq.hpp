@@ -3296,8 +3296,8 @@ namespace cpplinq
         {
             static TKeyPredicate get_key_predicate ();
 
-            typedef                     to_map_builder<TKeyPredicate>  this_type           ;
-            typedef                     TKeyPredicate               key_predicate_type  ;
+            typedef                     to_map_builder<TKeyPredicate>   this_type           ;
+            typedef                     TKeyPredicate                   key_predicate_type  ;
 
             key_predicate_type          key_predicate   ;
 
@@ -3336,6 +3336,51 @@ namespace cpplinq
                     
                     result.insert (typename result_type::value_type (std::move (k), std::move (v)));
                 }
+
+                return std::move (result);
+            }
+
+        };
+
+        // -------------------------------------------------------------------------
+
+        template<typename TKeyPredicate>
+        struct to_lookup_builder : base_builder
+        {
+            static TKeyPredicate get_key_predicate ();
+
+            typedef                     to_lookup_builder<TKeyPredicate>    this_type           ;
+            typedef                     TKeyPredicate                       key_predicate_type  ;
+
+            key_predicate_type          key_predicate   ;
+
+            CPPLINQ_INLINEMETHOD explicit to_lookup_builder (key_predicate_type key_predicate) throw ()
+                :   key_predicate   (std::move (key_predicate))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD to_lookup_builder (to_lookup_builder const & v)
+                :   key_predicate (v.key_predicate)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD to_lookup_builder (to_lookup_builder && v) throw ()
+                :   key_predicate (std::move (v.key_predicate))
+            {
+            }
+
+            template<typename TRange>
+            CPPLINQ_METHOD lookup<
+                    typename get_transformed_type<key_predicate_type, typename TRange::value_type>::type
+                ,   typename TRange::value_type
+                > build (TRange range)
+            {
+                typedef lookup<
+                    typename get_transformed_type<key_predicate_type, typename TRange::value_type>::type
+                ,   typename TRange::value_type
+                >   result_type;
+
+                result_type result (16U, range, key_predicate);
 
                 return std::move (result);
             }
@@ -4645,6 +4690,12 @@ namespace cpplinq
     CPPLINQ_INLINEMETHOD detail::to_map_builder<TKeyPredicate>  to_map (TKeyPredicate key_predicate) throw ()
     {
         return detail::to_map_builder<TKeyPredicate>(std::move (key_predicate));
+    }
+
+    template<typename TKeyPredicate>
+    CPPLINQ_INLINEMETHOD detail::to_lookup_builder<TKeyPredicate>  to_lookup (TKeyPredicate key_predicate) throw ()
+    {
+        return detail::to_lookup_builder<TKeyPredicate>(std::move (key_predicate));
     }
 
     // Equality operators
