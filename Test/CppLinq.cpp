@@ -576,8 +576,8 @@ namespace
 
             typedef decltype (q.front ())   return_type;
             static_assert (
-                    !std::is_reference<return_type>::value 
-                ,   "front () must return non-reference when value_type = int"
+                    std::is_reference<return_type>::value 
+                ,   "from::front () must return reference"
                 );
 
             auto index = 0;
@@ -594,8 +594,8 @@ namespace
 
             typedef decltype (q.front ())   return_type;
             static_assert (
-                    !std::is_reference<return_type>::value 
-                ,   "front () must return non-reference when value_type = int"
+                    std::is_reference<return_type>::value 
+                ,   "from::front () must return reference"
                 );
 
             auto index = 0;
@@ -612,8 +612,8 @@ namespace
 
             typedef decltype (q.front ())   return_type;
             static_assert (
-                    !std::is_reference<return_type>::value 
-                ,   "front () must return non-reference when value_type = int"
+                    std::is_reference<return_type>::value 
+                ,   "from::front () must return reference"
                 );
 
             auto index = 0;
@@ -631,8 +631,8 @@ namespace
 
             typedef decltype (q.front ())   return_type;
             static_assert (
-                    !std::is_reference<return_type>::value 
-                ,   "front () must return non-reference when value_type = int"
+                    std::is_reference<return_type>::value 
+                ,   "from::front () must return reference"
                 );
 
             auto index = 0;

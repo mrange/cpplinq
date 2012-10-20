@@ -81,27 +81,6 @@ namespace cpplinq
         // -------------------------------------------------------------------------
 
         template<typename TValue>
-        struct is_small_pod
-        {
-            enum
-            {
-                value = (std::is_pod<TValue>::value && (sizeof (TValue) <= small_pod_size))
-            };
-        };
-
-        template<bool b, typename TIf, typename TElse>
-        struct if_else
-        {
-            typedef TIf type;
-        };
-
-        template<typename TIf, typename TElse>
-        struct if_else<false, TIf, TElse>
-        {
-            typedef TElse type;
-        };
-
-        template<typename TValue>
         struct cleanup_type
         {
             typedef typename std::remove_const<
@@ -437,14 +416,11 @@ namespace cpplinq
 
             typedef                 decltype (*get_iterator ())         raw_value_type  ;
             typedef        typename cleanup_type<raw_value_type>::type  value_type      ;
+            typedef                 value_type const &                  return_type     ;
             enum    
             { 
-                returns_reference = is_small_pod<value_type>::value ? 0 : 1 , 
+                returns_reference = 1, 
             };
-            typedef        typename if_else<
-                                            returns_reference
-                                        ,   value_type const &
-                                        ,   value_type>::type           return_type     ;
 
             iterator_type           begin   ;
             iterator_type           end     ;
@@ -521,14 +497,11 @@ namespace cpplinq
             typedef                 TContainer                          container_type  ;
             typedef        typename TContainer::const_iterator          iterator_type   ;
             typedef        typename TContainer::value_type              value_type      ;
+            typedef                 value_type const &                  return_type     ;
             enum    
             { 
-                returns_reference = is_small_pod<value_type>::value ? 0 : 1 , 
+                returns_reference = 1 , 
             };
-            typedef        typename if_else<
-                                            returns_reference
-                                        ,   value_type const &
-                                        ,   value_type>::type           return_type     ;
 
             container_type          container   ;
 
@@ -2461,7 +2434,7 @@ namespace cpplinq
             range_type                  range               ;
             other_range_type            other_range         ;
             set_type                    set                 ;
-            return_type                 current             ;
+            set_iterator_type           current             ;
             bool                        start               ;
 
             CPPLINQ_INLINEMETHOD intersect_range (
@@ -2470,7 +2443,6 @@ namespace cpplinq
                 ) throw ()
                 :   range               (std::move (range))
                 ,   other_range         (std::move (other_range))
-                ,   current             (return_type ())
                 ,   start               (true)
             {
             }
@@ -2501,19 +2473,33 @@ namespace cpplinq
 
             CPPLINQ_INLINEMETHOD return_type front () const 
             {
-                return current;
+                assert (!start);
+                return *current;
             }
 
             CPPLINQ_INLINEMETHOD bool next ()
             {
                 if (start)
                 {
-                    start = true;
+                    start = false;
 
                     while (other_range.next ())
                     {
                         set.insert (other_range.front ());
                     }
+
+                    while (range.next ())
+                    {
+                        current = set.find (range.front ());
+                        if (current != set.end ())
+                        {
+                            return true;
+                        }
+                    }            
+
+                    set.clear ();
+
+                    return false; 
                 }
 
                 if (set.empty ())
@@ -2521,12 +2507,13 @@ namespace cpplinq
                     return false;
                 }
 
+                set.erase (current);
+
                 while (range.next ())
                 {
-                    auto result = set.erase (range.front ());
-                    if (result == 1)
+                    current = set.find (range.front ());
+                    if (current != set.end ())
                     {
-                        current = range.front ();
                         return true;
                     }
                 }                
@@ -2691,24 +2678,25 @@ namespace cpplinq
         template<typename TRange, typename TOtherRange>
         struct concat_range : base_range
         {
-            typedef                 concat_range<TRange, TOtherRange>           this_type           ;
-            typedef                 TRange                                      range_type          ;
-            typedef                 TOtherRange                                 other_range_type    ;
+            typedef             concat_range<TRange, TOtherRange>                       this_type           ;
+            typedef             TRange                                                  range_type          ;
+            typedef             TOtherRange                                             other_range_type    ;
 
-            typedef                 typename TRange::value_type                 value_type          ;
-            typedef                 typename TRange::return_type                return_type         ;
+            typedef typename    cleanup_type<typename TRange::value_type>::type         value_type          ;
+            typedef typename    cleanup_type<typename TOtherRange::value_type>::type    other_value_type    ;
+            typedef             value_type                                              return_type         ;
 
             enum    
             { 
-                returns_reference   = TRange::returns_reference   , 
+                returns_reference   = 0         , 
             };
 
             enum state
             {
-                state_initial                 ,
-                state_iterating_range         ,
-                state_iterating_other_range   ,
-                state_end                     ,
+                state_initial                   ,
+                state_iterating_range           ,
+                state_iterating_other_range     ,
+                state_end                       ,
             };
 
             range_type                  range               ;
