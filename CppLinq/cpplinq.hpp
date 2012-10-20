@@ -2202,20 +2202,18 @@ namespace cpplinq
         template<typename TRange>
         struct distinct_range : base_range
         {
-            typedef                 distinct_range<TRange>                      this_type           ;
-            typedef                 TRange                                      range_type          ;
+            typedef             distinct_range<TRange>                          this_type           ;
+            typedef             TRange                                          range_type          ;
 
-            typedef                 typename TRange::value_type                 value_type          ;
-            typedef                 typename TRange::return_type                return_type         ;
+            typedef    typename cleanup_type<typename TRange::value_type>::type value_type          ;
+            typedef             value_type const &                              return_type         ;
+            enum    
+            { 
+                returns_reference   = 1 , 
+            };
 
             typedef                 std::set<value_type>                        set_type            ;
             typedef                 typename set_type::const_iterator           set_iterator_type   ;
-
-            enum    
-            { 
-                returns_reference   = TRange::returns_reference   , 
-            };
-
 
             range_type                  range               ;
             set_type                    set                 ;
@@ -2297,20 +2295,19 @@ namespace cpplinq
         template<typename TRange, typename TOtherRange>
         struct union_range : base_range
         {
-            typedef                 union_range<TRange, TOtherRange>            this_type           ;
-            typedef                 TRange                                      range_type          ;
-            typedef                 TOtherRange                                 other_range_type    ;
+            typedef             union_range<TRange, TOtherRange>                this_type           ;
+            typedef             TRange                                          range_type          ;
+            typedef             TOtherRange                                     other_range_type    ;
 
-            typedef                 typename TRange::value_type                 value_type          ;
-            typedef                 typename TRange::return_type                return_type         ;
-
-            typedef                 std::set<value_type>                        set_type            ;
-            typedef                 typename set_type::const_iterator           set_iterator_type   ;
-
+            typedef    typename cleanup_type<typename TRange::value_type>::type value_type          ;
+            typedef             value_type const &                              return_type         ;
             enum    
             { 
-                returns_reference   = TRange::returns_reference   , 
+                returns_reference   = 1 , 
             };
+
+            typedef             std::set<value_type>                        set_type                ;
+            typedef    typename set_type::const_iterator           set_iterator_type                ;
 
 
             range_type                  range               ;
@@ -2415,20 +2412,19 @@ namespace cpplinq
         template<typename TRange, typename TOtherRange>
         struct intersect_range : base_range
         {
-            typedef                 intersect_range<TRange, TOtherRange>        this_type           ;
-            typedef                 TRange                                      range_type          ;
-            typedef                 TOtherRange                                 other_range_type    ;
+            typedef             intersect_range<TRange, TOtherRange>            this_type           ;
+            typedef             TRange                                          range_type          ;
+            typedef             TOtherRange                                     other_range_type    ;
 
-            typedef                 typename TRange::value_type                 value_type          ;
-            typedef                 typename TRange::return_type                return_type         ;
+            typedef    typename cleanup_type<typename TRange::value_type>::type value_type          ;
+            typedef             value_type const &                              return_type         ;
+            enum    
+            { 
+                returns_reference   = 1 , 
+            };
 
             typedef                 std::set<value_type>                        set_type            ;
             typedef                 typename set_type::const_iterator           set_iterator_type   ;
-
-            enum    
-            { 
-                returns_reference   = TRange::returns_reference   , 
-            };
 
 
             range_type                  range               ;
@@ -2557,21 +2553,19 @@ namespace cpplinq
         template<typename TRange, typename TOtherRange>
         struct except_range : base_range
         {
-            typedef                 except_range<TRange, TOtherRange>           this_type           ;
-            typedef                 TRange                                      range_type          ;
-            typedef                 TOtherRange                                 other_range_type    ;
+            typedef             except_range<TRange, TOtherRange>               this_type           ;
+            typedef             TRange                                          range_type          ;
+            typedef             TOtherRange                                     other_range_type    ;
 
-            typedef                 typename TRange::value_type                 value_type          ;
-            typedef                 typename TRange::return_type                return_type         ;
+            typedef    typename cleanup_type<typename TRange::value_type>::type value_type          ;
+            typedef             value_type const &                              return_type         ;
+            enum    
+            { 
+                returns_reference   = 1 , 
+            };
 
             typedef                 std::set<value_type>                        set_type            ;
             typedef                 typename set_type::const_iterator           set_iterator_type   ;
-
-            enum    
-            { 
-                returns_reference   = TRange::returns_reference   , 
-            };
-
 
             range_type                  range               ;
             other_range_type            other_range         ;
