@@ -1,7 +1,5 @@
 NEXT:22
-21. Look through return references range operators that perhaps should
-    consider if the class is a small pod (like from does it)
-22. Set range operators should return reference (because they can)
+22. Do we use cleanup_type overzeolously? It adds performance impact going value_type when reference type would work 
 8.  Document select_many range operator
 12. Document how to build a range source
 4.  to_map should accept a value selector predicate
