@@ -2212,8 +2212,8 @@ namespace cpplinq
                 returns_reference   = 1 , 
             };
 
-            typedef                 std::set<value_type>                        set_type            ;
-            typedef                 typename set_type::const_iterator           set_iterator_type   ;
+            typedef             std::set<value_type>               set_type                         ;
+            typedef    typename set_type::const_iterator           set_iterator_type                ;
 
             range_type                  range               ;
             set_type                    set                 ;
@@ -2306,7 +2306,7 @@ namespace cpplinq
                 returns_reference   = 1 , 
             };
 
-            typedef             std::set<value_type>                        set_type                ;
+            typedef             std::set<value_type>               set_type                         ;
             typedef    typename set_type::const_iterator           set_iterator_type                ;
 
 
@@ -2423,8 +2423,8 @@ namespace cpplinq
                 returns_reference   = 1 , 
             };
 
-            typedef                 std::set<value_type>                        set_type            ;
-            typedef                 typename set_type::const_iterator           set_iterator_type   ;
+            typedef             std::set<value_type>               set_type                         ;
+            typedef    typename set_type::const_iterator           set_iterator_type                ;
 
 
             range_type                  range               ;
@@ -2564,8 +2564,8 @@ namespace cpplinq
                 returns_reference   = 1 , 
             };
 
-            typedef                 std::set<value_type>                        set_type            ;
-            typedef                 typename set_type::const_iterator           set_iterator_type   ;
+            typedef             std::set<value_type>               set_type                         ;
+            typedef    typename set_type::const_iterator           set_iterator_type                ;
 
             range_type                  range               ;
             other_range_type            other_range         ;

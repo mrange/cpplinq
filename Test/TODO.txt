@@ -1,4 +1,5 @@
 NEXT:22
+22. Do we use cleanup_type overzeolously? It adds performance impact going value_type when reference type would work 
 8.  Document select_many range operator
 12. Document how to build a range source
 4.  to_map should accept a value selector predicate
