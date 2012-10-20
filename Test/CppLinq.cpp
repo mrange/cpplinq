@@ -152,9 +152,9 @@ namespace
 
     customer_address        customer_addresses[] =
         {
-            customer_address (1, 1, "USA"       ),
             customer_address (2, 4, "Finland"   ),
             customer_address (3, 4, "USA"       ),
+            customer_address (1, 1, "USA"       ),
         };
     int const           count_of_customer_addresses = get_array_size (customer_addresses); 
 
@@ -297,9 +297,9 @@ namespace
     bool test_assert (
             char const *    file
         ,   int             line_no
-        ,   size_t          expected
+        ,   std::size_t     expected
         ,   char const *    expected_name
-        ,   size_t          found
+        ,   std::size_t     found
         ,   char const *    found_name
         ,   bool            result
         )
@@ -465,6 +465,16 @@ namespace
 
             TEST_ASSERT (0, (int)lookup.size_of_keys ());
             TEST_ASSERT (0, (int)lookup.size_of_values ());
+
+            {
+                auto results = lookup[999] >> to_vector ();
+                TEST_ASSERT (0, (int)results.size ());
+            }
+
+            {
+                auto results = lookup.range_of_values () >> to_vector ();
+                TEST_ASSERT (0, (int)results.size ());
+            }
         }
 
         {
@@ -476,6 +486,23 @@ namespace
 
             TEST_ASSERT (count_of_customers, (int)lookup.size_of_keys ());
             TEST_ASSERT (count_of_customers, (int)lookup.size_of_values ());
+
+            {
+                auto results = lookup.range_of_values () >> to_vector ();
+                if (TEST_ASSERT (count_of_customers, (int)results.size ()))
+                {
+                    for (auto iter = 0; iter < count_of_customers; ++iter)
+                    {
+                        // As customers are sorted on id in the test data set
+                        // this is ok
+                        if (!TEST_ASSERT (customers[iter].id, results[iter].id))
+                        {
+                            printf ("    @index:%d\r\n", iter);
+                        }
+                    }
+                }
+
+            }
 
             for (auto customer : customers)
             {
@@ -506,6 +533,10 @@ namespace
             TEST_ASSERT (2, (int)lookup.size_of_keys ());
             TEST_ASSERT (count_of_customer_addresses, (int)lookup.size_of_values ());
 
+            {
+                auto results = lookup.range_of_values () >> to_vector ();
+                TEST_ASSERT (count_of_customer_addresses, (int)results.size ());
+            }
             {
                 auto results = lookup[1] >> to_vector ();
                 if (TEST_ASSERT (1, (int)results.size ()))
@@ -2094,7 +2125,7 @@ namespace
             auto expected_result = expected >> to_vector ();
             auto result = empty<int>() >> concat (expected) >> to_vector ();
             TEST_ASSERT (expected_result.size (), result.size ());
-            for (size_t i = 0; i < expected_result.size () && i < result.size ();++i)
+            for (std::size_t i = 0; i < expected_result.size () && i < result.size ();++i)
             {
                 TEST_ASSERT (expected_result[i], result[i]);
             }
@@ -2116,7 +2147,7 @@ namespace
             auto expected_result = expected >> to_vector ();
             auto result = expected >> concat (empty<int>()) >> to_vector ();
             TEST_ASSERT (expected_result.size (), result.size ());
-            for (size_t i = 0; i < expected_result.size () && i < result.size ();++i)
+            for (std::size_t i = 0; i < expected_result.size () && i < result.size ();++i)
             {
                 TEST_ASSERT (expected_result[i], result[i]);
             }

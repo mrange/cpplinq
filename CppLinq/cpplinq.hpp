@@ -346,6 +346,31 @@ namespace cpplinq
 
         };
 
+        // -------------------------------------------------------------------------
+        // The generic interface
+        // -------------------------------------------------------------------------
+        // _range classes:
+        //      inherit base_range
+        //      COPYABLE
+        //      MOVEABLE (movesemantics)
+        //      typedef                 ...         this_type       ;
+        //      typedef                 ...         value_type      ;
+        //      typedef                 ...         return_type     ;   // value_type | value_type const &
+        //      enum { returns_reference = 0|1 };
+        //      return_type front () const
+        //      bool next ()
+        //      template<typename TRangeBuilder>
+        //      typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const 
+        // -------------------------------------------------------------------------
+        // _builder classes:
+        //      inherit base_builder
+        //      COPYABLE
+        //      MOVEABLE (movesemantics)
+        //      typedef                 ...         this_type       ;
+        //      template<typename TRange>
+        //      TAggregated build (TRange range) const
+        // -------------------------------------------------------------------------
+
         struct base_range 
         {
 #ifdef CPPLINQ_DETECT_INVALID_METHODS
@@ -401,294 +426,6 @@ namespace cpplinq
             CPPLINQ_INLINEMETHOD base_builder & operator= (base_builder &&);
 #endif
         };
-
-        template<typename TKey, typename TValue>
-        struct lookup
-        {
-            typedef     TKey    key_type    ;
-            typedef     TValue  value_type  ;
-
-            typedef     std::vector<std::pair<key_type, size_type>>     keys_type   ;
-            typedef     std::vector<value_type>                         values_type ;
-
-            template<typename TRange, typename TSelector>
-            CPPLINQ_INLINEMETHOD lookup (size_type capacity, TRange range, TSelector selector)
-            {
-                keys_type   k;
-                values_type v;
-                k.reserve (capacity);
-                v.reserve (capacity);
-
-                auto index = 0U;
-                while (range.next ())
-                {
-                    auto value  = range.front ();
-                    auto key    = selector (value);
-                    v.push_back (std::move (value));
-                    k.push_back (typename keys_type::value_type (std::move (key), index));
-                    ++index;
-                }
-
-                if (v.size () == 0)
-                {
-                    return;
-                }
-
-                std::sort (
-                        k.begin ()
-                    ,   k.end ()
-                    ,   [] (typename keys_type::value_type const & l, typename keys_type::value_type const & r)
-                        {
-                            return l.first < r.first;
-                        }
-                    );
-
-                keys.reserve (k.size ());
-                values.reserve (v.size ());
-
-                auto iter       = k.begin ();
-                auto end        = k.end ();
-
-                index = 0U;
-
-                if (iter != end)
-                {
-                    values.push_back (std::move (v[iter->second]));
-                    keys.push_back (typename keys_type::value_type (iter->first, index));
-                }
-
-                auto previous   = iter;
-                ++iter;
-                ++index;
-
-                while (iter != end)
-                {
-                    values.push_back (v[iter->second]);
-
-                    if (previous->first < iter->first)
-                    {
-                        keys.push_back (typename keys_type::value_type (iter->first, index));
-                    }
-
-                    previous = iter;
-                    ++iter;
-                    ++index;
-                }
-            }
-            
-            CPPLINQ_INLINEMETHOD lookup (lookup const & v)
-                :   values  (v.values)
-                ,   keys    (v.keys)
-            {
-            }
-
-            CPPLINQ_INLINEMETHOD lookup (lookup && v) throw ()
-                :   values  (std::move (v.values))
-                ,   keys    (std::move (v.keys))
-            {
-            }
-
-            CPPLINQ_INLINEMETHOD void swap (lookup & v) throw ()
-            {
-                values.swap (v.values);
-                keys.swap (v.keys);
-            }
-
-            CPPLINQ_INLINEMETHOD lookup & operator= (lookup const & v)
-            {
-                if (this == std::addressof (v))
-                {
-                    return *this;
-                }
-
-                lookup tmp (v);
-
-                swap (tmp);
-
-                return *this;
-            }
-
-            CPPLINQ_INLINEMETHOD lookup & operator= (lookup && v) throw ()
-            {
-                if (this == std::addressof (v))
-                {
-                    return *this;
-                }
-
-                swap (v);
-
-                return *this;
-            }
-
-            struct lookup_range : base_range
-            {
-                typedef         lookup_range                this_type       ;
-
-                enum    
-                { 
-                    returns_reference = 1 , 
-                };
-
-                typedef         TValue                      value_type      ;
-                typedef         value_type const &          return_type     ;
-
-                enum state
-                {
-                    state_initial   ,
-                    state_iterating ,
-                    state_end       ,
-                };
-
-                values_type const *     values  ;
-                size_type               iter    ;
-                size_type               end     ;
-                state                   state   ;
-
-                CPPLINQ_INLINEMETHOD lookup_range (
-                        values_type const *     values  
-                    ,   size_type               iter
-                    ,   size_type               end     
-                    ) throw ()
-                    :   values  (values)
-                    ,   iter    (iter)
-                    ,   end     (end)
-                    ,   state   (state_initial)
-                {
-                    assert (values);
-                }
-
-                CPPLINQ_INLINEMETHOD lookup_range (lookup_range const & v) throw ()
-                    :   values  (v.values)
-                    ,   iter    (v.iter)
-                    ,   end     (v.end)
-                    ,   state   (v.state)
-                {
-                }
-
-                CPPLINQ_INLINEMETHOD lookup_range (lookup_range && v) throw ()
-                    :   values  (std::move (v.values))
-                    ,   iter    (std::move (v.iter))
-                    ,   end     (std::move (v.end))
-                    ,   state   (std::move (v.state))
-                {
-                }
-
-                template<typename TRangeBuilder>
-                CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
-                {
-                    return range_builder.build (*this);
-                }
-
-                CPPLINQ_INLINEMETHOD return_type front () const throw ()
-                {
-                    assert (state == state_iterating);
-                    assert (iter < end);
-
-                    return (*values)[iter];
-                }
-
-                CPPLINQ_INLINEMETHOD bool next () throw ()
-                {
-                    switch (state)
-                    {
-                    case state_initial:
-                        {
-                            auto has_elements = iter < end;
-                            state = has_elements ? state_iterating : state_end;
-                            return has_elements;
-                        }
-                        break;
-                    case state_iterating:
-                        {
-                            ++iter;
-
-                            auto has_elements = iter < end;
-                            state = has_elements ? state_iterating : state_end;
-                            return has_elements;
-                        }
-                        break;
-                    case state_end:
-                    default:
-                        return false;
-                    }
-                }
-
-            };
-
-            CPPLINQ_INLINEMETHOD lookup_range operator[](key_type const & key) const throw ()
-            {
-                if (values.empty ())
-                {
-                    return lookup_range (std::addressof (values), 0U, 0U);
-                }
-
-                if (keys.empty ())
-                {
-                    return lookup_range (std::addressof (values), 0U, 0U);
-                }
-
-                auto find = std::lower_bound (
-                        keys.begin ()
-                    ,   keys.end  ()
-                    ,   typename keys_type::value_type (key, 0U)   
-                    ,   [](typename keys_type::value_type const & l, typename keys_type::value_type const & r)
-                        {
-                            return l.first < r.first;
-                        });
-
-                if (find == keys.end ())
-                {
-                    return lookup_range (std::addressof (values), 0U, 0U);
-                }
-
-                auto next = find + 1;
-                if (next == keys.end ())
-                {
-                    return lookup_range (std::addressof (values), find->second, values.size ());
-                }
-
-                return lookup_range (std::addressof (values), find->second, next->second);
-            }
-
-            size_type size_of_keys () const throw ()
-            {
-                return keys.size ();
-            }
-
-            size_type size_of_values () const throw ()
-            {
-                return values.size ();
-            }
-
-        private:
-            values_type values  ;
-            keys_type   keys    ;
-        };
-
-        // -------------------------------------------------------------------------
-        // The generic interface
-        // -------------------------------------------------------------------------
-        // _range classes:
-        //      inherit base_range
-        //      COPYABLE
-        //      MOVEABLE (movesemantics)
-        //      typedef                 ...         this_type       ;
-        //      typedef                 ...         value_type      ;
-        //      typedef                 ...         return_type     ;   // value_type | value_type const &
-        //      enum { returns_reference = 0|1 };
-        //      return_type front () const
-        //      bool next ()
-        //      template<typename TRangeBuilder>
-        //      typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const 
-        // -------------------------------------------------------------------------
-        // _builder classes:
-        //      inherit base_builder
-        //      COPYABLE
-        //      MOVEABLE (movesemantics)
-        //      typedef                 ...         this_type       ;
-        //      template<typename TRange>
-        //      TAggregated build (TRange range) const
-        // -------------------------------------------------------------------------
 
         template<typename TValueIterator>
         struct from_range : base_range
@@ -3389,6 +3126,279 @@ namespace cpplinq
 
         // -------------------------------------------------------------------------
 
+        template<typename TKey, typename TValue>
+        struct lookup
+        {
+            typedef             TKey    key_type    ;
+            typedef             TValue  value_type  ;
+
+            typedef             std::vector<std::pair<key_type, size_type>>     keys_type           ;
+            typedef             std::vector<value_type>                         values_type         ;
+
+            typedef typename    values_type::const_iterator                     values_iterator_type;
+
+            template<typename TRange, typename TSelector>
+            CPPLINQ_METHOD lookup (size_type capacity, TRange range, TSelector selector)
+            {
+                keys_type   k;
+                values_type v;
+                k.reserve (capacity);
+                v.reserve (capacity);
+
+                auto index = 0U;
+                while (range.next ())
+                {
+                    auto value  = range.front ();
+                    auto key    = selector (value);
+                    v.push_back (std::move (value));
+                    k.push_back (typename keys_type::value_type (std::move (key), index));
+                    ++index;
+                }
+
+                if (v.size () == 0)
+                {
+                    return;
+                }
+
+                std::sort (
+                        k.begin ()
+                    ,   k.end ()
+                    ,   [] (typename keys_type::value_type const & l, typename keys_type::value_type const & r)
+                        {
+                            return l.first < r.first;
+                        }
+                    );
+
+                keys.reserve (k.size ());
+                values.reserve (v.size ());
+
+                auto iter       = k.begin ();
+                auto end        = k.end ();
+
+                index = 0U;
+
+                if (iter != end)
+                {
+                    values.push_back (std::move (v[iter->second]));
+                    keys.push_back (typename keys_type::value_type (iter->first, index));
+                }
+
+                auto previous   = iter;
+                ++iter;
+                ++index;
+
+                while (iter != end)
+                {
+                    values.push_back (v[iter->second]);
+
+                    if (previous->first < iter->first)
+                    {
+                        keys.push_back (typename keys_type::value_type (iter->first, index));
+                    }
+
+                    previous = iter;
+                    ++iter;
+                    ++index;
+                }
+            }
+            
+            CPPLINQ_INLINEMETHOD lookup (lookup const & v)
+                :   values  (v.values)
+                ,   keys    (v.keys)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD lookup (lookup && v) throw ()
+                :   values  (std::move (v.values))
+                ,   keys    (std::move (v.keys))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD void swap (lookup & v) throw ()
+            {
+                values.swap (v.values);
+                keys.swap (v.keys);
+            }
+
+            CPPLINQ_INLINEMETHOD lookup & operator= (lookup const & v)
+            {
+                if (this == std::addressof (v))
+                {
+                    return *this;
+                }
+
+                lookup tmp (v);
+
+                swap (tmp);
+
+                return *this;
+            }
+
+            CPPLINQ_INLINEMETHOD lookup & operator= (lookup && v) throw ()
+            {
+                if (this == std::addressof (v))
+                {
+                    return *this;
+                }
+
+                swap (v);
+
+                return *this;
+            }
+
+            struct lookup_range : base_range
+            {
+                typedef         lookup_range                this_type       ;
+
+                enum    
+                { 
+                    returns_reference = 1 , 
+                };
+
+                typedef         TValue                      value_type      ;
+                typedef         value_type const &          return_type     ;
+
+                enum state
+                {
+                    state_initial   ,
+                    state_iterating ,
+                    state_end       ,
+                };
+
+                values_type const *     values  ;
+                size_type               iter    ;
+                size_type               end     ;
+                state                   state   ;
+
+                CPPLINQ_INLINEMETHOD lookup_range (
+                        values_type const *     values  
+                    ,   size_type               iter
+                    ,   size_type               end     
+                    ) throw ()
+                    :   values  (values)
+                    ,   iter    (iter)
+                    ,   end     (end)
+                    ,   state   (state_initial)
+                {
+                    assert (values);
+                }
+
+                CPPLINQ_INLINEMETHOD lookup_range (lookup_range const & v) throw ()
+                    :   values  (v.values)
+                    ,   iter    (v.iter)
+                    ,   end     (v.end)
+                    ,   state   (v.state)
+                {
+                }
+
+                CPPLINQ_INLINEMETHOD lookup_range (lookup_range && v) throw ()
+                    :   values  (std::move (v.values))
+                    ,   iter    (std::move (v.iter))
+                    ,   end     (std::move (v.end))
+                    ,   state   (std::move (v.state))
+                {
+                }
+
+                template<typename TRangeBuilder>
+                CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+                {
+                    return range_builder.build (*this);
+                }
+
+                CPPLINQ_INLINEMETHOD return_type front () const throw ()
+                {
+                    assert (state == state_iterating);
+                    assert (iter < end);
+
+                    return (*values)[iter];
+                }
+
+                CPPLINQ_INLINEMETHOD bool next () throw ()
+                {
+                    switch (state)
+                    {
+                    case state_initial:
+                        {
+                            auto has_elements = iter < end;
+                            state = has_elements ? state_iterating : state_end;
+                            return has_elements;
+                        }
+                        break;
+                    case state_iterating:
+                        {
+                            ++iter;
+
+                            auto has_elements = iter < end;
+                            state = has_elements ? state_iterating : state_end;
+                            return has_elements;
+                        }
+                        break;
+                    case state_end:
+                    default:
+                        return false;
+                    }
+                }
+
+            };
+
+            CPPLINQ_METHOD lookup_range operator[](key_type const & key) const throw ()
+            {
+                if (values.empty ())
+                {
+                    return lookup_range (std::addressof (values), 0U, 0U);
+                }
+
+                if (keys.empty ())
+                {
+                    return lookup_range (std::addressof (values), 0U, 0U);
+                }
+
+                auto find = std::lower_bound (
+                        keys.begin ()
+                    ,   keys.end  ()
+                    ,   typename keys_type::value_type (key, 0U)   
+                    ,   [](typename keys_type::value_type const & l, typename keys_type::value_type const & r)
+                        {
+                            return l.first < r.first;
+                        });
+
+                if (find == keys.end ())
+                {
+                    return lookup_range (std::addressof (values), 0U, 0U);
+                }
+
+                auto next = find + 1;
+                if (next == keys.end ())
+                {
+                    return lookup_range (std::addressof (values), find->second, values.size ());
+                }
+
+                return lookup_range (std::addressof (values), find->second, next->second);
+            }
+
+            CPPLINQ_INLINEMETHOD size_type size_of_keys () const throw ()
+            {
+                return keys.size ();
+            }
+
+            CPPLINQ_INLINEMETHOD size_type size_of_values () const throw ()
+            {
+                return values.size ();
+            }
+
+            CPPLINQ_INLINEMETHOD from_range<values_iterator_type> range_of_values () const throw ()
+            {
+                return from_range<values_iterator_type> (
+                        values.begin ()
+                    ,   values.end ()
+                    );
+            }
+
+        private:
+            values_type values  ;
+            keys_type   keys    ;
+        };
+
         template<typename TKeyPredicate>
         struct to_lookup_builder : base_builder
         {
@@ -3415,7 +3425,7 @@ namespace cpplinq
             }
 
             template<typename TRange>
-            CPPLINQ_METHOD lookup<
+            CPPLINQ_INLINEMETHOD lookup<
                     typename get_transformed_type<key_predicate_type, typename TRange::value_type>::type
                 ,   typename TRange::value_type
                 > build (TRange range)
