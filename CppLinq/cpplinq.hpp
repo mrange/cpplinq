@@ -524,7 +524,7 @@ namespace cpplinq
         
             CPPLINQ_INLINEMETHOD from_copy_range (from_copy_range && v) throw ()
                 :   container   (std::move (v.container))
-                ,   start       (v.start)
+                ,   start       (std::move (v.start))
             {
             }
         
@@ -924,13 +924,13 @@ namespace cpplinq
 
             CPPLINQ_INLINEMETHOD orderby_builder (orderby_builder const & v)
                 :   predicate       (v.predicate)
-                ,   sort_ascending  (sort_ascending)
+                ,   sort_ascending  (v.sort_ascending)
             {
             }
 
             CPPLINQ_INLINEMETHOD orderby_builder (orderby_builder && v) throw ()
                 :   predicate       (std::move (v.predicate))
-                ,   sort_ascending  (std::move (sort_ascending))
+                ,   sort_ascending  (std::move (v.sort_ascending))
             {
             }
 
@@ -1101,13 +1101,13 @@ namespace cpplinq
 
             CPPLINQ_INLINEMETHOD thenby_builder (thenby_builder const & v)
                 :   predicate       (v.predicate)
-                ,   sort_ascending  (sort_ascending)
+                ,   sort_ascending  (v.sort_ascending)
             {
             }
 
             CPPLINQ_INLINEMETHOD thenby_builder (thenby_builder && v) throw ()
                 :   predicate       (std::move (v.predicate))
-                ,   sort_ascending  (std::move (sort_ascending))
+                ,   sort_ascending  (std::move (v.sort_ascending))
             {
             }
 
