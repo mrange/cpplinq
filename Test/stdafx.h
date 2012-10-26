@@ -11,13 +11,13 @@
 // ----------------------------------------------------------------------------------------------
 #pragma once
 // ----------------------------------------------------------------------------------------------
-#include <limits.h>
 #include <stdio.h>
 #include <tchar.h>
 // ----------------------------------------------------------------------------------------------
 #include <algorithm>
 #include <chrono>
 #include <cassert>
+#include <climits>
 #include <exception>
 #include <iterator>
 #include <list>
