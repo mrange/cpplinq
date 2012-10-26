@@ -15,6 +15,7 @@
 // ----------------------------------------------------------------------------
 #include <algorithm>
 #include <cassert>
+#include <climits>
 #include <exception>
 #include <iterator>
 #include <list>
@@ -509,9 +510,17 @@ namespace cpplinq
             iterator_type           current     ;
 
             CPPLINQ_INLINEMETHOD from_copy_range (
-                    container_type  container
+                    container_type&&        container
                 )
                 :   container   (std::move (container))
+                ,   start       (true)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD from_copy_range (
+                    container_type const &  container
+                )
+                :   container   (container)
                 ,   start       (true)
             {
             }
@@ -4536,12 +4545,14 @@ namespace cpplinq
     }
 
     template<typename TContainer>
-    CPPLINQ_INLINEMETHOD detail::from_copy_range<TContainer> from_copy (
-            TContainer  const & container
+    CPPLINQ_INLINEMETHOD detail::from_copy_range<typename detail::cleanup_type<TContainer>::type> from_copy (
+            TContainer&& container
         )
     {
-        return detail::from_copy_range<TContainer> (
-                std::move (container)
+        typedef typename detail::cleanup_type<TContainer>::type container_type;
+
+        return detail::from_copy_range<container_type> (
+                std::forward<TContainer> (container)
             );
     }
 
