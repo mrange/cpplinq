@@ -13,7 +13,6 @@
 // ----------------------------------------------------------------------------------------------
 #include <limits.h>
 #include <stdio.h>
-#include <tchar.h>
 // ----------------------------------------------------------------------------------------------
 #include <algorithm>
 #include <chrono>
@@ -24,6 +23,7 @@
 #include <map>
 #include <numeric>
 #include <set>
+#include <cstring>
 #include <string>
 #include <type_traits>
 #include <vector>
