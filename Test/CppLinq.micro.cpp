@@ -9,7 +9,22 @@
 // ----------------------------------------------------------------------------------------------
 // You must not remove this notice, or any other, from this software.
 // ----------------------------------------------------------------------------------------------
-#include "stdafx.h"
+#include <stdio.h>
+#include <tchar.h>
+// ----------------------------------------------------------------------------------------------
+#include <algorithm>
+#include <chrono>
+#include <cassert>
+#include <climits>
+#include <exception>
+#include <iterator>
+#include <list>
+#include <map>
+#include <numeric>
+#include <set>
+#include <string>
+#include <type_traits>
+#include <vector>
 // ----------------------------------------------------------------------------------------------
 #ifdef _MSC_VER 
 #   pragma warning (disable:4100)
@@ -196,7 +211,7 @@ namespace
     auto                double_it               = [](int i) {return i+i;};
     auto                sum_aggregator          = [](int s, int i) {return s+i;};
     auto                mul_aggregator          = [](int s, int i) {return s*i;};
-    auto                to_string               = [](int i) -> std::string {std::stringstream sstr; sstr<<i; return sstr.str ();};
+    auto                to_string               = [](int i) {std::stringstream sstr; sstr<<i; return sstr.str ();};
 
 
     void test_prelude (
@@ -1067,14 +1082,14 @@ namespace
 
         {
             int index = 0;
-            auto all_result = from (empty_vector) >> all ([&](int i)-> bool {test_int_at (index, i); ++index; return true;});
+            auto all_result = from (empty_vector) >> all ([&](int i){test_int_at (index, i); ++index; return true;});
             TEST_ASSERT (true, all_result);
             TEST_ASSERT (0, index);
         }
 
         {
             int index = 0;
-            auto all_result = from_array (ints) >> all ([&](int i)-> bool {test_int_at (index, i); ++index; return true;});
+            auto all_result = from_array (ints) >> all ([&](int i){test_int_at (index, i); ++index; return true;});
             TEST_ASSERT (true, all_result);
             TEST_ASSERT (count_of_ints, index);
 
@@ -1082,7 +1097,7 @@ namespace
 
         {
             int index = 0;
-            auto all_result = from_array (ints) >> all ([&](int i)-> bool {test_int_at (index, i); ++index; return index < 10;});
+            auto all_result = from_array (ints) >> all ([&](int i){test_int_at (index, i); ++index; return index < 10;});
             TEST_ASSERT (false, all_result);
             TEST_ASSERT (10, index);
 
@@ -2452,11 +2467,15 @@ namespace
                 test_repeat
             ,   [&] ()
                 {
+                    auto prime_sum =
                             range (2, INT_MAX)
                         >>  where (is_prime)
                         >>  take (test_size)
                         >>  sum ()
                         ;
+
+                    // To suppress not used warnings
+                    prime_sum = prime_sum;
                 }                 
             );
 
