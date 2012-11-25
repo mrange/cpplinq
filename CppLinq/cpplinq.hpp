@@ -5022,6 +5022,12 @@ namespace cpplinq
         return detail::empty_range<TValue> ();
     }
 
+    template<typename TValue>
+    CPPLINQ_INLINEMETHOD detail::from_range<TValue*> singleton(TValue& value) throw ()
+    {
+		return from_iterators(&value, &value+1);
+    }
+
     // Quantifiers
 
     template <typename TPredicate>

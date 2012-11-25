@@ -789,6 +789,20 @@ namespace
 
     }
 
+    void test_singleton ()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE ();
+        
+        {
+            int i = 1;
+            auto singleton_result = singleton(i) >> to_vector();
+            TEST_ASSERT (1U, singleton_result.size());
+            TEST_ASSERT (1, singleton_result[0]);
+        }
+    }
+
     void test_count ()
     {
         using namespace cpplinq;
@@ -2537,6 +2551,7 @@ namespace
         test_range                  ();
         test_repeat                 ();
         test_empty                  ();
+        test_singleton              ();
         test_count                  ();
         test_any                    ();
         test_first_or_default       ();
