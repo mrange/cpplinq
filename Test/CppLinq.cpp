@@ -2306,6 +2306,35 @@ namespace
         }
     }
 
+	void test_pairwise ()
+	{
+        using namespace cpplinq;
+		using namespace std;
+
+        TEST_PRELUDE ();
+
+        {
+			auto pairwise_result = from(empty_vector) >> pairwise() >> to_vector();
+			TEST_ASSERT (0U, pairwise_result.size());
+		}
+
+        {
+			int single_element_vector[] = {1};
+			auto pairwise_result = from_array(single_element_vector) >> pairwise() >> to_vector();
+			TEST_ASSERT (0U, pairwise_result.size());
+		}
+
+		{
+			auto pairwise_result = from_array(simple_ints) >> pairwise() >> to_vector();
+			TEST_ASSERT (count_of_simple_ints-1, (int)pairwise_result.size());
+			for(size_t i=0; i<pairwise_result.size(); ++i)
+			{
+				TEST_ASSERT (simple_ints[i], pairwise_result[i].first);
+				TEST_ASSERT (simple_ints[i+1], pairwise_result[i].second);
+			}
+		}
+	}
+
     template<typename TPredicate>
     long long execute_testruns (
             std::size_t test_runs
@@ -2513,6 +2542,7 @@ namespace
         test_except                 ();
         test_concat                 ();
         test_sequence_equal         ();
+		test_pairwise               ();
         // -------------------------------------------------------------------------
         if (run_perfomance_tests)
         {

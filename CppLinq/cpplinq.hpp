@@ -4499,6 +4499,107 @@ namespace cpplinq
 
         // -------------------------------------------------------------------------
 
+        template<typename TRange>
+        struct pairwise_range : base_range
+        {
+            typedef                 pairwise_range<TRange>                      this_type           ;
+            typedef                 TRange                                      range_type          ;
+
+            typedef                 typename TRange::value_type                 element_type        ;
+            typedef                 std::pair<element_type,element_type>        value_type          ;
+            typedef                 value_type                                  return_type         ;
+
+            enum    
+            { 
+                returns_reference   = 0     , 
+            };
+
+
+            range_type                   range               ;
+            opt<element_type>            previous            ;
+            opt<element_type>            current             ;
+
+            CPPLINQ_INLINEMETHOD pairwise_range (
+                    range_type          range
+                ) throw ()
+                :   range               (std::move (range))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD pairwise_range (pairwise_range const & v) throw ()
+                :   range               (v.range)
+                ,   previous            (v.previous)
+                ,   current             (v.current)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD pairwise_range (pairwise_range && v) throw ()
+                :   range               (std::move (v.range))
+                ,   previous            (std::move (v.previous))
+                ,   current             (std::move (v.current))
+            {
+            }
+
+            template<typename TPairwiseBuilder>
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TPairwiseBuilder, this_type>::type operator>>(TPairwiseBuilder pairwise_builder) const throw ()   
+            {
+                return pairwise_builder.build (*this);
+            }
+
+            CPPLINQ_INLINEMETHOD return_type front () const throw ()
+            {
+                assert (previous.has_value());
+                assert (current.has_value());
+                return std::make_pair(previous.get(), current.get());
+            }
+
+            CPPLINQ_INLINEMETHOD bool next ()
+            {                
+                if (!previous.has_value())
+                {
+                    if (range.next ())
+                        current = range.front();
+                    else
+                        return false;
+                }
+
+                previous = current;
+
+                if (range.next ())
+                {
+                    current = range.front();
+                    return true;
+                }
+                
+                return false;
+            }
+        };
+        
+        struct pairwise_builder : base_builder
+        {
+            typedef             pairwise_builder     this_type   ;  
+
+            CPPLINQ_INLINEMETHOD pairwise_builder () throw ()
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD pairwise_builder (pairwise_builder const & v) throw ()
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD pairwise_builder (pairwise_builder && v) throw ()
+            {
+            }
+
+            template<typename TRange>
+            CPPLINQ_INLINEMETHOD pairwise_range<TRange> build (TRange range) const throw ()
+            {
+                return pairwise_range<TRange> (std::move (range));
+            }
+        };
+
+        // -------------------------------------------------------------------------
+
     }   // namespace detail
 
     // -------------------------------------------------------------------------
@@ -5004,6 +5105,11 @@ namespace cpplinq
                 std::move (separator)
             ,   capacity
             );
+    }
+
+    CPPLINQ_INLINEMETHOD detail::pairwise_builder   pairwise () throw ()
+    {
+        return detail::pairwise_builder ();
     }
 
     // -------------------------------------------------------------------------
