@@ -4600,6 +4600,103 @@ namespace cpplinq
 
         // -------------------------------------------------------------------------
 
+        template<typename TRange, typename TOtherRange>
+        struct zip_range : base_range
+        {
+            typedef             zip_range<TRange, TOtherRange>                          this_type          ;
+            typedef             TRange                                                  range_type         ;
+            typedef             TOtherRange                                             other_range_type   ;
+
+            typedef    typename cleanup_type<typename TRange::value_type>::type         left_element_type  ;
+            typedef    typename cleanup_type<typename TOtherRange::value_type>::type    right_element_type ;
+            typedef             std::pair<left_element_type,right_element_type>         value_type         ;
+            typedef             value_type const &                                      return_type        ;
+            enum    
+            { 
+                returns_reference   = 0 , 
+            };
+
+            range_type                  range               ;
+            other_range_type            other_range         ;
+            opt<value_type>             current             ;
+
+            CPPLINQ_INLINEMETHOD zip_range (
+                        range_type          range
+                    ,   other_range_type    other_range
+                ) throw ()
+                :   range               (std::move (range))
+                ,   other_range         (std::move (other_range))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD zip_range (zip_range const & v) throw ()
+                :   range               (v.range)
+                ,   other_range         (v.other_range)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD zip_range (zip_range && v) throw ()
+                :   range               (std::move (v.range))
+                ,   other_range         (std::move (v.other_range))
+            {
+            }
+
+            template<typename TRangeBuilder>
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            {
+                return range_builder.build (*this);
+            }
+
+            CPPLINQ_INLINEMETHOD return_type front () const 
+            {
+                assert(current.has_value());
+                return current.get();
+            }
+
+            CPPLINQ_INLINEMETHOD bool next ()
+            {
+                if (range.next () && other_range.next())
+                {
+                    current = std::make_pair(range.front(), other_range.front());
+                    return true;
+                }
+                
+                return false;
+            }
+        };
+        
+        template <typename TOtherRange>
+        struct zip_builder : base_builder
+        {
+            typedef                 zip_builder<TOtherRange>              this_type       ;  
+            typedef                 TOtherRange                           other_range_type;
+
+            other_range_type        other_range         ;
+            
+            CPPLINQ_INLINEMETHOD zip_builder (TOtherRange other_range) throw ()
+                : other_range (std::move (other_range))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD zip_builder (zip_builder const & v) throw ()
+                : other_range (v.other_range)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD zip_builder (zip_builder && v) throw ()
+                : other_range (std::move (v.other_range))
+            {
+            }
+
+            template <typename TRange>
+            CPPLINQ_INLINEMETHOD zip_range<TRange, TOtherRange> build (TRange range) const throw ()
+            {
+                return zip_range<TRange, TOtherRange> (std::move (range), std::move (other_range));
+            }
+        };
+
+        // -------------------------------------------------------------------------
+
     }   // namespace detail
 
     // -------------------------------------------------------------------------
@@ -5110,6 +5207,12 @@ namespace cpplinq
     CPPLINQ_INLINEMETHOD detail::pairwise_builder   pairwise () throw ()
     {
         return detail::pairwise_builder ();
+    }
+
+    template <typename TOtherRange>
+    CPPLINQ_INLINEMETHOD detail::zip_builder<TOtherRange>  zip_with (TOtherRange other_range) throw ()
+    {
+        return detail::zip_builder<TOtherRange> (std::move (other_range));
     }
 
     // -------------------------------------------------------------------------
