@@ -17,6 +17,7 @@
 #include <cassert>
 #include <climits>
 #include <exception>
+#include <functional>
 #include <iterator>
 #include <list>
 #include <map>
@@ -4697,6 +4698,84 @@ namespace cpplinq
 
         // -------------------------------------------------------------------------
 
+        template<typename generator_value_type>
+        struct unfold_generator_traits
+        {
+            typedef        std::pair<generator_value_type, generator_value_type>    value_pair;
+            typedef        std::function<opt<value_pair> (generator_value_type)>    generator_type;
+        };
+
+        template<typename generator_value_type>
+        struct unfold_range : base_range
+        {
+            typedef                 unfold_generator_traits<generator_value_type>     generator_traits    ;
+            typedef        typename generator_traits::generator_type                  generator_type      ;
+            typedef                 unfold_range<generator_value_type>                this_type           ;
+            typedef                 generator_value_type                              value_type          ;
+            typedef                 value_type const &                                return_type         ;
+            enum    
+            { 
+                returns_reference = 1, 
+            };
+
+            generator_type          generator         ;
+            opt<value_type>         current_value     ;
+            value_type              next_value        ;
+
+            CPPLINQ_INLINEMETHOD unfold_range (
+                    generator_type generator
+                ,   value_type     seed
+                ) throw ()
+                :   generator  (std::move (generator))
+                ,   next_value (std::move (seed))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD unfold_range (unfold_range const & v) throw ()
+                :   generator       (v.generator)
+                ,   current_value   (v.current_value)
+                ,   next_value      (v.next_value)
+            {
+            }
+        
+            CPPLINQ_INLINEMETHOD unfold_range (unfold_range && v) throw ()
+                :   generator       (v.generator)
+                ,   current_value   (v.current_value)
+                ,   next_value      (v.next_value)
+            {
+            }
+
+            template<typename TRangeBuilder>
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            {
+                return range_builder.build (*this);
+            }
+
+            CPPLINQ_INLINEMETHOD return_type front () const 
+            {
+                assert(current_value.has_value());
+                return current_value.get();
+            }
+
+            CPPLINQ_INLINEMETHOD bool next () throw ()
+            {
+                auto value = generator(next_value);
+                if (value.has_value())
+                {
+                    current_value = value.get().first;
+                    next_value = value.get().second;
+                    return true;
+                }
+                else
+                {
+                    current_value = opt<value_type>();
+                    return false;
+                }
+            }
+        };
+
+        // -------------------------------------------------------------------------
+
     }   // namespace detail
 
     // -------------------------------------------------------------------------
@@ -4752,6 +4831,15 @@ namespace cpplinq
         return detail::from_copy_range<container_type> (
                 std::forward<TContainer> (container)
             );
+    }
+
+    template<typename generator_value_type>
+    CPPLINQ_INLINEMETHOD detail::unfold_range<generator_value_type> unfold (
+            typename detail::unfold_generator_traits<generator_value_type>::generator_type  generator
+        ,   generator_value_type  seed
+        ) throw ()
+    {
+        return detail::unfold_range<generator_value_type> (std::move (generator), std::move (seed));
     }
 
     // Restriction operators
@@ -5025,7 +5113,7 @@ namespace cpplinq
     template<typename TValue>
     CPPLINQ_INLINEMETHOD detail::from_range<TValue*> singleton(TValue& value) throw ()
     {
-		return from_iterators(&value, &value+1);
+        return from_iterators(&value, &value+1);
     }
 
     // Quantifiers
