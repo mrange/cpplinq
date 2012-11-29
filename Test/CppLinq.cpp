@@ -803,22 +803,32 @@ namespace
         }
     }
 
-    void test_unfold ()
+    void test_generate ()
     {
         using namespace cpplinq;
 
         TEST_PRELUDE ();
 
         {
-            auto unfold_result = unfold([](int i){ 
-                typedef cpplinq::detail::opt<std::pair<int,int>> t_ret;
-                return i < 3 ? t_ret(std::make_pair(i,i+1)) : t_ret(); 
-            }, 0) >> to_vector();
+            auto x = -1;
+            auto generate_result = 
+                generate(
+                    [&]()
+                    {
+                        return (++x < 3) 
+                            ?   to_opt (x)
+                            :   to_opt<int> ()
+                            ;
+                    }) 
+                    >> to_vector()
+                    ;
             
-            TEST_ASSERT (3U, unfold_result.size());
-            TEST_ASSERT (0, unfold_result[0]);
-            TEST_ASSERT (1, unfold_result[1]);
-            TEST_ASSERT (2, unfold_result[2]);
+            if (TEST_ASSERT (3U, generate_result.size()))
+            {
+                TEST_ASSERT (0, generate_result[0]);
+                TEST_ASSERT (1, generate_result[1]);
+                TEST_ASSERT (2, generate_result[2]);
+            }
         }
     }
 
@@ -1861,7 +1871,7 @@ namespace
             int sum_result = from_array (simple_ints) >> aggregate (1, mul_aggregator);
             TEST_ASSERT (prod_of_simple_ints, sum_result);
         }
-
+                                
         {
             auto sum_result = from (empty_vector) >> aggregate (0, sum_aggregator, to_string);
             TEST_ASSERT ("0", sum_result);
@@ -2571,7 +2581,7 @@ namespace
         test_repeat                 ();
         test_empty                  ();
         test_singleton              ();
-        test_unfold                 ();
+        test_generate               ();
         test_count                  ();
         test_any                    ();
         test_first_or_default       ();

@@ -4559,9 +4559,13 @@ namespace cpplinq
                 if (!previous.has_value())
                 {
                     if (range.next ())
+                    {
                         current = range.front();
+                    }
                     else
+                    {
                         return false;
+                    }
                 }
 
                 previous = current;
@@ -4602,9 +4606,9 @@ namespace cpplinq
         // -------------------------------------------------------------------------
 
         template<typename TRange, typename TOtherRange>
-        struct zip_range : base_range
+        struct zip_with_range : base_range
         {
-            typedef             zip_range<TRange, TOtherRange>                          this_type          ;
+            typedef             zip_with_range<TRange, TOtherRange>                     this_type          ;
             typedef             TRange                                                  range_type         ;
             typedef             TOtherRange                                             other_range_type   ;
 
@@ -4614,14 +4618,14 @@ namespace cpplinq
             typedef             value_type const &                                      return_type        ;
             enum    
             { 
-                returns_reference   = 0 , 
+                returns_reference   = 1 , 
             };
 
             range_type                  range               ;
             other_range_type            other_range         ;
             opt<value_type>             current             ;
 
-            CPPLINQ_INLINEMETHOD zip_range (
+            CPPLINQ_INLINEMETHOD zip_with_range (
                         range_type          range
                     ,   other_range_type    other_range
                 ) throw ()
@@ -4630,13 +4634,13 @@ namespace cpplinq
             {
             }
 
-            CPPLINQ_INLINEMETHOD zip_range (zip_range const & v) throw ()
+            CPPLINQ_INLINEMETHOD zip_with_range (zip_with_range const & v) throw ()
                 :   range               (v.range)
                 ,   other_range         (v.other_range)
             {
             }
 
-            CPPLINQ_INLINEMETHOD zip_range (zip_range && v) throw ()
+            CPPLINQ_INLINEMETHOD zip_with_range (zip_with_range && v) throw ()
                 :   range               (std::move (v.range))
                 ,   other_range         (std::move (v.other_range))
             {
@@ -4667,81 +4671,76 @@ namespace cpplinq
         };
         
         template <typename TOtherRange>
-        struct zip_builder : base_builder
+        struct zip_with_builder : base_builder
         {
-            typedef                 zip_builder<TOtherRange>              this_type       ;  
+            typedef                 zip_with_builder<TOtherRange>         this_type       ;  
             typedef                 TOtherRange                           other_range_type;
 
             other_range_type        other_range         ;
             
-            CPPLINQ_INLINEMETHOD zip_builder (TOtherRange other_range) throw ()
+            CPPLINQ_INLINEMETHOD zip_with_builder (TOtherRange other_range) throw ()
                 : other_range (std::move (other_range))
             {
             }
 
-            CPPLINQ_INLINEMETHOD zip_builder (zip_builder const & v) throw ()
+            CPPLINQ_INLINEMETHOD zip_with_builder (zip_with_builder const & v) throw ()
                 : other_range (v.other_range)
             {
             }
 
-            CPPLINQ_INLINEMETHOD zip_builder (zip_builder && v) throw ()
+            CPPLINQ_INLINEMETHOD zip_with_builder (zip_with_builder && v) throw ()
                 : other_range (std::move (v.other_range))
             {
             }
 
             template <typename TRange>
-            CPPLINQ_INLINEMETHOD zip_range<TRange, TOtherRange> build (TRange range) const throw ()
+            CPPLINQ_INLINEMETHOD zip_with_range<TRange, TOtherRange> build (TRange range) const throw ()
             {
-                return zip_range<TRange, TOtherRange> (std::move (range), std::move (other_range));
+                return zip_with_range<TRange, TOtherRange> (std::move (range), std::move (other_range));
             }
         };
 
         // -------------------------------------------------------------------------
 
-        template<typename generator_value_type>
-        struct unfold_generator_traits
+        template<typename TPredicate>
+        struct generate_range : base_range
         {
-            typedef        std::pair<generator_value_type, generator_value_type>    value_pair;
-            typedef        std::function<opt<value_pair> (generator_value_type)>    generator_type;
-        };
+            static          TPredicate get_predicate ();
 
-        template<typename generator_value_type>
-        struct unfold_range : base_range
-        {
-            typedef                 unfold_generator_traits<generator_value_type>     generator_traits    ;
-            typedef        typename generator_traits::generator_type                  generator_type      ;
-            typedef                 unfold_range<generator_value_type>                this_type           ;
-            typedef                 generator_value_type                              value_type          ;
-            typedef                 value_type const &                                return_type         ;
+            typedef        decltype (get_predicate ()())                    raw_opt_value_type  ;
+            typedef        typename cleanup_type<raw_opt_value_type>::type  opt_value_type      ;
+
+            typedef        decltype (*(get_predicate ()()))                 raw_value_type      ;
+            typedef        typename cleanup_type<raw_value_type>::type      value_type          ;
+
+            typedef                 generate_range<TPredicate>      this_type           ;
+            typedef                 TPredicate                      predicate_type      ;
+            typedef                 value_type const &              return_type         ;
+
             enum    
             { 
                 returns_reference = 1, 
             };
 
-            generator_type          generator         ;
-            opt<value_type>         current_value     ;
-            value_type              next_value        ;
+            TPredicate              predicate       ;
+            opt_value_type          current_value   ;
 
-            CPPLINQ_INLINEMETHOD unfold_range (
-                    generator_type generator
-                ,   value_type     seed
+            CPPLINQ_INLINEMETHOD generate_range (
+                    TPredicate predicate
                 ) throw ()
-                :   generator  (std::move (generator))
-                ,   next_value (std::move (seed))
+                :   predicate   (std::move (predicate))
             {
             }
 
-            CPPLINQ_INLINEMETHOD unfold_range (unfold_range const & v) throw ()
-                :   generator       (v.generator)
+            CPPLINQ_INLINEMETHOD generate_range (generate_range const & v) throw ()
+                :   predicate       (v.predicate)
                 ,   current_value   (v.current_value)
-                ,   next_value      (v.next_value)
             {
             }
         
-            CPPLINQ_INLINEMETHOD unfold_range (unfold_range && v) throw ()
-                :   generator       (v.generator)
-                ,   current_value   (v.current_value)
-                ,   next_value      (v.next_value)
+            CPPLINQ_INLINEMETHOD generate_range (generate_range && v) throw ()
+                :   predicate       (std::move (v.predicate))
+                ,   current_value   (std::move (v.current_value))
             {
             }
 
@@ -4753,24 +4752,14 @@ namespace cpplinq
 
             CPPLINQ_INLINEMETHOD return_type front () const 
             {
-                assert(current_value.has_value());
-                return current_value.get();
+                assert(current_value);
+                return *current_value;
             }
 
             CPPLINQ_INLINEMETHOD bool next () throw ()
             {
-                auto value = generator(next_value);
-                if (value.has_value())
-                {
-                    current_value = value.get().first;
-                    next_value = value.get().second;
-                    return true;
-                }
-                else
-                {
-                    current_value = opt<value_type>();
-                    return false;
-                }
+                current_value = predicate ();
+                return current_value;
             }
         };
 
@@ -4833,13 +4822,12 @@ namespace cpplinq
             );
     }
 
-    template<typename generator_value_type>
-    CPPLINQ_INLINEMETHOD detail::unfold_range<generator_value_type> unfold (
-            typename detail::unfold_generator_traits<generator_value_type>::generator_type  generator
-        ,   generator_value_type  seed
+    template<typename TPredicate>
+    CPPLINQ_INLINEMETHOD detail::generate_range<TPredicate> generate (
+        TPredicate predicate
         ) throw ()
     {
-        return detail::unfold_range<generator_value_type> (std::move (generator), std::move (seed));
+        return detail::generate_range<TPredicate> (std::move (predicate));
     }
 
     // Restriction operators
@@ -5008,6 +4996,18 @@ namespace cpplinq
         {
             return detail::experimental::container_builder ();
         }
+    }
+
+    template<typename TValue>
+    CPPLINQ_INLINEMETHOD detail::opt<typename detail::cleanup_type<TValue>::type>            to_opt (TValue && v)
+    {
+        return detail::opt<typename detail::cleanup_type<TValue>::type> (std::forward<TValue> (v));
+    }
+
+    template<typename TValue>
+    CPPLINQ_INLINEMETHOD detail::opt<TValue>            to_opt ()
+    {
+        return detail::opt<TValue> ();
     }
 
     CPPLINQ_INLINEMETHOD detail::to_vector_builder    to_vector (size_type capacity = 16U) throw ()
@@ -5304,9 +5304,9 @@ namespace cpplinq
     }
 
     template <typename TOtherRange>
-    CPPLINQ_INLINEMETHOD detail::zip_builder<TOtherRange>  zip_with (TOtherRange other_range) throw ()
+    CPPLINQ_INLINEMETHOD detail::zip_with_builder<TOtherRange>  zip_with (TOtherRange other_range) throw ()
     {
-        return detail::zip_builder<TOtherRange> (std::move (other_range));
+        return detail::zip_with_builder<TOtherRange> (std::move (other_range));
     }
 
     // -------------------------------------------------------------------------
