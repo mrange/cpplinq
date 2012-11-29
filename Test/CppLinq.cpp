@@ -796,8 +796,7 @@ namespace
         TEST_PRELUDE ();
         
         {
-            int i = 1;
-            auto singleton_result = singleton(i) >> to_vector();
+            auto singleton_result = singleton(1) >> to_vector();
             TEST_ASSERT (1U, singleton_result.size());
             TEST_ASSERT (1, singleton_result[0]);
         }

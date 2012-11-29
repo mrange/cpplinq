@@ -761,6 +761,66 @@ namespace cpplinq
 
         // -------------------------------------------------------------------------
 
+        template <typename TValue>
+        struct singleton_range : base_range
+        {
+            typedef                 singleton_range<TValue>             this_type       ;
+            typedef                 TValue                              value_type      ;
+            typedef                 TValue const &                      return_type     ;
+
+            enum    
+            { 
+                returns_reference = 1   , 
+            };
+
+            value_type  value   ;
+            bool        done    ;
+
+            CPPLINQ_INLINEMETHOD singleton_range (TValue const & value)
+                :   value   (value)
+                ,   done    (false)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD singleton_range (TValue&& value) throw ()
+                :   value   (std::move (value))
+                ,   done    (false)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD singleton_range (singleton_range const & v) throw ()
+                :   value   (v.value)
+                ,   done    (v.done)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD singleton_range (singleton_range && v) throw ()
+                :   value   (std::move (v.value))
+                ,   done    (std::move (v.done))
+            {
+            }
+
+            template<typename TRangeBuilder>
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            {
+                return range_builder.build (*this);
+            }
+
+            CPPLINQ_INLINEMETHOD return_type front () const throw ()
+            {
+                return value;
+            }
+
+            CPPLINQ_INLINEMETHOD bool next () throw ()
+            {
+                auto d  = done;
+                done    = true;
+                return !d;
+            }
+        };
+
+        // -------------------------------------------------------------------------
+
         struct sorting_range : base_range
         {
 #ifdef CPPLINQ_DETECT_INVALID_METHODS
@@ -5111,9 +5171,9 @@ namespace cpplinq
     }
 
     template<typename TValue>
-    CPPLINQ_INLINEMETHOD detail::from_range<TValue*> singleton(TValue& value) throw ()
+    CPPLINQ_INLINEMETHOD detail::singleton_range<typename detail::cleanup_type<TValue>::type> singleton (TValue&& value) throw ()
     {
-        return from_iterators(&value, &value+1);
+        return detail::singleton_range<typename detail::cleanup_type<TValue>::type> (std::forward<TValue> (value)); 
     }
 
     // Quantifiers
