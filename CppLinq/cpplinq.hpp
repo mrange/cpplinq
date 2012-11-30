@@ -2799,7 +2799,7 @@ namespace cpplinq
 
             CPPLINQ_INLINEMETHOD return_type front () const 
             {
-                switch(state)
+                switch (state)
                 {
                 case state_initial:
                 case state_end:
@@ -4609,18 +4609,18 @@ namespace cpplinq
 
             CPPLINQ_INLINEMETHOD return_type front () const throw ()
             {
-                assert (previous.has_value());
-                assert (current.has_value());
-                return std::make_pair(previous.get(), current.get());
+                assert (previous.has_value ());
+                assert (current.has_value ());
+                return std::make_pair (previous.get (), current.get ());
             }
 
             CPPLINQ_INLINEMETHOD bool next ()
             {                
-                if (!previous.has_value())
+                if (!previous.has_value ())
                 {
                     if (range.next ())
                     {
-                        current = range.front();
+                        current = range.front ();
                     }
                     else
                     {
@@ -4628,11 +4628,11 @@ namespace cpplinq
                     }
                 }
 
-                previous = current;
+                previous.swap (current);
 
                 if (range.next ())
                 {
-                    current = range.front();
+                    current = range.front ();
                     return true;
                 }
                 
@@ -4675,15 +4675,14 @@ namespace cpplinq
             typedef    typename cleanup_type<typename TRange::value_type>::type         left_element_type  ;
             typedef    typename cleanup_type<typename TOtherRange::value_type>::type    right_element_type ;
             typedef             std::pair<left_element_type,right_element_type>         value_type         ;
-            typedef             value_type const &                                      return_type        ;
+            typedef             value_type                                              return_type        ;
             enum    
             { 
-                returns_reference   = 1 , 
+                returns_reference   = 0 , 
             };
 
             range_type                  range               ;
             other_range_type            other_range         ;
-            opt<value_type>             current             ;
 
             CPPLINQ_INLINEMETHOD zip_with_range (
                         range_type          range
@@ -4714,19 +4713,12 @@ namespace cpplinq
 
             CPPLINQ_INLINEMETHOD return_type front () const 
             {
-                assert(current.has_value());
-                return current.get();
+                return std::make_pair (range.front (), other_range.front ());
             }
 
             CPPLINQ_INLINEMETHOD bool next ()
             {
-                if (range.next () && other_range.next())
-                {
-                    current = std::make_pair(range.front(), other_range.front());
-                    return true;
-                }
-                
-                return false;
+                return range.next () && other_range.next ();
             }
         };
         
@@ -4812,7 +4804,7 @@ namespace cpplinq
 
             CPPLINQ_INLINEMETHOD return_type front () const 
             {
-                assert(current_value);
+                assert (current_value);
                 return *current_value;
             }
 
