@@ -17,6 +17,7 @@
 #include <cassert>
 #include <climits>
 #include <exception>
+#include <functional>
 #include <iterator>
 #include <list>
 #include <map>
@@ -755,6 +756,66 @@ namespace cpplinq
             CPPLINQ_INLINEMETHOD bool next () throw ()
             {
                 return false;
+            }
+        };
+
+        // -------------------------------------------------------------------------
+
+        template <typename TValue>
+        struct singleton_range : base_range
+        {
+            typedef                 singleton_range<TValue>             this_type       ;
+            typedef                 TValue                              value_type      ;
+            typedef                 TValue const &                      return_type     ;
+
+            enum    
+            { 
+                returns_reference = 1   , 
+            };
+
+            value_type  value   ;
+            bool        done    ;
+
+            CPPLINQ_INLINEMETHOD singleton_range (TValue const & value)
+                :   value   (value)
+                ,   done    (false)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD singleton_range (TValue&& value) throw ()
+                :   value   (std::move (value))
+                ,   done    (false)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD singleton_range (singleton_range const & v) throw ()
+                :   value   (v.value)
+                ,   done    (v.done)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD singleton_range (singleton_range && v) throw ()
+                :   value   (std::move (v.value))
+                ,   done    (std::move (v.done))
+            {
+            }
+
+            template<typename TRangeBuilder>
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            {
+                return range_builder.build (*this);
+            }
+
+            CPPLINQ_INLINEMETHOD return_type front () const throw ()
+            {
+                return value;
+            }
+
+            CPPLINQ_INLINEMETHOD bool next () throw ()
+            {
+                auto d  = done;
+                done    = true;
+                return !d;
             }
         };
 
@@ -2738,7 +2799,7 @@ namespace cpplinq
 
             CPPLINQ_INLINEMETHOD return_type front () const 
             {
-                switch(state)
+                switch (state)
                 {
                 case state_initial:
                 case state_end:
@@ -4499,6 +4560,263 @@ namespace cpplinq
 
         // -------------------------------------------------------------------------
 
+        template<typename TRange>
+        struct pairwise_range : base_range
+        {
+            typedef                 pairwise_range<TRange>                      this_type           ;
+            typedef                 TRange                                      range_type          ;
+
+            typedef                 typename TRange::value_type                 element_type        ;
+            typedef                 std::pair<element_type,element_type>        value_type          ;
+            typedef                 value_type                                  return_type         ;
+
+            enum    
+            { 
+                returns_reference   = 0     , 
+            };
+
+
+            range_type                   range               ;
+            opt<element_type>            previous            ;
+            opt<element_type>            current             ;
+
+            CPPLINQ_INLINEMETHOD pairwise_range (
+                    range_type          range
+                ) throw ()
+                :   range               (std::move (range))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD pairwise_range (pairwise_range const & v) throw ()
+                :   range               (v.range)
+                ,   previous            (v.previous)
+                ,   current             (v.current)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD pairwise_range (pairwise_range && v) throw ()
+                :   range               (std::move (v.range))
+                ,   previous            (std::move (v.previous))
+                ,   current             (std::move (v.current))
+            {
+            }
+
+            template<typename TPairwiseBuilder>
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TPairwiseBuilder, this_type>::type operator>>(TPairwiseBuilder pairwise_builder) const throw ()   
+            {
+                return pairwise_builder.build (*this);
+            }
+
+            CPPLINQ_INLINEMETHOD return_type front () const throw ()
+            {
+                assert (previous.has_value ());
+                assert (current.has_value ());
+                return std::make_pair (previous.get (), current.get ());
+            }
+
+            CPPLINQ_INLINEMETHOD bool next ()
+            {                
+                if (!previous.has_value ())
+                {
+                    if (range.next ())
+                    {
+                        current = range.front ();
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+
+                previous.swap (current);
+
+                if (range.next ())
+                {
+                    current = range.front ();
+                    return true;
+                }
+                
+                return false;
+            }
+        };
+        
+        struct pairwise_builder : base_builder
+        {
+            typedef             pairwise_builder     this_type   ;  
+
+            CPPLINQ_INLINEMETHOD pairwise_builder () throw ()
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD pairwise_builder (pairwise_builder const & v) throw ()
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD pairwise_builder (pairwise_builder && v) throw ()
+            {
+            }
+
+            template<typename TRange>
+            CPPLINQ_INLINEMETHOD pairwise_range<TRange> build (TRange range) const throw ()
+            {
+                return pairwise_range<TRange> (std::move (range));
+            }
+        };
+
+        // -------------------------------------------------------------------------
+
+        template<typename TRange, typename TOtherRange>
+        struct zip_with_range : base_range
+        {
+            typedef             zip_with_range<TRange, TOtherRange>                     this_type          ;
+            typedef             TRange                                                  range_type         ;
+            typedef             TOtherRange                                             other_range_type   ;
+
+            typedef    typename cleanup_type<typename TRange::value_type>::type         left_element_type  ;
+            typedef    typename cleanup_type<typename TOtherRange::value_type>::type    right_element_type ;
+            typedef             std::pair<left_element_type,right_element_type>         value_type         ;
+            typedef             value_type                                              return_type        ;
+            enum    
+            { 
+                returns_reference   = 0 , 
+            };
+
+            range_type                  range               ;
+            other_range_type            other_range         ;
+
+            CPPLINQ_INLINEMETHOD zip_with_range (
+                        range_type          range
+                    ,   other_range_type    other_range
+                ) throw ()
+                :   range               (std::move (range))
+                ,   other_range         (std::move (other_range))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD zip_with_range (zip_with_range const & v) throw ()
+                :   range               (v.range)
+                ,   other_range         (v.other_range)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD zip_with_range (zip_with_range && v) throw ()
+                :   range               (std::move (v.range))
+                ,   other_range         (std::move (v.other_range))
+            {
+            }
+
+            template<typename TRangeBuilder>
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            {
+                return range_builder.build (*this);
+            }
+
+            CPPLINQ_INLINEMETHOD return_type front () const 
+            {
+                return std::make_pair (range.front (), other_range.front ());
+            }
+
+            CPPLINQ_INLINEMETHOD bool next ()
+            {
+                return range.next () && other_range.next ();
+            }
+        };
+        
+        template <typename TOtherRange>
+        struct zip_with_builder : base_builder
+        {
+            typedef                 zip_with_builder<TOtherRange>         this_type       ;  
+            typedef                 TOtherRange                           other_range_type;
+
+            other_range_type        other_range         ;
+            
+            CPPLINQ_INLINEMETHOD zip_with_builder (TOtherRange other_range) throw ()
+                : other_range (std::move (other_range))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD zip_with_builder (zip_with_builder const & v) throw ()
+                : other_range (v.other_range)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD zip_with_builder (zip_with_builder && v) throw ()
+                : other_range (std::move (v.other_range))
+            {
+            }
+
+            template <typename TRange>
+            CPPLINQ_INLINEMETHOD zip_with_range<TRange, TOtherRange> build (TRange range) const throw ()
+            {
+                return zip_with_range<TRange, TOtherRange> (std::move (range), std::move (other_range));
+            }
+        };
+
+        // -------------------------------------------------------------------------
+
+        template<typename TPredicate>
+        struct generate_range : base_range
+        {
+            static          TPredicate get_predicate ();
+
+            typedef        decltype (get_predicate ()())                    raw_opt_value_type  ;
+            typedef        typename cleanup_type<raw_opt_value_type>::type  opt_value_type      ;
+
+            typedef        decltype (*(get_predicate ()()))                 raw_value_type      ;
+            typedef        typename cleanup_type<raw_value_type>::type      value_type          ;
+
+            typedef                 generate_range<TPredicate>      this_type           ;
+            typedef                 TPredicate                      predicate_type      ;
+            typedef                 value_type const &              return_type         ;
+
+            enum    
+            { 
+                returns_reference = 1, 
+            };
+
+            TPredicate              predicate       ;
+            opt_value_type          current_value   ;
+
+            CPPLINQ_INLINEMETHOD generate_range (
+                    TPredicate predicate
+                ) throw ()
+                :   predicate   (std::move (predicate))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD generate_range (generate_range const & v) throw ()
+                :   predicate       (v.predicate)
+                ,   current_value   (v.current_value)
+            {
+            }
+        
+            CPPLINQ_INLINEMETHOD generate_range (generate_range && v) throw ()
+                :   predicate       (std::move (v.predicate))
+                ,   current_value   (std::move (v.current_value))
+            {
+            }
+
+            template<typename TRangeBuilder>
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            {
+                return range_builder.build (*this);
+            }
+
+            CPPLINQ_INLINEMETHOD return_type front () const 
+            {
+                assert (current_value);
+                return *current_value;
+            }
+
+            CPPLINQ_INLINEMETHOD bool next () throw ()
+            {
+                current_value = predicate ();
+                return current_value;
+            }
+        };
+
+        // -------------------------------------------------------------------------
+
     }   // namespace detail
 
     // -------------------------------------------------------------------------
@@ -4554,6 +4872,14 @@ namespace cpplinq
         return detail::from_copy_range<container_type> (
                 std::forward<TContainer> (container)
             );
+    }
+
+    template<typename TPredicate>
+    CPPLINQ_INLINEMETHOD detail::generate_range<TPredicate> generate (
+        TPredicate predicate
+        ) throw ()
+    {
+        return detail::generate_range<TPredicate> (std::move (predicate));
     }
 
     // Restriction operators
@@ -4724,6 +5050,18 @@ namespace cpplinq
         }
     }
 
+    template<typename TValue>
+    CPPLINQ_INLINEMETHOD detail::opt<typename detail::cleanup_type<TValue>::type>            to_opt (TValue && v)
+    {
+        return detail::opt<typename detail::cleanup_type<TValue>::type> (std::forward<TValue> (v));
+    }
+
+    template<typename TValue>
+    CPPLINQ_INLINEMETHOD detail::opt<TValue>            to_opt ()
+    {
+        return detail::opt<TValue> ();
+    }
+
     CPPLINQ_INLINEMETHOD detail::to_vector_builder    to_vector (size_type capacity = 16U) throw ()
     {
         return detail::to_vector_builder (capacity);
@@ -4822,6 +5160,12 @@ namespace cpplinq
     CPPLINQ_INLINEMETHOD detail::empty_range<TValue> empty () throw ()
     {
         return detail::empty_range<TValue> ();
+    }
+
+    template<typename TValue>
+    CPPLINQ_INLINEMETHOD detail::singleton_range<typename detail::cleanup_type<TValue>::type> singleton (TValue&& value) throw ()
+    {
+        return detail::singleton_range<typename detail::cleanup_type<TValue>::type> (std::forward<TValue> (value)); 
     }
 
     // Quantifiers
@@ -5004,6 +5348,17 @@ namespace cpplinq
                 std::move (separator)
             ,   capacity
             );
+    }
+
+    CPPLINQ_INLINEMETHOD detail::pairwise_builder   pairwise () throw ()
+    {
+        return detail::pairwise_builder ();
+    }
+
+    template <typename TOtherRange>
+    CPPLINQ_INLINEMETHOD detail::zip_with_builder<TOtherRange>  zip_with (TOtherRange other_range) throw ()
+    {
+        return detail::zip_with_builder<TOtherRange> (std::move (other_range));
     }
 
     // -------------------------------------------------------------------------

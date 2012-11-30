@@ -789,6 +789,48 @@ namespace
 
     }
 
+    void test_singleton ()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE ();
+        
+        {
+            auto singleton_result = singleton (1) >> to_vector ();
+            TEST_ASSERT (1U, singleton_result.size ());
+            TEST_ASSERT (1, singleton_result[0]);
+        }
+    }
+
+    void test_generate ()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE ();
+
+        {
+            auto x = -1;
+            auto generate_result = 
+                    generate (
+                        [&]()
+                        {
+                            return (++x < 3) 
+                                ?   to_opt (x)
+                                :   to_opt<int> ()
+                                ;
+                        }) 
+                >>  to_vector ()
+                ;
+            
+            if (TEST_ASSERT (3U, generate_result.size ()))
+            {
+                TEST_ASSERT (0, generate_result[0]);
+                TEST_ASSERT (1, generate_result[1]);
+                TEST_ASSERT (2, generate_result[2]);
+            }
+        }
+    }
+
     void test_count ()
     {
         using namespace cpplinq;
@@ -1828,7 +1870,7 @@ namespace
             int sum_result = from_array (simple_ints) >> aggregate (1, mul_aggregator);
             TEST_ASSERT (prod_of_simple_ints, sum_result);
         }
-
+                                
         {
             auto sum_result = from (empty_vector) >> aggregate (0, sum_aggregator, to_string);
             TEST_ASSERT ("0", sum_result);
@@ -1972,7 +2014,7 @@ namespace
 
         // intersection of an empty range with a non-empty range
         {
-            auto result = from (empty_vector) >> intersect_with (from_array(set1)) >> to_vector ();
+            auto result = from (empty_vector) >> intersect_with (from_array (set1)) >> to_vector ();
             TEST_ASSERT (0, (int)result.size ());
         }
 
@@ -1984,7 +2026,7 @@ namespace
 
         // intersection of a non-empty range with an empty range
         {
-            auto result = from_array (set1) >> intersect_with (from(empty_vector)) >> to_vector ();
+            auto result = from_array (set1) >> intersect_with (from (empty_vector)) >> to_vector ();
             TEST_ASSERT (0, (int)result.size ());
         }
 
@@ -2040,7 +2082,7 @@ namespace
 
         // difference of an empty range with a non-empty range
         {
-            auto result = from (empty_vector) >> except (from_array(set1)) >> to_vector ();
+            auto result = from (empty_vector) >> except (from_array (set1)) >> to_vector ();
             TEST_ASSERT (0, (int)result.size ());
         }
 
@@ -2306,6 +2348,93 @@ namespace
         }
     }
 
+    void test_pairwise ()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE ();
+
+        {
+            auto pairwise_result = 
+                    from (empty_vector) 
+                >>  pairwise () 
+                >>  to_vector ()
+                ;
+            TEST_ASSERT (0U, pairwise_result.size ());
+        }
+
+        {
+            int single_element_vector[] = {1};
+            auto pairwise_result = 
+                    from_array (single_element_vector) 
+                >>  pairwise () 
+                >>  to_vector ()
+                ;
+            TEST_ASSERT (0U, pairwise_result.size ());
+        }
+
+        {
+            auto pairwise_result = 
+                    from_array (simple_ints) 
+                >>  pairwise () 
+                >>  to_vector ()
+                ;
+            TEST_ASSERT (count_of_simple_ints-1, (int)pairwise_result.size ());
+            for (std::size_t i=0; i < pairwise_result.size (); ++i)
+            {
+                TEST_ASSERT (simple_ints[i], pairwise_result[i].first);
+                TEST_ASSERT (simple_ints[i+1], pairwise_result[i].second);
+            }
+        }
+    }
+
+    void test_zip_with ()
+    {
+        using namespace cpplinq;
+        TEST_PRELUDE ();
+        
+        {
+            auto zip_width_result = 
+                    from (empty_vector) 
+                >>  zip_with (from (empty_vector)) 
+                >>  to_vector ()
+                ;
+            TEST_ASSERT (0U, zip_width_result.size ());
+        }
+
+        {
+            auto zip_width_result = 
+                    from (empty_vector) 
+                >>  zip_with (from_array (simple_ints)) 
+                >>  to_vector ()
+                ;
+            TEST_ASSERT (0U, zip_width_result.size ());
+        }
+
+        {
+            auto zip_width_result = 
+                    from_array (simple_ints) 
+                >>  zip_with (from (empty_vector)) 
+                >>  to_vector ()
+                ;
+            TEST_ASSERT (0U, zip_width_result.size ());
+        }
+
+        {
+            auto zip_width_result = 
+                    from_array (simple_ints) 
+                >>  zip_with (from_array (simple_ints)) 
+                >>  to_vector ()
+                ;
+            TEST_ASSERT (count_of_simple_ints, (int)zip_width_result.size ());
+            for (std::size_t i=0; i<zip_width_result.size (); ++i)
+            {
+                TEST_ASSERT (simple_ints[i], zip_width_result[i].first);
+                TEST_ASSERT (simple_ints[i], zip_width_result[i].second);
+            }
+        }
+    }
+
     template<typename TPredicate>
     long long execute_testruns (
             std::size_t test_runs
@@ -2478,6 +2607,8 @@ namespace
         test_range                  ();
         test_repeat                 ();
         test_empty                  ();
+        test_singleton              ();
+        test_generate               ();
         test_count                  ();
         test_any                    ();
         test_first_or_default       ();
@@ -2513,6 +2644,8 @@ namespace
         test_except                 ();
         test_concat                 ();
         test_sequence_equal         ();
+        test_pairwise               ();
+        test_zip_with               ();
         // -------------------------------------------------------------------------
         if (run_perfomance_tests)
         {
