@@ -796,8 +796,8 @@ namespace
         TEST_PRELUDE ();
         
         {
-            auto singleton_result = singleton(1) >> to_vector();
-            TEST_ASSERT (1U, singleton_result.size());
+            auto singleton_result = singleton (1) >> to_vector ();
+            TEST_ASSERT (1U, singleton_result.size ());
             TEST_ASSERT (1, singleton_result[0]);
         }
     }
@@ -811,18 +811,18 @@ namespace
         {
             auto x = -1;
             auto generate_result = 
-                generate(
-                    [&]()
-                    {
-                        return (++x < 3) 
-                            ?   to_opt (x)
-                            :   to_opt<int> ()
-                            ;
-                    }) 
-                    >> to_vector()
-                    ;
+                    generate (
+                        [&]()
+                        {
+                            return (++x < 3) 
+                                ?   to_opt (x)
+                                :   to_opt<int> ()
+                                ;
+                        }) 
+                >>  to_vector ()
+                ;
             
-            if (TEST_ASSERT (3U, generate_result.size()))
+            if (TEST_ASSERT (3U, generate_result.size ()))
             {
                 TEST_ASSERT (0, generate_result[0]);
                 TEST_ASSERT (1, generate_result[1]);
@@ -2014,7 +2014,7 @@ namespace
 
         // intersection of an empty range with a non-empty range
         {
-            auto result = from (empty_vector) >> intersect_with (from_array(set1)) >> to_vector ();
+            auto result = from (empty_vector) >> intersect_with (from_array (set1)) >> to_vector ();
             TEST_ASSERT (0, (int)result.size ());
         }
 
@@ -2026,7 +2026,7 @@ namespace
 
         // intersection of a non-empty range with an empty range
         {
-            auto result = from_array (set1) >> intersect_with (from(empty_vector)) >> to_vector ();
+            auto result = from_array (set1) >> intersect_with (from (empty_vector)) >> to_vector ();
             TEST_ASSERT (0, (int)result.size ());
         }
 
@@ -2082,7 +2082,7 @@ namespace
 
         // difference of an empty range with a non-empty range
         {
-            auto result = from (empty_vector) >> except (from_array(set1)) >> to_vector ();
+            auto result = from (empty_vector) >> except (from_array (set1)) >> to_vector ();
             TEST_ASSERT (0, (int)result.size ());
         }
 
@@ -2355,20 +2355,32 @@ namespace
         TEST_PRELUDE ();
 
         {
-            auto pairwise_result = from(empty_vector) >> pairwise() >> to_vector();
-            TEST_ASSERT (0U, pairwise_result.size());
+            auto pairwise_result = 
+                    from (empty_vector) 
+                >>  pairwise () 
+                >>  to_vector ()
+                ;
+            TEST_ASSERT (0U, pairwise_result.size ());
         }
 
         {
             int single_element_vector[] = {1};
-            auto pairwise_result = from_array(single_element_vector) >> pairwise() >> to_vector();
-            TEST_ASSERT (0U, pairwise_result.size());
+            auto pairwise_result = 
+                    from_array (single_element_vector) 
+                >>  pairwise () 
+                >>  to_vector ()
+                ;
+            TEST_ASSERT (0U, pairwise_result.size ());
         }
 
         {
-            auto pairwise_result = from_array(simple_ints) >> pairwise() >> to_vector();
-            TEST_ASSERT (count_of_simple_ints-1, (int)pairwise_result.size());
-            for(size_t i=0; i<pairwise_result.size(); ++i)
+            auto pairwise_result = 
+                    from_array (simple_ints) 
+                >>  pairwise () 
+                >>  to_vector ()
+                ;
+            TEST_ASSERT (count_of_simple_ints-1, (int)pairwise_result.size ());
+            for (std::size_t i=0; i < pairwise_result.size (); ++i)
             {
                 TEST_ASSERT (simple_ints[i], pairwise_result[i].first);
                 TEST_ASSERT (simple_ints[i+1], pairwise_result[i].second);
@@ -2382,24 +2394,40 @@ namespace
         TEST_PRELUDE ();
         
         {
-            auto zip_width_result = from(empty_vector) >> zip_with(from(empty_vector)) >> to_vector();
-            TEST_ASSERT (0U, zip_width_result.size());
+            auto zip_width_result = 
+                    from (empty_vector) 
+                >>  zip_with (from (empty_vector)) 
+                >>  to_vector ()
+                ;
+            TEST_ASSERT (0U, zip_width_result.size ());
         }
 
         {
-            auto zip_width_result = from(empty_vector) >> zip_with(from_array(simple_ints)) >> to_vector();
-            TEST_ASSERT (0U, zip_width_result.size());
+            auto zip_width_result = 
+                    from (empty_vector) 
+                >>  zip_with (from_array (simple_ints)) 
+                >>  to_vector ()
+                ;
+            TEST_ASSERT (0U, zip_width_result.size ());
         }
 
         {
-            auto zip_width_result = from_array(simple_ints) >> zip_with(from(empty_vector)) >> to_vector();
-            TEST_ASSERT (0U, zip_width_result.size());
+            auto zip_width_result = 
+                    from_array (simple_ints) 
+                >>  zip_with (from (empty_vector)) 
+                >>  to_vector ()
+                ;
+            TEST_ASSERT (0U, zip_width_result.size ());
         }
 
         {
-            auto zip_width_result = from_array(simple_ints) >> zip_with(from_array(simple_ints)) >> to_vector();
-            TEST_ASSERT (count_of_simple_ints, (int)zip_width_result.size());
-            for(size_t i=0; i<zip_width_result.size(); ++i)
+            auto zip_width_result = 
+                    from_array (simple_ints) 
+                >>  zip_with (from_array (simple_ints)) 
+                >>  to_vector ()
+                ;
+            TEST_ASSERT (count_of_simple_ints, (int)zip_width_result.size ());
+            for (std::size_t i=0; i<zip_width_result.size (); ++i)
             {
                 TEST_ASSERT (simple_ints[i], zip_width_result[i].first);
                 TEST_ASSERT (simple_ints[i], zip_width_result[i].second);
