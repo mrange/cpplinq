@@ -2433,6 +2433,36 @@ namespace
                 TEST_ASSERT (simple_ints[i], zip_width_result[i].second);
             }
         }
+
+        {
+            auto expected_size = std::min(count_of_ints, count_of_simple_ints);
+            auto zip_width_result = 
+                    from_array (ints) 
+                >>  zip_with (from_array (simple_ints)) 
+                >>  to_vector ()
+                ;
+            TEST_ASSERT (expected_size, (int)zip_width_result.size ());
+            for (std::size_t i=0; i<zip_width_result.size (); ++i)
+            {
+                TEST_ASSERT (       ints[i], zip_width_result[i].first);
+                TEST_ASSERT (simple_ints[i], zip_width_result[i].second);
+            }
+        }
+
+        {
+            auto expected_size = std::min(count_of_ints, count_of_simple_ints);
+            auto zip_width_result = 
+                    from_array (simple_ints) 
+                >>  zip_with (from_array (ints)) 
+                >>  to_vector ()
+                ;
+            TEST_ASSERT (expected_size, (int)zip_width_result.size ());
+            for (std::size_t i=0; i<zip_width_result.size (); ++i)
+            {
+                TEST_ASSERT (simple_ints[i], zip_width_result[i].first);
+                TEST_ASSERT (       ints[i], zip_width_result[i].second);
+            }
+        }
     }
 
     template<typename TPredicate>
