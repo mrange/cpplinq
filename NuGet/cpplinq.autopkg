@@ -1,7 +1,7 @@
 ﻿nuget{
     nuspec{
 		id = cpplinq;
-        version : 2013.02.03;
+        version : 2013.02.04;
         title: cpplinq;
         authors: {Mårten Rånge, Marius Bancila, d95danb};
         owners: {cpplinq, Mårten Rånge, Marius Bancila};
@@ -9,7 +9,9 @@
         projectUrl: "http://cpplinq.codeplex.com/";
         requireLicenseAcceptance:false;
         summary:"cpplinq is an open-source native template library that provides a set of LINQ-like operators for querying collections (arrays and STL containers) in C++11.";
-        description:"The library contains a single header file and the API consists on a set of template classes and functions and is compatible with all major compilers (VC++, mingw, g++, clang++).";
+        description:@"cpplinq is an open-source native template library that provides a set of LINQ-like operators for querying collections (arrays and STL containers) in C++11.
+		
+The library contains a single header file and the API consists on a set of template classes and functions and is compatible with all major compilers (VC++, mingw, g++, clang++).";
         releaseNotes:February 2013 stable release.;
         copyright: Copyright 2013;
         tags: { native, C++, LINQ, cpplinq, query };
