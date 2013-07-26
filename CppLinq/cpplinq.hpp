@@ -4599,7 +4599,7 @@ namespace cpplinq
                 return pairwise_builder.build (*this);
             }
 
-            CPPLINQ_INLINEMETHOD return_type front () const throw ()
+            CPPLINQ_INLINEMETHOD return_type front () const
             {
                 assert (previous.has_value ());
                 assert (current.has_value ());
