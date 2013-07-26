@@ -1,0 +1,113 @@
+== DESCRIPTION ==
+cpplinq is an open-source native template library that provides a set of LINQ-like operators for querying collections (arrays and STL containers) in C++11.
+
+The library contains a single header file and the API consists on a set of template classes and functions and is compatible with all major compilers.
+
+== WEBSITE ==
+http://cpplinq.codeplex.com/
+
+== SUPPORTED COMPILERS ==
+Windows
+  VC++ (2010, 2012, 2013)
+  mingw (g++ v4.7.0)
+
+Linux
+  g++ (v4.7.0)
+  clang++ (v3.1)
+
+== DOCUMENTATION ==
+LINQ for C++ - getting started
+  http://cpplinq.codeplex.com/wikipage?title=LINQ%20for%20C%2b%2b%20-%20getting%20started&referringTitle=Documentation
+  An introduction to cpplinq, with samples and other considerations.
+
+cpplinq supported compilers
+  http://cpplinq.codeplex.com/wikipage?title=cpplinq%20supported%20compilers&referringTitle=Documentation
+  Lists the supported compilers for the library.
+
+Cpplinq Query Operators
+  http://cpplinq.codeplex.com/wikipage?title=Cpplinq%20Query%20Operators&referringTitle=Documentation
+  Documents all the available cpplinq APIs with examples.
+
+Comparison to the .NET Standard Query Operators
+  http://cpplinq.codeplex.com/wikipage?title=Comparison%20to%20the%20.NET%20Standard%20Query%20Operators&referringTitle=Documentation
+  Shows a comparison between the .NET standard query operators and the cpplinq operators.
+
+Advanced usages of CppLinq
+  http://cpplinq.codeplex.com/wikipage?title=Advanced%20usages%20of%20CppLinq&referringTitle=Documentation
+  Explains how to extend the library API with new operators.
+  
+cpplinq - LINQ Query Operators for C++ Sequences
+  http://www.codeproject.com/Articles/488177/cpplinq-LINQ-Query-Operators-for-Cplusplus-Sequenc
+  
+== HOW TO USE ==
+1. Download the latest version of the source code from here (it's small): http://cpplinq.codeplex.com/downloads/get/616650
+2. Add the header file to your C++ project
+3. Include the header in the source files were you want to use the query operators (which are defined in the cpplinq namespace)
+4. In VC++, you have to define NOMINMAX in order to avoid including the min/max macros. If you use NuGet, this is automatically defined.
+
+== EXAMPLES ==
+The following example shows how to compute the sum of the even numbers from an array.
+
+    #include "cpplinq.hpp"
+
+    void computes_a_sum ()
+    {
+        using namespace cpplinq;
+        int ints[] = {3,1,4,1,5,9,2,6,5,4};
+
+        auto result =    from_array (ints)
+                      >> where ([](int i) {return i%2 ==0;})  // Keep only even numbers
+                      >> sum ()                               // Sum remaining numbers
+                      ;
+    }
+
+The next sample shows how to identify the distinct elements of a sequence.
+
+    int ints[] = {3,1,4,1,5,9,2,6,5,4};
+    auto result =    from_array(ints)
+                  >> distinct()   // identify distinct elements
+                  >> to_vector()  // fold the result to a vector
+                  ;
+
+Given the customer and customer_address types shown bellow and the arrays with customers and addresses in this listing
+
+    struct customer
+    {
+        std::size_t     id          ;
+        std::string     first_name  ;
+        std::string     last_name   ;
+    };
+
+    struct customer_address
+    {
+        std::size_t     id          ;
+        std::size_t     customer_id ;
+        std::string     country     ;
+    };
+
+    customer customers[] = 
+    {
+        customer (1 , "Bill"    , "Gates"   ),
+        customer (2 , "Steve"   , "Jobs"    ),
+        customer (3 , "Richard" , "Stallman"),
+        customer (4 , "Linus"   , "Torvalds"),
+    };
+
+    customer_address customer_addresses[] =
+    {
+        customer_address (1, 1, "USA"       ),
+        customer_address (2, 4, "Finland"   ),
+        customer_address (3, 4, "USA"       ),
+    };
+    
+we can join them with the following piece of code:
+
+    auto result = 
+           from_array(customers)                                                                   
+        >> join (
+                from_array(customer_addresses),
+                [](customer const & c) {return c.id;},
+                [](customer_address const & ca) {return ca.customer_id;},
+                [](customer const & c, customer_address const & ca) {return std::make_pair (c, ca);},
+           )
+        >> to_vector();

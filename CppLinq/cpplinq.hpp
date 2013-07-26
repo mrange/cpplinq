@@ -11,7 +11,8 @@
 // ----------------------------------------------------------------------------------------------
 
 // ----------------------------------------------------------------------------
-#pragma once
+#ifndef CPPLINQ__HEADER_GUARD
+#   define CPPLINQ__HEADER_GUARD
 // ----------------------------------------------------------------------------
 #include <algorithm>
 #include <cassert>
@@ -29,12 +30,18 @@
 #// ----------------------------------------------------------------------------
 #ifdef _MSC_VER 
 #   pragma warning (push)
-#       pragma warning (disable:4512)
+#       pragma warning (disable:4512)   // 'class' : assignment operator could not be generated
+                                        // Rationale: cpplinq doesn't rely on assignment operators
+#       pragma warning (disable:4702)   // unreachable code
+                                        // Rationale: Depending on the predicates and the calling 
+                                        // code the compiler might detect unreacable code that with 
+                                        // other predicates are reachable.
 #endif
 // ----------------------------------------------------------------------------
-
+// #define CPPLINQ__BUILD_CAN_THROW
 #define CPPLINQ_METHOD 
 #define CPPLINQ_INLINEMETHOD inline
+// ----------------------------------------------------------------------------
 
 // TODO:    Struggled with getting slice protection 
 //          and assignment operator detection for MINGW
@@ -341,7 +348,7 @@ namespace cpplinq
         //      return_type front () const
         //      bool next ()
         //      template<typename TRangeBuilder>
-        //      typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const 
+        //      typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const
         // -------------------------------------------------------------------------
         // _builder classes:
         //      inherit base_builder
@@ -458,7 +465,7 @@ namespace cpplinq
             }
         
             template<typename TRangeBuilder>
-            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const
             {
                 return range_builder.build (*this);
             }
@@ -539,7 +546,7 @@ namespace cpplinq
             }
         
             template<typename TRangeBuilder>
-            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const
             {
                 return range_builder.build (*this);
             }
@@ -620,7 +627,7 @@ namespace cpplinq
             }
         
             template<typename TRangeBuilder>
-            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const
             {
                 return range_builder.build (*this);
             }
@@ -691,7 +698,7 @@ namespace cpplinq
             }
         
             template<typename TRangeBuilder>
-            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const
             {
                 return range_builder.build (*this);
             }
@@ -742,7 +749,7 @@ namespace cpplinq
             }
 
             template<typename TRangeBuilder>
-            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const
             {
                 return range_builder.build (*this);
             }
@@ -801,7 +808,7 @@ namespace cpplinq
             }
 
             template<typename TRangeBuilder>
-            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const
             {
                 return range_builder.build (*this);
             }
@@ -929,7 +936,7 @@ namespace cpplinq
             }
 
             template<typename TRangeBuilder>
-            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) throw ()   
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const
             {
                 return range_builder.build (*this);
             }
@@ -1005,7 +1012,7 @@ namespace cpplinq
             }
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD orderby_range<TRange, TPredicate> build (TRange range) const throw ()
+            CPPLINQ_INLINEMETHOD orderby_range<TRange, TPredicate> build (TRange range) const
             {
                 return orderby_range<TRange, TPredicate>(std::move (range), predicate, sort_ascending);
             }
@@ -1072,7 +1079,7 @@ namespace cpplinq
             }
 
             template<typename TRangeBuilder>
-            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) throw ()   
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const
             {
                 return range_builder.build (*this);
             }
@@ -1182,7 +1189,7 @@ namespace cpplinq
             }
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD thenby_range<TRange, TPredicate> build (TRange range) const throw ()
+            CPPLINQ_INLINEMETHOD thenby_range<TRange, TPredicate> build (TRange range) const
             {
                 return thenby_range<TRange, TPredicate>(std::move (range), predicate, sort_ascending);
             }
@@ -1240,7 +1247,7 @@ namespace cpplinq
             }
 
             template<typename TRangeBuilder>
-            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const
             {
                 return range_builder.build (*this);
             }
@@ -1302,7 +1309,7 @@ namespace cpplinq
             }
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD reverse_range<TRange> build (TRange range) const throw ()
+            CPPLINQ_INLINEMETHOD reverse_range<TRange> build (TRange range) const
             {
                 return reverse_range<TRange> (std::move (range), capacity);
             }
@@ -1349,7 +1356,7 @@ namespace cpplinq
             }
 
             template<typename TRangeBuilder>
-            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) throw ()   
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const
             {
                 return range_builder.build (*this);
             }
@@ -1397,7 +1404,7 @@ namespace cpplinq
             }
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD where_range<TRange, TPredicate> build (TRange range) const throw ()
+            CPPLINQ_INLINEMETHOD where_range<TRange, TPredicate> build (TRange range) const
             {
                 return where_range<TRange, TPredicate>(std::move (range), predicate);
             }
@@ -1451,7 +1458,7 @@ namespace cpplinq
             }
 
             template<typename TRangeBuilder>
-            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const   
             {
                 return range_builder.build (*this);
             }
@@ -1495,7 +1502,7 @@ namespace cpplinq
             }
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD take_range<TRange> build (TRange range) const throw ()
+            CPPLINQ_INLINEMETHOD take_range<TRange> build (TRange range) const
             {
                 return take_range<TRange>(std::move (range), count);
             }
@@ -1548,7 +1555,7 @@ namespace cpplinq
             }
 
             template<typename TRangeBuilder>
-            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const
             {
                 return range_builder.build (*this);
             }
@@ -1605,7 +1612,7 @@ namespace cpplinq
             }
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD take_while_range<TRange, TPredicate> build (TRange range) const throw ()
+            CPPLINQ_INLINEMETHOD take_while_range<TRange, TPredicate> build (TRange range) const
             {
                 return take_while_range<TRange, TPredicate>(std::move (range), predicate);
             }
@@ -1656,7 +1663,7 @@ namespace cpplinq
             }
 
             template<typename TRangeBuilder>
-            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const
             {
                 return range_builder.build (*this);
             }
@@ -1710,7 +1717,7 @@ namespace cpplinq
             }
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD skip_range<TRange> build (TRange range) const throw ()
+            CPPLINQ_INLINEMETHOD skip_range<TRange> build (TRange range) const
             {
                 return skip_range<TRange>(std::move (range), count);
             }
@@ -1762,7 +1769,7 @@ namespace cpplinq
             }
 
             template<typename TRangeBuilder>
-            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const
             {
                 return range_builder.build (*this);
             }
@@ -1816,7 +1823,7 @@ namespace cpplinq
             }
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD skip_while_range<TRange, TPredicate> build (TRange range) const throw ()
+            CPPLINQ_INLINEMETHOD skip_while_range<TRange, TPredicate> build (TRange range) const
             {
                 return skip_while_range<TRange, TPredicate>(std::move (range), predicate);
             }
@@ -1869,7 +1876,7 @@ namespace cpplinq
             }
 
             template<typename TRangeBuilder>
-            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const
             {
                 return range_builder.build (*this);
             }
@@ -1909,7 +1916,7 @@ namespace cpplinq
             }
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD select_range<TRange, TPredicate> build (TRange range) const throw ()
+            CPPLINQ_INLINEMETHOD select_range<TRange, TPredicate> build (TRange range) const
             {
                 return select_range<TRange, TPredicate>(std::move (range), predicate);
             }
@@ -1982,7 +1989,7 @@ namespace cpplinq
             }
 
             template<typename TRangeBuilder>
-            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const
             {
                 return range_builder.build (*this);
             }
@@ -2034,7 +2041,7 @@ namespace cpplinq
             }
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD select_many_range<TRange, TPredicate> build (TRange range) const throw ()
+            CPPLINQ_INLINEMETHOD select_many_range<TRange, TPredicate> build (TRange range) const
             {
                 return select_many_range<TRange, TPredicate>(std::move (range), predicate);
             }
@@ -2143,7 +2150,7 @@ namespace cpplinq
             }
 
             template<typename TRangeBuilder>
-            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const
             {
                 return range_builder.build (*this);
             }
@@ -2254,7 +2261,7 @@ namespace cpplinq
             }
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD join_range<TRange, TOtherRange, TKeySelector, TOtherKeySelector, TCombiner> build (TRange range) const throw ()
+            CPPLINQ_INLINEMETHOD join_range<TRange, TOtherRange, TKeySelector, TOtherKeySelector, TCombiner> build (TRange range) const
             {
                 return join_range<TRange, TOtherRange, TKeySelector, TOtherKeySelector, TCombiner> (
                         std::move (range)
@@ -2311,7 +2318,7 @@ namespace cpplinq
             }
 
             template<typename TRangeBuilder>
-            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const
             {
                 return range_builder.build (*this);
             }
@@ -2354,7 +2361,7 @@ namespace cpplinq
             }
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD distinct_range<TRange> build (TRange range) const throw ()
+            CPPLINQ_INLINEMETHOD distinct_range<TRange> build (TRange range) const
             {
                 return distinct_range<TRange> (std::move (range));
             }
@@ -2411,7 +2418,7 @@ namespace cpplinq
             }
 
             template<typename TRangeBuilder>
-            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const
             {
                 return range_builder.build (*this);
             }
@@ -2471,7 +2478,7 @@ namespace cpplinq
             }
 
             template <typename TRange>
-            CPPLINQ_INLINEMETHOD union_range<TRange, TOtherRange> build (TRange range) const throw ()
+            CPPLINQ_INLINEMETHOD union_range<TRange, TOtherRange> build (TRange range) const
             {
                 return union_range<TRange, TOtherRange> (std::move (range), std::move (other_range));
             }
@@ -2532,7 +2539,7 @@ namespace cpplinq
             }
 
             template<typename TRangeBuilder>
-            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const
             {
                 return range_builder.build (*this);
             }
@@ -2612,7 +2619,7 @@ namespace cpplinq
             }
 
             template <typename TRange>
-            CPPLINQ_INLINEMETHOD intersect_range<TRange, TOtherRange> build (TRange range) const throw ()
+            CPPLINQ_INLINEMETHOD intersect_range<TRange, TOtherRange> build (TRange range) const
             {
                 return intersect_range<TRange, TOtherRange> (std::move (range), std::move (other_range));
             }
@@ -2672,7 +2679,7 @@ namespace cpplinq
             }
 
             template<typename TRangeBuilder>
-            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const
             {
                 return range_builder.build (*this);
             }
@@ -2731,7 +2738,7 @@ namespace cpplinq
             }
 
             template <typename TRange>
-            CPPLINQ_INLINEMETHOD except_range<TRange, TOtherRange> build (TRange range) const throw ()
+            CPPLINQ_INLINEMETHOD except_range<TRange, TOtherRange> build (TRange range) const
             {
                 return except_range<TRange, TOtherRange> (std::move (range), std::move (other_range));
             }
@@ -2792,7 +2799,7 @@ namespace cpplinq
             }
 
             template<typename TRangeBuilder>
-            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const
             {
                 return range_builder.build (*this);
             }
@@ -2881,7 +2888,7 @@ namespace cpplinq
             }
 
             template <typename TRange>
-            CPPLINQ_INLINEMETHOD concat_range<TRange, TOtherRange> build (TRange range) const throw ()
+            CPPLINQ_INLINEMETHOD concat_range<TRange, TOtherRange> build (TRange range) const
             {
                 return concat_range<TRange, TOtherRange> (std::move (range), std::move (other_range));
             }
@@ -3045,7 +3052,7 @@ namespace cpplinq
                 }
 
                 template<typename TRange>
-                CPPLINQ_METHOD container<TRange> build (TRange range)
+                CPPLINQ_METHOD container<TRange> build (TRange range) const
                 {
                     return container<TRange> (std::move (range));
                 }
@@ -3077,7 +3084,7 @@ namespace cpplinq
             }
 
             template<typename TRange>
-            CPPLINQ_METHOD std::vector<typename TRange::value_type> build (TRange range)
+            CPPLINQ_METHOD std::vector<typename TRange::value_type> build (TRange range) const
             {
                 std::vector<typename TRange::value_type> result;
                 result.reserve (capacity);
@@ -3109,7 +3116,7 @@ namespace cpplinq
             }
 
             template<typename TRange>
-            CPPLINQ_METHOD std::list<typename TRange::value_type> build (TRange range)
+            CPPLINQ_METHOD std::list<typename TRange::value_type> build (TRange range) const
             {
                 std::list<typename TRange::value_type> result;
 
@@ -3154,7 +3161,7 @@ namespace cpplinq
             CPPLINQ_METHOD std::map<
                     typename get_transformed_type<key_predicate_type, typename TRange::value_type>::type
                 ,   typename TRange::value_type
-                > build (TRange range)
+                > build (TRange range) const
             {
                 typedef std::map<
                     typename get_transformed_type<key_predicate_type, typename TRange::value_type>::type
@@ -3352,7 +3359,7 @@ namespace cpplinq
                 }
 
                 template<typename TRangeBuilder>
-                CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+                CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const
                 {
                     return range_builder.build (*this);
                 }
@@ -3480,7 +3487,7 @@ namespace cpplinq
             CPPLINQ_INLINEMETHOD lookup<
                     typename get_transformed_type<key_predicate_type, typename TRange::value_type>::type
                 ,   typename TRange::value_type
-                > build (TRange range)
+                > build (TRange range) const
             {
                 typedef lookup<
                     typename get_transformed_type<key_predicate_type, typename TRange::value_type>::type
@@ -3521,7 +3528,7 @@ namespace cpplinq
 
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD void build (TRange range)
+            CPPLINQ_INLINEMETHOD void build (TRange range) const
             {
                 while (range.next ())
                 {
@@ -3556,7 +3563,7 @@ namespace cpplinq
             }
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
+            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range) const
             {
                 while (range.next ())
                 {
@@ -3589,7 +3596,7 @@ namespace cpplinq
             }
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
+            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range) const
             {
                 if (range.next ())
                 {
@@ -3626,7 +3633,7 @@ namespace cpplinq
             }
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
+            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range) const
             {
                 auto current = typename TRange::value_type ();
 
@@ -3660,7 +3667,7 @@ namespace cpplinq
             }
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
+            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range) const
             {
                 auto current = typename TRange::value_type ();
 
@@ -3701,7 +3708,7 @@ namespace cpplinq
 
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD size_type build (TRange range)
+            CPPLINQ_INLINEMETHOD size_type build (TRange range) const
             {
                 size_type count = 0U;
                 while (range.next ())
@@ -3734,7 +3741,7 @@ namespace cpplinq
 
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD size_type build (TRange range)
+            CPPLINQ_INLINEMETHOD size_type build (TRange range) const
             {
                 size_type count = 0U;
                 while (range.next ())
@@ -3772,7 +3779,7 @@ namespace cpplinq
             }
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD auto build (TRange range) -> decltype (selector (range.front ()))
+            CPPLINQ_INLINEMETHOD auto build (TRange range) const -> decltype (selector (range.front ()))
             {
                 auto sum = typename TRange::value_type ();
                 while (range.next ())
@@ -3801,7 +3808,7 @@ namespace cpplinq
             }
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
+            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range) const
             {
                 auto sum = typename TRange::value_type ();
                 while (range.next ())
@@ -3839,7 +3846,7 @@ namespace cpplinq
             }
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD auto build (TRange range) -> decltype (selector (range.front ()))
+            CPPLINQ_INLINEMETHOD auto build (TRange range) const -> decltype (selector (range.front ()))
             {
                 auto current = std::numeric_limits<typename TRange::value_type>::min ();
                 while (range.next ())
@@ -3874,7 +3881,7 @@ namespace cpplinq
 
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
+            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range) const
             {
                 auto current = std::numeric_limits<typename TRange::value_type>::min ();
                 while (range.next ())
@@ -3918,7 +3925,7 @@ namespace cpplinq
 
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD auto build (TRange range) -> decltype (selector (range.front ()))
+            CPPLINQ_INLINEMETHOD auto build (TRange range) const -> decltype (selector (range.front ()))
             {
                 auto current = std::numeric_limits<typename TRange::value_type>::max ();
                 while (range.next ())
@@ -3953,7 +3960,7 @@ namespace cpplinq
 
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
+            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range) const
             {
                 auto current = std::numeric_limits<typename TRange::value_type>::max ();
                 while (range.next ())
@@ -3997,7 +4004,7 @@ namespace cpplinq
 
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD auto build (TRange range) -> decltype (selector (range.front ()))
+            CPPLINQ_INLINEMETHOD auto build (TRange range) const -> decltype (selector (range.front ()))
             {
                 auto sum = typename TRange::value_type ();
                 int count = 0;
@@ -4035,7 +4042,7 @@ namespace cpplinq
 
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
+            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range) const
             {
                 auto sum = typename TRange::value_type ();
                 int  count = 0;
@@ -4086,7 +4093,7 @@ namespace cpplinq
             }
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD seed_type build (TRange range)
+            CPPLINQ_INLINEMETHOD seed_type build (TRange range) const
             {
                 auto sum = seed;
                 while (range.next ())
@@ -4132,7 +4139,7 @@ namespace cpplinq
             }
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD auto build (TRange range) -> decltype (result_selector (seed))
+            CPPLINQ_INLINEMETHOD auto build (TRange range) const -> decltype (result_selector (seed))
             {
                 auto sum = seed;
                 while (range.next ())
@@ -4178,27 +4185,21 @@ namespace cpplinq
             }
 
             template <typename TRange>
-            CPPLINQ_INLINEMETHOD bool build (TRange range) throw ()
+            CPPLINQ_INLINEMETHOD bool build (TRange range) const
             {
-#ifdef _MSC_VER 
-#pragma warning (push )
-#pragma warning (disable : 4127)
-#endif
-                while (true)
+                auto or = other_range;
+                for (;;)
                 {
                     bool next1 = range.next ();
-                    bool next2 = other_range.next ();
+                    bool next2 = or.next ();
 
                     // sequences are not of same length
                     if (next1 != next2) return false;
                     // both sequences are over, next1 = next2 = false
                     if (!next1) return true;
 
-                    if (!comparer (range.front (), other_range.front ())) return false;
+                    if (!comparer (range.front (), or.front ())) return false;
                 }
-#ifdef _MSC_VER 
-#pragma warning (pop)
-#endif
             }
         };
 
@@ -4226,27 +4227,21 @@ namespace cpplinq
             }
 
             template <typename TRange>
-            CPPLINQ_INLINEMETHOD bool build (TRange range) throw ()
+            CPPLINQ_INLINEMETHOD bool build (TRange range) const
             {
-#ifdef _MSC_VER 
-#pragma warning (push )
-#pragma warning (disable : 4127)
-#endif
-                while (true)
+                auto or = other_range;
+                for (;;)
                 {
                     bool next1 = range.next ();
-                    bool next2 = other_range.next ();
+                    bool next2 = or.next ();
 
                     // sequences are not of same length
                     if (next1 != next2) return false;
                     // both sequences are over, next1 = next2 = false
                     if (!next1) return true;
 
-                    if (range.front () != other_range.front ()) return false;
+                    if (range.front () != or.front ()) return false;
                 }
-#ifdef _MSC_VER 
-#pragma warning (pop)
-#endif
             }
         };
 
@@ -4282,7 +4277,7 @@ namespace cpplinq
             }
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD typename std::basic_string<TCharType> build (TRange range)
+            CPPLINQ_INLINEMETHOD typename std::basic_string<TCharType> build (TRange range) const
             {
                 auto                    first  =   true ;
                 std::vector<TCharType>  buffer          ;
@@ -4348,7 +4343,7 @@ namespace cpplinq
 
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD bool build (TRange range)
+            CPPLINQ_INLINEMETHOD bool build (TRange range) const
             {
                 bool any = false;
                 while (range.next () && !any)
@@ -4377,7 +4372,7 @@ namespace cpplinq
 
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD bool build (TRange range)
+            CPPLINQ_INLINEMETHOD bool build (TRange range) const
             {
                 return range.next ();
             }
@@ -4410,7 +4405,7 @@ namespace cpplinq
             }
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD bool build (TRange range)
+            CPPLINQ_INLINEMETHOD bool build (TRange range) const
             {
                 while (range.next ())
                 {
@@ -4451,7 +4446,7 @@ namespace cpplinq
 
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD bool build (TRange range)
+            CPPLINQ_INLINEMETHOD bool build (TRange range) const
             {
                 while (range.next ())
                 {
@@ -4496,7 +4491,7 @@ namespace cpplinq
 
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD bool build (TRange range)
+            CPPLINQ_INLINEMETHOD bool build (TRange range) const
             {
                 while (range.next ())
                 {
@@ -4536,7 +4531,7 @@ namespace cpplinq
 
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
+            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range) const
             {
                 size_type current = 0U;
 
@@ -4602,12 +4597,12 @@ namespace cpplinq
             }
 
             template<typename TPairwiseBuilder>
-            CPPLINQ_INLINEMETHOD typename get_builtup_type<TPairwiseBuilder, this_type>::type operator>>(TPairwiseBuilder pairwise_builder) const throw ()   
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TPairwiseBuilder, this_type>::type operator>>(TPairwiseBuilder pairwise_builder) const
             {
                 return pairwise_builder.build (*this);
             }
 
-            CPPLINQ_INLINEMETHOD return_type front () const throw ()
+            CPPLINQ_INLINEMETHOD return_type front () const
             {
                 assert (previous.has_value ());
                 assert (current.has_value ());
@@ -4657,7 +4652,7 @@ namespace cpplinq
             }
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD pairwise_range<TRange> build (TRange range) const throw ()
+            CPPLINQ_INLINEMETHOD pairwise_range<TRange> build (TRange range) const
             {
                 return pairwise_range<TRange> (std::move (range));
             }
@@ -4706,7 +4701,7 @@ namespace cpplinq
             }
 
             template<typename TRangeBuilder>
-            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const
             {
                 return range_builder.build (*this);
             }
@@ -4746,7 +4741,7 @@ namespace cpplinq
             }
 
             template <typename TRange>
-            CPPLINQ_INLINEMETHOD zip_with_range<TRange, TOtherRange> build (TRange range) const throw ()
+            CPPLINQ_INLINEMETHOD zip_with_range<TRange, TOtherRange> build (TRange range) const
             {
                 return zip_with_range<TRange, TOtherRange> (std::move (range), std::move (other_range));
             }
@@ -4797,7 +4792,7 @@ namespace cpplinq
             }
 
             template<typename TRangeBuilder>
-            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const
             {
                 return range_builder.build (*this);
             }
@@ -5368,4 +5363,6 @@ namespace cpplinq
 #ifdef _MSC_VER 
 #   pragma warning (pop)
 #endif
+// ----------------------------------------------------------------------------
+#endif  // CPPLINQ__HEADER_GUARD
 // ----------------------------------------------------------------------------

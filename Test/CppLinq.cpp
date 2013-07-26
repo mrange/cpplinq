@@ -2463,6 +2463,22 @@ namespace
                 TEST_ASSERT (       ints[i], zip_width_result[i].second);
             }
         }
+
+        {
+            std::string pairrange[] = {"one", "two", "three"};
+            auto zip_width_result = 
+                    from_array(pairrange) 
+                >>  zip_with(from_array(simple_ints))
+                >>  to_vector();
+
+            auto expected_size = get_array_size(pairrange);
+            TEST_ASSERT(expected_size, (int)zip_width_result.size());
+            for (std::size_t i=0; i<zip_width_result.size (); ++i)
+            {
+                TEST_ASSERT (  pairrange[i], zip_width_result[i].first);
+                TEST_ASSERT (simple_ints[i], zip_width_result[i].second);
+            }
+        }
     }
 
     template<typename TPredicate>
