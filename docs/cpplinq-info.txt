@@ -8,7 +8,7 @@ http://cpplinq.codeplex.com/
 
 == SUPPORTED COMPILERS ==
 Windows
-  VC++ (2010, 2012)
+  VC++ (2010, 2012, 2013)
   mingw (g++ v4.7.0)
 
 Linux
