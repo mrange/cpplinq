@@ -935,7 +935,7 @@ namespace cpplinq
             }
 
             template<typename TRangeBuilder>
-            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) throw ()   
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
             {
                 return range_builder.build (*this);
             }
@@ -1078,7 +1078,7 @@ namespace cpplinq
             }
 
             template<typename TRangeBuilder>
-            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) throw ()   
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
             {
                 return range_builder.build (*this);
             }
@@ -1355,7 +1355,7 @@ namespace cpplinq
             }
 
             template<typename TRangeBuilder>
-            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) throw ()   
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const throw ()   
             {
                 return range_builder.build (*this);
             }
