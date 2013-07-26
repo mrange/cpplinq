@@ -29,7 +29,12 @@
 #// ----------------------------------------------------------------------------
 #ifdef _MSC_VER 
 #   pragma warning (push)
-#       pragma warning (disable:4512)
+#       pragma warning (disable:4512)	// 'class' : assignment operator could not be generated
+										// Rationale: cpplinq doesn't rely on assignment operators
+#       pragma warning (disable:4702)	// unreachable code
+										// Rationale: Depending on the predicates and the calling 
+										// code the compiler might detect unreacable code that with 
+										// other predicates are reachable.
 #endif
 // ----------------------------------------------------------------------------
 
@@ -4180,11 +4185,7 @@ namespace cpplinq
             template <typename TRange>
             CPPLINQ_INLINEMETHOD bool build (TRange range) throw ()
             {
-#ifdef _MSC_VER 
-#pragma warning (push )
-#pragma warning (disable : 4127)
-#endif
-                while (true)
+				for (;;)
                 {
                     bool next1 = range.next ();
                     bool next2 = other_range.next ();
@@ -4196,9 +4197,6 @@ namespace cpplinq
 
                     if (!comparer (range.front (), other_range.front ())) return false;
                 }
-#ifdef _MSC_VER 
-#pragma warning (pop)
-#endif
             }
         };
 
@@ -4228,11 +4226,7 @@ namespace cpplinq
             template <typename TRange>
             CPPLINQ_INLINEMETHOD bool build (TRange range) throw ()
             {
-#ifdef _MSC_VER 
-#pragma warning (push )
-#pragma warning (disable : 4127)
-#endif
-                while (true)
+                for (;;)
                 {
                     bool next1 = range.next ();
                     bool next2 = other_range.next ();
@@ -4244,9 +4238,6 @@ namespace cpplinq
 
                     if (range.front () != other_range.front ()) return false;
                 }
-#ifdef _MSC_VER 
-#pragma warning (pop)
-#endif
             }
         };
 
