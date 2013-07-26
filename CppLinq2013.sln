@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CppLinq", "Test\CppLinq.vcxproj", "{B2C5078E-E859-4BF8-A799-75653FE524AB}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CppLinq", "Test\CppLinq2013.vcxproj", "{B2C5078E-E859-4BF8-A799-75653FE524AB}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CppLinq.Mini", "CppLinq.Mini\CppLinq.Mini.vcxproj", "{4CE7EBDE-D1A2-4B5D-853C-921668821E50}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CppLinq.Mini", "CppLinq.Mini\CppLinq2013.Mini.vcxproj", "{4CE7EBDE-D1A2-4B5D-853C-921668821E50}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
