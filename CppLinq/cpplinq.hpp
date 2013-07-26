@@ -11,7 +11,8 @@
 // ----------------------------------------------------------------------------------------------
 
 // ----------------------------------------------------------------------------
-#pragma once
+#ifndef HEADER_GUARD__CPPLINQ
+#   define HEADER_GUARD__CPPLINQ
 // ----------------------------------------------------------------------------
 #include <algorithm>
 #include <cassert>
@@ -29,12 +30,12 @@
 #// ----------------------------------------------------------------------------
 #ifdef _MSC_VER 
 #   pragma warning (push)
-#       pragma warning (disable:4512)	// 'class' : assignment operator could not be generated
-										// Rationale: cpplinq doesn't rely on assignment operators
-#       pragma warning (disable:4702)	// unreachable code
-										// Rationale: Depending on the predicates and the calling 
-										// code the compiler might detect unreacable code that with 
-										// other predicates are reachable.
+#       pragma warning (disable:4512)   // 'class' : assignment operator could not be generated
+                                        // Rationale: cpplinq doesn't rely on assignment operators
+#       pragma warning (disable:4702)   // unreachable code
+                                        // Rationale: Depending on the predicates and the calling 
+                                        // code the compiler might detect unreacable code that with 
+                                        // other predicates are reachable.
 #endif
 // ----------------------------------------------------------------------------
 
@@ -4185,7 +4186,7 @@ namespace cpplinq
             template <typename TRange>
             CPPLINQ_INLINEMETHOD bool build (TRange range) throw ()
             {
-				for (;;)
+                for (;;)
                 {
                     bool next1 = range.next ();
                     bool next2 = other_range.next ();
@@ -5359,4 +5360,6 @@ namespace cpplinq
 #ifdef _MSC_VER 
 #   pragma warning (pop)
 #endif
+// ----------------------------------------------------------------------------
+#endif  // HEADER_GUARD__CPPLINQ
 // ----------------------------------------------------------------------------
