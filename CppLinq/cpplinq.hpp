@@ -38,7 +38,6 @@
                                         // other predicates are reachable.
 #endif
 // ----------------------------------------------------------------------------
-// #define CPPLINQ__BUILD_CAN_THROW
 #define CPPLINQ_METHOD 
 #define CPPLINQ_INLINEMETHOD inline
 // ----------------------------------------------------------------------------
@@ -3779,7 +3778,7 @@ namespace cpplinq
             }
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD auto build (TRange range) const -> decltype (selector (range.front ()))
+            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range) const
             {
                 auto sum = typename TRange::value_type ();
                 while (range.next ())
@@ -3846,7 +3845,7 @@ namespace cpplinq
             }
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD auto build (TRange range) const -> decltype (selector (range.front ()))
+            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range) const
             {
                 auto current = std::numeric_limits<typename TRange::value_type>::min ();
                 while (range.next ())
@@ -3925,7 +3924,7 @@ namespace cpplinq
 
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD auto build (TRange range) const -> decltype (selector (range.front ()))
+            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range) const
             {
                 auto current = std::numeric_limits<typename TRange::value_type>::max ();
                 while (range.next ())
@@ -4004,7 +4003,7 @@ namespace cpplinq
 
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD auto build (TRange range) const -> decltype (selector (range.front ()))
+            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range) const
             {
                 auto sum = typename TRange::value_type ();
                 int count = 0;
@@ -4019,7 +4018,7 @@ namespace cpplinq
                     return sum;
                 }
 
-                return std::move (sum/count);
+                return sum/count;
             }
 
         };
@@ -4057,7 +4056,7 @@ namespace cpplinq
                     return sum;
                 }
 
-                return std::move (sum/count);
+                return sum/count;
             }
 
         };
@@ -4147,7 +4146,7 @@ namespace cpplinq
                     sum = accumulator (sum, range.front ());
                 }
 
-                return std::move (result_selector (sum));
+                return result_selector (sum);
             }
 
         };
