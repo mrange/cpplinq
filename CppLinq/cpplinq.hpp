@@ -4056,7 +4056,7 @@ namespace cpplinq
                     return sum;
                 }
 
-                return std::move (sum/count);
+                return sum/count;
             }
 
         };
