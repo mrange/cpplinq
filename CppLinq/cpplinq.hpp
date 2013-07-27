@@ -38,7 +38,6 @@
                                         // other predicates are reachable.
 #endif
 // ----------------------------------------------------------------------------
-// #define CPPLINQ__BUILD_CAN_THROW
 #define CPPLINQ_METHOD 
 #define CPPLINQ_INLINEMETHOD inline
 // ----------------------------------------------------------------------------
