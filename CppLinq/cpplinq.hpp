@@ -73,6 +73,13 @@ namespace cpplinq
             return "programming_error_exception";
         }
     };
+    struct sequence_empty_exception : base_exception
+    {
+        virtual const char* what ()  const throw ()
+        {
+            return "sequence_empty_exception";
+        }
+    };
     // -------------------------------------------------------------------------
 
     // -------------------------------------------------------------------------
@@ -3538,6 +3545,79 @@ namespace cpplinq
         };
 
         // -------------------------------------------------------------------------
+
+        template<typename TPredicate>
+        struct first_predicate_builder : base_builder
+        {
+            typedef                 first_predicate_builder<TPredicate>     this_type           ;
+            typedef                 TPredicate                              predicate_type      ;
+
+            predicate_type          predicate   ;
+
+            CPPLINQ_INLINEMETHOD first_predicate_builder (predicate_type predicate) throw ()
+                :   predicate (std::move (predicate))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD first_predicate_builder (first_predicate_builder const & v) throw ()
+                :   predicate (v.predicate)
+            {
+            }           
+
+            CPPLINQ_INLINEMETHOD first_predicate_builder (first_predicate_builder && v) throw ()
+                : predicate (std::move (v.predicate))
+            {
+            }
+
+            template<typename TRange>
+            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
+            {
+                while (range.next ())
+                {
+                    if (predicate (range.front ()))
+                    {
+                        return range.front ();
+                    }
+                }
+
+                throw sequence_empty_exception ();
+            }
+
+        };
+
+        // -------------------------------------------------------------------------
+
+        struct first_builder : base_builder
+        {
+            typedef                 first_builder                   this_type       ;
+
+            CPPLINQ_INLINEMETHOD first_builder () throw ()
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD first_builder (first_builder const & v) throw ()
+            {
+            }           
+
+            CPPLINQ_INLINEMETHOD first_builder (first_builder && v) throw ()
+            {
+            }
+
+            template<typename TRange>
+            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
+            {
+                if (range.next ())
+                {
+                    return range.front ();
+                }
+
+                throw sequence_empty_exception ();
+            }
+
+        };
+
+        // -------------------------------------------------------------------------
+
         template<typename TPredicate>
         struct first_or_default_predicate_builder : base_builder
         {
@@ -5094,6 +5174,19 @@ namespace cpplinq
     }
 
     // Element operators
+
+    template <typename TPredicate>
+    CPPLINQ_INLINEMETHOD detail::first_predicate_builder<TPredicate> first (
+            TPredicate predicate
+        )
+    {
+        return detail::first_predicate_builder<TPredicate> (std::move (predicate));
+    }
+
+    CPPLINQ_INLINEMETHOD detail::first_builder   first ()
+    {
+        return detail::first_builder ();
+    }
 
     template <typename TPredicate>
     CPPLINQ_INLINEMETHOD detail::first_or_default_predicate_builder<TPredicate> first_or_default (

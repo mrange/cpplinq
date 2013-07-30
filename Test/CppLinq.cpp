@@ -886,6 +886,54 @@ namespace
         }
     }
 
+    void test_first ()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE ();
+
+        std::string expected_on_failure ("sequence_empty_exception");
+
+        {
+            sequence_empty_exception caught_exception;
+            try
+            {
+                int first_result = from (empty_vector) >> first ();
+                first_result;
+            }
+            catch (sequence_empty_exception const & ex)
+            {
+                caught_exception = ex;
+            }
+            TEST_ASSERT (expected_on_failure, caught_exception.what ());
+        }
+
+        {
+            int first_result = from_array (ints) >> first ();
+            TEST_ASSERT (3, first_result);
+        }
+
+        {
+            sequence_empty_exception caught_exception;
+            try
+            {
+                int first_result = from (empty_vector) >> first (is_even);
+                first_result;
+            }
+            catch (sequence_empty_exception const & ex)
+            {
+                caught_exception = ex;
+            }
+            TEST_ASSERT (expected_on_failure, caught_exception.what ());
+        }
+
+        {
+            int first_result = from_array (ints) >> first (is_even);
+            TEST_ASSERT (4, first_result);
+        }
+
+    }
+
     void test_first_or_default ()
     {
         using namespace cpplinq;
@@ -2657,6 +2705,7 @@ namespace
         test_generate               ();
         test_count                  ();
         test_any                    ();
+        test_first                  ();
         test_first_or_default       ();
         test_last_or_default        ();
         test_sum                    ();
