@@ -130,7 +130,7 @@ namespace cpplinq
         {
             enum
             {
-                size = Size,
+                size = Size ,
             };
 
             typedef typename    cleanup_type<TValue>::type  value_type      ;
@@ -1845,7 +1845,7 @@ namespace cpplinq
             static          TPredicate get_predicate ();
 
 
-            typedef         decltype (get_predicate ()(get_source ()))  raw_value_type  ;
+            typedef        decltype (get_predicate ()(get_source ()))   raw_value_type  ;
             typedef        typename cleanup_type<raw_value_type>::type  value_type      ;
             typedef                 value_type                          return_type     ;
             enum    
@@ -2100,8 +2100,8 @@ namespace cpplinq
             typedef                 TOtherKeySelector           other_key_selector_type ;
             typedef                 TCombiner                   combiner_type           ;
             typedef                 std::multimap<
-                                        other_key_type, 
-                                        typename TOtherRange::value_type
+                                            other_key_type
+                                        ,   typename TOtherRange::value_type
                                         >                       map_type                ;
             typedef     typename    map_type::const_iterator    map_iterator_type       ;
 
@@ -4831,7 +4831,7 @@ namespace cpplinq
         template<typename TPredicate>
         struct generate_range : base_range
         {
-            static          TPredicate get_predicate ();
+            static         TPredicate get_predicate ();
 
             typedef        decltype (get_predicate ()())                    raw_opt_value_type  ;
             typedef        typename cleanup_type<raw_opt_value_type>::type  opt_value_type      ;
