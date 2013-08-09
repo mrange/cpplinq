@@ -130,7 +130,7 @@ namespace cpplinq
         {
             enum
             {
-                size = Size,
+                size = Size ,
             };
 
             typedef typename    cleanup_type<TValue>::type  value_type      ;
@@ -2100,8 +2100,8 @@ namespace cpplinq
             typedef                 TOtherKeySelector           other_key_selector_type ;
             typedef                 TCombiner                   combiner_type           ;
             typedef                 std::multimap<
-                                        other_key_type, 
-                                        typename TOtherRange::value_type
+                                            other_key_type
+                                        ,   typename TOtherRange::value_type
                                         >                       map_type                ;
             typedef     typename    map_type::const_iterator    map_iterator_type       ;
 
