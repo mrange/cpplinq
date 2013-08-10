@@ -56,9 +56,6 @@ namespace cpplinq
 
     // -------------------------------------------------------------------------
 
-    size_type const small_pod_size = sizeof (double);
-
-    // -------------------------------------------------------------------------
     struct base_exception : std::exception
     {
         virtual const char* what ()  const throw ()
@@ -437,36 +434,32 @@ namespace cpplinq
                 returns_reference = 1, 
             };
 
-            iterator_type           begin   ;
-            iterator_type           end     ;
-
-            bool                    start   ;
             iterator_type           current ;
+            iterator_type           upcoming;
+            iterator_type           end     ;
 
 
             CPPLINQ_INLINEMETHOD from_range (
                     iterator_type begin
                 ,   iterator_type end
                 ) throw ()
-                :   begin   (std::move (begin))
+                :   current (std::move (begin))
+                ,   upcoming(current)
                 ,   end     (std::move (end))
-                ,   start   (true)
             {
             }
 
             CPPLINQ_INLINEMETHOD from_range (from_range const & v) throw ()
-                :   begin   (v.begin)
+                :   current (v.current)
+                ,   upcoming(v.upcoming)
                 ,   end     (v.end)
-                ,   start   (v.start)
-                ,   current (v.current)
             {
             }
         
             CPPLINQ_INLINEMETHOD from_range (from_range && v) throw ()
-                :   begin   (std::move (v.begin))
+                :   current (std::move (v.current))
+                ,   upcoming(std::move (v.upcoming))
                 ,   end     (std::move (v.end))
-                ,   start   (std::move (v.start))
-                ,   current (std::move (v.current))
             {
             }
         
@@ -478,7 +471,7 @@ namespace cpplinq
 
             CPPLINQ_INLINEMETHOD return_type front () const 
             {
-                assert (!start);
+                assert (current != upcoming);
                 assert (current != end);
 
                 return *current;
@@ -486,17 +479,14 @@ namespace cpplinq
 
             CPPLINQ_INLINEMETHOD bool next () throw ()
             {
-                if (start)
+                if (upcoming == end)
                 {
-                    start = false;
-                    current = begin;
-                }
-                else if (current != end)
-                {
-                    ++current;
+                    return false;
                 }
 
-                return current != end;
+                current = upcoming;
+                ++upcoming;
+                return true;
             }
         };
 
@@ -520,14 +510,17 @@ namespace cpplinq
 
             container_type          container   ;
 
-            bool                    start       ;
             iterator_type           current     ;
+            iterator_type           upcoming    ;
+            iterator_type           end         ;
 
             CPPLINQ_INLINEMETHOD from_copy_range (
                     container_type&&        container
                 )
                 :   container   (std::move (container))
-                ,   start       (true)
+                ,   current     (container.begin ())
+                ,   upcoming    (container.begin ())
+                ,   end         (container.end ())
             {
             }
 
@@ -535,19 +528,25 @@ namespace cpplinq
                     container_type const &  container
                 )
                 :   container   (container)
-                ,   start       (true)
+                ,   current     (container.begin ())
+                ,   upcoming    (container.begin ())
+                ,   end         (container.end ())
             {
             }
 
             CPPLINQ_INLINEMETHOD from_copy_range (from_copy_range const & v)
                 :   container   (v.container)
-                ,   start       (v.start)
+                ,   current     (v.current)
+                ,   upcoming    (v.upcoming)
+                ,   end         (v.end)
             {
             }
         
             CPPLINQ_INLINEMETHOD from_copy_range (from_copy_range && v) throw ()
                 :   container   (std::move (v.container))
-                ,   start       (std::move (v.start))
+                ,   current     (std::move (v.current))
+                ,   upcoming    (std::move (v.upcoming))
+                ,   end         (std::move (v.end))
             {
             }
         
@@ -559,26 +558,22 @@ namespace cpplinq
 
             CPPLINQ_INLINEMETHOD return_type front () const 
             {
-                assert (!start);
-                assert (current != container.end ());
+                assert (current != upcoming);
+                assert (current != end);
 
                 return *current;
             }
 
             CPPLINQ_INLINEMETHOD bool next () throw ()
             {
-                auto end = container.end ();
-                if (start)
+                if (upcoming == end)
                 {
-                    start = false;
-                    current = container.begin ();
-                }
-                else if (current != end)
-                {
-                    ++current;
+                    return false;
                 }
 
-                return current != end;
+                current = upcoming;
+                ++upcoming;
+                return true;
             }
         };
 
@@ -594,40 +589,36 @@ namespace cpplinq
                 returns_reference = 0   , 
             };
 
-            bool                    start   ;
             int                     current ;
             int                     end     ;
 
             static int get_current (int begin, int end)
             {
-                return begin < end ? begin : end;
+                return (begin < end ? begin : end) - 1; // -1 in order to start one-step before the first element
             }
 
-            static int get_end (int begin, int end)
+            static int get_end (int begin, int end)     // -1 in order to avoid an extra test in next
             {
-                return begin < end ? end : begin;
+                return (begin < end ? end : begin) - 1;
             }
 
             CPPLINQ_INLINEMETHOD int_range (
                     int begin
                 ,   int end
                 ) throw ()
-                :   start   (true)
-                ,   current (get_current (begin, end))
+                :   current (get_current (begin, end))
                 ,   end     (get_end (begin,end))
             {
             }
 
             CPPLINQ_INLINEMETHOD int_range (int_range const & v) throw ()
-                :   start   (v.start)
-                ,   current (v.current)
+                :   current (v.current)
                 ,   end     (v.end)
             {
             }
         
             CPPLINQ_INLINEMETHOD int_range (int_range && v) throw ()
-                :   start   (std::move (v.start))
-                ,   current (std::move (v.current))
+                :   current (std::move (v.current))
                 ,   end     (std::move (v.end))
             {
             }
@@ -645,16 +636,14 @@ namespace cpplinq
 
             CPPLINQ_INLINEMETHOD bool next () throw ()
             {
-                if (start)
+                if (current >= end)
                 {
-                    start = false;
-                }
-                else if (current < end)
-                {
-                    ++current;
+                    return false;
                 }
 
-                return current < end;
+                ++current;
+
+                return true;
             }
         };
 
@@ -671,35 +660,27 @@ namespace cpplinq
                 returns_reference = 0   , 
             };
 
-            bool                    start   ;
-            TValue                  value   ;
-            size_type               current ;
-            size_type               end     ;
+            TValue                  value       ;
+            size_type               remaining   ;
 
             CPPLINQ_INLINEMETHOD repeat_range (
                     value_type element
                 ,   size_type count
                 ) throw ()
-                :   start   (true)
-                ,   value   (element)
-                ,   current (0U)
-                ,   end     (count)
+                :   value       (std::move (element))
+                ,   remaining   (count)
             {
             }
 
             CPPLINQ_INLINEMETHOD repeat_range (repeat_range const & v) throw ()
-                :   start   (v.start)
-                ,   value   (v.value)
-                ,   current (v.current)
-                ,   end     (v.end)
+                :   value       (v.value)
+                ,   remaining   (v.remaining)
             {
             }
         
             CPPLINQ_INLINEMETHOD repeat_range (repeat_range && v) throw ()
-                :   start   (std::move (v.start))
-                ,   value   (std::move (v.value))
-                ,   current (std::move (v.current))
-                ,   end     (std::move (v.end))
+                :   value       (std::move (v.value))
+                ,   remaining   (std::move (v.remaining))
             {
             }
         
@@ -716,16 +697,14 @@ namespace cpplinq
 
             CPPLINQ_INLINEMETHOD bool next () throw ()
             {
-                if (start)
+                if (remaining == 0U)
                 {
-                    start = false;
-                }
-                else if (current < end)
-                {
-                    ++current;
+                    return false;
                 }
 
-                return current < end;
+                --remaining;
+
+                return true;
             }
         };
 
@@ -971,7 +950,7 @@ namespace cpplinq
                     std::sort (
                             sorted_values.begin ()
                         ,   sorted_values.end ()
-                        ,   [&] (value_type const & l, value_type const & r)
+                        ,   [=] (value_type const & l, value_type const & r)
                             {
                                 return this->compare_values (l,r);
                             }
@@ -1148,7 +1127,7 @@ namespace cpplinq
                     std::sort (
                             sorted_values.begin ()
                         ,   sorted_values.end ()
-                        ,   [&] (value_type const & l, value_type const & r)
+                        ,   [=] (value_type const & l, value_type const & r)
                             {
                                 return this->compare_values (l,r);
                             }
@@ -1476,13 +1455,13 @@ namespace cpplinq
 
             CPPLINQ_INLINEMETHOD bool next ()
             {
-                if (current < count)
+                if (current >= count)
                 {
-                    ++current;
-                    return range.next ();
+                    return false;
                 }
 
-                return false;
+                ++current;
+                return range.next ();
             }
         };
 
@@ -4273,11 +4252,21 @@ namespace cpplinq
                     bool next2 = copy.next ();
 
                     // sequences are not of same length
-                    if (next1 != next2) return false;
-                    // both sequences are over, next1 = next2 = false
-                    if (!next1) return true;
+                    if (next1 != next2) 
+                    {
+                        return false;
+                    }
 
-                    if (!comparer (range.front (), copy.front ())) return false;
+                    // both sequences are over, next1 = next2 = false
+                    if (!next1)
+                    {
+                        return true;
+                    }
+
+                    if (!comparer (range.front (), copy.front ())) 
+                    {
+                        return false;
+                    }
                 }
             }
         };
@@ -4315,11 +4304,21 @@ namespace cpplinq
                     bool next2 = copy.next ();
 
                     // sequences are not of same length
-                    if (next1 != next2) return false;
-                    // both sequences are over, next1 = next2 = false
-                    if (!next1) return true;
+                    if (next1 != next2) 
+                    {
+                        return false;
+                    }
 
-                    if (range.front () != copy.front ()) return false;
+                    // both sequences are over, next1 = next2 = false
+                    if (!next1) 
+                    {
+                        return true;
+                    }
+
+                    if (range.front () != copy.front ()) 
+                    {
+                        return false;
+                    }
                 }
             }
         };
