@@ -7,6 +7,9 @@
 *.sdf
 *.opensdf
 *.suo
+*.exe
+*.dll
+ut.txt
 Output/
 CppLinq/Intermediate/
 CppLinq.Mini/Intermediate/

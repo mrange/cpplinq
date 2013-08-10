@@ -1,3 +1,0 @@
-CppLinq.cpp: I funktion ”void {anonymous}::test_first()”:
-CppLinq.cpp:902:29: varning: satsen har ingen effekt [-Wunused-value]
-CppLinq.cpp:921:29: varning: satsen har ingen effekt [-Wunused-value]
