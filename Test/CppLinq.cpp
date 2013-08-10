@@ -2601,8 +2601,7 @@ namespace
                 }                 
             );
 
-        printf ("Expected sum: %d\r\n", expected_complete_sum);
-        printf ("Result sum: %d\r\n", result_complete_sum);
+        TEST_ASSERT (expected_complete_sum, result_complete_sum);
 
         auto ratio_limit    = 3.0; 
         auto ratio          = ((double)expected)/result;
@@ -2655,18 +2654,20 @@ namespace
 #endif
         int         const test_size     = 10000     ;
 
+        int         expected_sum        = 0         ;
+        int         result_sum          = 0         ;
+
         auto expected = execute_testruns (
                 test_repeat
             ,   [&] ()
                 {
                     auto        iter       = 2;
                     auto        count      = 0;
-                    auto        prime_sum  = 0;
                     while (count < test_size)
                     {
                         if (is_prime (iter))
                         {
-                            prime_sum += iter;
+                            expected_sum += iter;
                             ++count;
                         }
                         ++iter;
@@ -2678,6 +2679,7 @@ namespace
                 test_repeat
             ,   [&] ()
                 {
+                    result_sum +=
                             range (2, INT_MAX)
                         >>  where (is_prime)
                         >>  take (test_size)
@@ -2685,6 +2687,8 @@ namespace
                         ;
                 }                 
             );
+
+        TEST_ASSERT (expected_sum, result_sum);
 
         auto ratio_limit    = 1.25; 
         auto ratio          = ((double)expected)/result;
