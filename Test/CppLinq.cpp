@@ -107,6 +107,12 @@ namespace
 
     };
 
+    template <typename T>
+    void ignore (T && v) throw ()
+    {
+
+    }
+
     template<typename TValueArray>
     int get_array_size (TValueArray & a)
     {
@@ -899,7 +905,7 @@ namespace
             try
             {
                 int first_result = from (empty_vector) >> first ();
-                first_result;
+                ignore (first_result);
             }
             catch (sequence_empty_exception const & ex)
             {
@@ -918,7 +924,7 @@ namespace
             try
             {
                 int first_result = from (empty_vector) >> first (is_even);
-                first_result;
+                ignore (first_result);
             }
             catch (sequence_empty_exception const & ex)
             {
