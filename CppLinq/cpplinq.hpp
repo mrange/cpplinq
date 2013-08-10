@@ -4266,18 +4266,18 @@ namespace cpplinq
             template <typename TRange>
             CPPLINQ_INLINEMETHOD bool build (TRange range) const
             {
-                auto or = other_range;
+                auto copy = other_range;
                 for (;;)
                 {
                     bool next1 = range.next ();
-                    bool next2 = or.next ();
+                    bool next2 = copy.next ();
 
                     // sequences are not of same length
                     if (next1 != next2) return false;
                     // both sequences are over, next1 = next2 = false
                     if (!next1) return true;
 
-                    if (!comparer (range.front (), or.front ())) return false;
+                    if (!comparer (range.front (), copy.front ())) return false;
                 }
             }
         };
@@ -4308,18 +4308,18 @@ namespace cpplinq
             template <typename TRange>
             CPPLINQ_INLINEMETHOD bool build (TRange range) const
             {
-                auto or = other_range;
+                auto copy = other_range;
                 for (;;)
                 {
                     bool next1 = range.next ();
-                    bool next2 = or.next ();
+                    bool next2 = copy.next ();
 
                     // sequences are not of same length
                     if (next1 != next2) return false;
                     // both sequences are over, next1 = next2 = false
                     if (!next1) return true;
 
-                    if (range.front () != or.front ()) return false;
+                    if (range.front () != copy.front ()) return false;
                 }
             }
         };
