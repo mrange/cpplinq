@@ -2780,7 +2780,7 @@ int main ()
     }
     _CrtDumpMemoryLeaks ();
 
-    auto r = true;
+    auto r = false;
 #else
     auto r = run_all_tests (
 #if _DEBUG
