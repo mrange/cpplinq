@@ -2772,11 +2772,16 @@ namespace
 
 int main ()
 {
-    //for (auto iter = 0; iter < 100; ++iter)
-    //{
-    //    run_all_tests (false);
-    //}
+//#define MEMORY_LEAK_TEST
+#ifdef MEMORY_LEAK_TEST
+    for (auto iter = 0; iter < 1; ++iter)
+    {
+        run_all_tests (false);
+    }
+    _CrtDumpMemoryLeaks ();
 
+    auto r = true;
+#else
     auto r = run_all_tests (
 #if _DEBUG
             false
@@ -2784,8 +2789,8 @@ int main ()
             true
 #endif
         );
+#endif
 
-    //_CrtDumpMemoryLeaks ();
 
     return r ? 101 : 0;
 }
