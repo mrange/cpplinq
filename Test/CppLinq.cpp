@@ -2050,7 +2050,7 @@ namespace
         // union of range with duplicates with itself
         {
             auto result = from_array (ints) >> union_with (from_array (ints)) >> to_vector ();
-            auto result_size = (int)result.size ();
+            auto result_size = result.size ();
 
             TEST_ASSERT (9U, result_size);
         }
@@ -2229,7 +2229,7 @@ namespace
         // difference of non-empty range with duplicates with empty set
         {
            auto result = from_array (ints) >> except (from (empty_vector)) >> to_vector ();
-           auto result_size = (int)result.size ();
+           auto result_size = result.size ();
 
            TEST_ASSERT (9U, result_size);
         }
