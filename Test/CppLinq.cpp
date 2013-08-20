@@ -2114,6 +2114,21 @@ namespace
             }
         }
 
+        // intersection of non-empty range with duplicates with itself
+        {
+           int numbers [] = {3,1,4,1,5,9,2,6,5,4};
+           int expected [] = {3,1,4,5,9,2,6};
+           const int expected_size = sizeof (expected)/sizeof (int);
+
+           auto result = from_array (numbers) >> intersect_with (from_array (numbers)) >> to_vector ();
+           auto result_size = (int)result.size ();
+
+           TEST_ASSERT (expected_size, result_size);
+           for (int i =0; i < expected_size && i < result_size; ++i)
+           {
+              TEST_ASSERT (expected[i], result[i]);
+           }
+        }
     }
 
     void test_except ()
@@ -2191,6 +2206,16 @@ namespace
             {
                 TEST_ASSERT (expected[i], result[i]);
             }
+        }
+
+        // difference of non-empty range with duplicates with itself
+        {
+           int numbers [] = {3,1,4,1,5,9,2,6,5,4};
+
+           auto result = from_array (numbers) >> except (from_array (numbers)) >> to_vector ();
+           auto result_size = (int)result.size ();
+
+           TEST_ASSERT (0, result_size);
         }
     }
 
