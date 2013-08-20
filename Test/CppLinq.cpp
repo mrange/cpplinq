@@ -2041,10 +2041,18 @@ namespace
             auto result_size = (int)result.size ();
 
             TEST_ASSERT (expected_size, result_size);
-            for (int i =0; i < expected_size && i < result_size; ++i)
+            for (int i = 0; i < expected_size && i < result_size; ++i)
             {
                 TEST_ASSERT (expected[i], result[i]);
             }
+        }
+
+        // union of range with duplicates with itself
+        {
+            auto result = from_array (ints) >> union_with (from_array (ints)) >> to_vector ();
+            auto result_size = (int)result.size ();
+
+            TEST_ASSERT (9U, result_size);
         }
     }
 
@@ -2216,6 +2224,14 @@ namespace
            auto result_size = (int)result.size ();
 
            TEST_ASSERT (0, result_size);
+        }
+
+        // difference of non-empty range with duplicates with empty set
+        {
+           auto result = from_array (ints) >> except (from (empty_vector)) >> to_vector ();
+           auto result_size = (int)result.size ();
+
+           TEST_ASSERT (9U, result_size);
         }
     }
 
