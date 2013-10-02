@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.20617.1 PREVIEW
+VisualStudioVersion = 12.0.20827.3
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CppLinq2013", "Test\CppLinq2013.vcxproj", "{B2C5078E-E859-4BF8-A799-75653FE524AB}"
 EndProject
@@ -30,7 +30,7 @@ Global
 		{B2C5078E-E859-4BF8-A799-75653FE524AB}.Release|x64.Build.0 = Release|x64
 		{4CE7EBDE-D1A2-4B5D-853C-921668821E50}.Debug|Win32.ActiveCfg = Debug|Win32
 		{4CE7EBDE-D1A2-4B5D-853C-921668821E50}.Debug|Win32.Build.0 = Debug|Win32
-		{4CE7EBDE-D1A2-4B5D-853C-921668821E50}.Debug|x64.ActiveCfg = Debug|Win32
+		{4CE7EBDE-D1A2-4B5D-853C-921668821E50}.Debug|x64.ActiveCfg = Debug|x64
 		{4CE7EBDE-D1A2-4B5D-853C-921668821E50}.Release|Win32.ActiveCfg = Release|Win32
 		{4CE7EBDE-D1A2-4B5D-853C-921668821E50}.Release|Win32.Build.0 = Release|Win32
 		{4CE7EBDE-D1A2-4B5D-853C-921668821E50}.Release|x64.ActiveCfg = Release|x64
