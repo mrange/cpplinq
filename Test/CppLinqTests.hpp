@@ -311,7 +311,7 @@ namespace
         {
             ++errors;
             printf (
-                    "%s(%d): ERROR_EXPECTED: %d(%s), FOUND: %d(%s)\r\n"
+                    "%s(%d): ERROR_EXPECTED: %u(%s), FOUND: %u(%s)\r\n"
                 ,   file
                 ,   line_no
                 ,   expected
@@ -339,7 +339,7 @@ namespace
         {
             ++errors;
             printf (
-                    "%s(%d): ERROR_EXPECTED: (%d,%s,%s)(%s), FOUND: (%d,%s,%s)(%s)\r\n"
+                    "%s(%d): ERROR_EXPECTED: (%u,%s,%s)(%s), FOUND: (%u,%s,%s)(%s)\r\n"
                 ,   file
                 ,   line_no
                 ,   expected.id, expected.first_name.c_str (), expected.last_name.c_str ()
@@ -362,7 +362,7 @@ namespace
         }
         else
         {
-            printf ("    @index:%d\r\n", index);
+            printf ("    @index:%u\r\n", index);
         }
     }
 
@@ -507,7 +507,7 @@ namespace
                         // this is ok
                         if (!TEST_ASSERT (customers[iter].id, results[iter].id))
                         {
-                            printf ("    @index:%d\r\n", iter);
+                            printf ("    @index:%u\r\n", iter);
                         }
                     }
                 }
@@ -523,12 +523,12 @@ namespace
 
                     if (!TEST_ASSERT (customer.id, result.id))
                     {
-                        printf ("    @id:%d\r\n", customer.id);
+                        printf ("    @id:%u\r\n", customer.id);
                     }
                 }
                 else
                 {
-                    printf ("    @id:%d\r\n", customer.id);
+                    printf ("    @id:%u\r\n", customer.id);
                 }
             }
         }
@@ -710,7 +710,7 @@ namespace
             {
                 if (!TEST_ASSERT (index, q.front ()))
                 {
-                        printf ("    @index:%d\r\n", index);
+                        printf ("    @index:%u\r\n", index);
                 }
                 ++index;
             }
@@ -755,7 +755,7 @@ namespace
             {
                 if (!TEST_ASSERT (value, r.front ()))
                 {
-                        printf ("    @index:%d\r\n", total);
+                        printf ("    @index:%u\r\n", total);
                 }
                 ++total;
             }
@@ -773,7 +773,7 @@ namespace
             {
                 if (!TEST_ASSERT (value, r.front ()))
                 {
-                        printf ("    @index:%d\r\n", total);
+                        printf ("    @index:%u\r\n", total);
                 }
                 ++total;
             }
@@ -1256,7 +1256,7 @@ namespace
                     }
                     else
                     {
-                        printf ("    @index:%d\r\n", index);
+                        printf ("    @index:%u\r\n", index);
                     }
                 }
             }
@@ -1292,12 +1292,12 @@ namespace
 
                     if (!TEST_ASSERT (customer.id, result.id))
                     {
-                        printf ("    @id:%d\r\n", customer.id);
+                        printf ("    @id:%u\r\n", customer.id);
                     }
                 }
                 else
                 {
-                    printf ("    @id:%d\r\n", customer.id);
+                    printf ("    @id:%u\r\n", customer.id);
                 }
             }
         }
@@ -1441,7 +1441,7 @@ namespace
             {
                 if (!TEST_ASSERT (customers[index].id, sz))
                 {
-                    printf ("    @index:%d\r\n", index);
+                    printf ("    @index:%u\r\n", index);
                 }
 
                 ++index;
@@ -1574,7 +1574,7 @@ namespace
                 {
                     if (!TEST_ASSERT (expected[index], select_many_result[index]))
                     {
-                        printf ("    @index:%d\r\n", index);
+                        printf ("    @index:%u\r\n", index);
                     }
                 }
             }
@@ -1608,7 +1608,7 @@ namespace
                 {
                     if (!TEST_ASSERT (expected[index], c.id))
                     {
-                        printf ("    @index:%d\r\n", index);
+                        printf ("    @index:%u\r\n", index);
                     }
 
                     ++index;
@@ -2869,8 +2869,7 @@ namespace
         // -------------------------------------------------------------------------
         if (run_perfomance_tests)
         {
-// TODO: Disabled as this test hangs in g++ in release mode for no good reason
-//            test_performance_range_sum ();
+            test_performance_range_sum ();
             test_performance_sum ();
             test_performance_is_prime ();
         }
