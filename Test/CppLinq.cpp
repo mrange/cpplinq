@@ -449,6 +449,14 @@ namespace
             TEST_ASSERT (true, (bool)o2);
             TEST_ASSERT ("Test2", *o2);
         }
+
+        {
+            opt<int> o (1);
+            TEST_ASSERT (true, o.has_value ());
+
+            o.clear ();
+            TEST_ASSERT (false, o.has_value ());
+        }
     }
 
     void test_lookup ()

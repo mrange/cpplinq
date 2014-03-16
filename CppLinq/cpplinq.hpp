@@ -144,10 +144,16 @@ namespace cpplinq
             {
             }
 
-            CPPLINQ_INLINEMETHOD explicit opt (value_type value)
+            CPPLINQ_INLINEMETHOD explicit opt (value_type && value)
                 :   is_initialized      (true)
             {
                 new (&storage) value_type (std::move (value));
+            }
+
+            CPPLINQ_INLINEMETHOD explicit opt (value_type const & value)
+                :   is_initialized      (true)
+            {
+                new (&storage) value_type (value);
             }
 
             CPPLINQ_INLINEMETHOD ~opt () throw ()
@@ -236,6 +242,12 @@ namespace cpplinq
             CPPLINQ_INLINEMETHOD opt & operator= (value_type v)
             {
                 return *this = opt (std::move (v));
+            }
+
+            CPPLINQ_INLINEMETHOD void clear () throw ()
+            {
+                opt empty;
+                swap (empty);
             }
 
             CPPLINQ_INLINEMETHOD value_type const * get_ptr () const throw ()
