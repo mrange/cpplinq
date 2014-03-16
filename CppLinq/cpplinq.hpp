@@ -3091,7 +3091,7 @@ namespace cpplinq
                     result.push_back (range.front ());
                 }
 
-                return std::move (result);
+                return result;
             }
 
         };
@@ -3122,7 +3122,7 @@ namespace cpplinq
                     result.push_back (range.front ());
                 }
 
-                return std::move (result);
+                return result;
             }
 
         };
@@ -3175,7 +3175,7 @@ namespace cpplinq
                     result.insert (typename result_type::value_type (std::move (k), std::move (v)));
                 }
 
-                return std::move (result);
+                return result;
             }
 
         };
@@ -3493,7 +3493,7 @@ namespace cpplinq
 
                 result_type result (16U, range, key_predicate);
 
-                return std::move (result);
+                return result;
             }
 
         };
@@ -3715,7 +3715,7 @@ namespace cpplinq
                     }
                 }
 
-                return std::move (current);
+                return current;
             }
 
         };
@@ -3746,7 +3746,7 @@ namespace cpplinq
                     current = std::move (range.front ());
                 }
 
-                return std::move (current);
+                return current;
             }
 
         };
@@ -3856,7 +3856,7 @@ namespace cpplinq
                 {
                     sum += selector (range.front ());
                 }
-                return std::move (sum);
+                return sum;
             }
 
         };
@@ -3885,7 +3885,7 @@ namespace cpplinq
                 {
                     sum += range.front ();
                 }
-                return std::move (sum);
+                return sum;
             }
 
         };
@@ -3928,7 +3928,7 @@ namespace cpplinq
                     }
                 }
 
-                return std::move (current);
+                return current;
             }
 
         };
@@ -3963,7 +3963,7 @@ namespace cpplinq
                     }
                 }
 
-                return std::move (current);
+                return current;
             }
 
         };
@@ -4007,7 +4007,7 @@ namespace cpplinq
                     }
                 }
 
-                return std::move (current);
+                return current;
             }
 
         };
@@ -4042,7 +4042,7 @@ namespace cpplinq
                     }
                 }
 
-                return std::move (current);
+                return current;
             }
 
         };
@@ -4170,7 +4170,7 @@ namespace cpplinq
                 {
                     sum = accumulator (sum, range.front ());
                 }
-                return std::move (sum);
+                return sum;
             }
 
         };
