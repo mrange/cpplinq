@@ -9,6 +9,7 @@
 *.suo
 *.exe
 *.dll
+*.user
 ut.txt
 *.nupkg
 Output/

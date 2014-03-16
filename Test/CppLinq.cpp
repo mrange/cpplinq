@@ -2883,29 +2883,130 @@ namespace
 
 
 
-int main ()
+int main (int argc, char const * argv[])
 {
-//#define MEMORY_LEAK_TEST
-#ifdef MEMORY_LEAK_TEST
-    for (auto iter = 0; iter < 1; ++iter)
-    {
-        run_all_tests (false);
-    }
-    _CrtDumpMemoryLeaks ();
-
-    auto r = false;
-#else
-    auto r = run_all_tests (
-#if _DEBUG
-            false
-#else
-            true
+    _CrtSetBreakAlloc(141);
+    printf (
+        "CppLinq test program\r\n"
+        "====================\r\n"
+        "Command line options:\r\n"
+        "f - run functional tests (default)\r\n"
+#ifndef _DEBUG
+        "p - run functional + performance tests\r\n"
+#endif
+#ifdef _MSC_VER
+#   ifdef _DEBUG
+        "m - run memory leak detection test\r\n"
+#   endif
 #endif
         );
+
+    auto opt = argc < 2 ? 'f' : argv[1][0];
+
+    auto failures_detected = false;
+
+    switch (opt)
+    {
+#ifdef _MSC_VER 
+#   ifdef _DEBUG
+    case 'm':
+        {
+            printf ("Starting memory leak detection test...\r\n");
+
+            _CrtMemState before;
+            _CrtMemState after;
+            _CrtMemState diff;
+
+            _CrtMemCheckpoint (&before);
+
+            run_all_tests (false);
+
+            _CrtMemCheckpoint (&after);
+            if (_CrtMemDifference(&diff, &before, &after))
+            {
+                auto reporter = [] (int nRptType, char *szMsg, int *retVal) 
+                {
+                    *retVal = 0;
+
+                    char const * rptType = "UNKNOWN";
+                    switch (nRptType)
+                    {
+                    case _CRT_WARN:
+                        rptType = "WARNING";
+                        break;
+                    case _CRT_ERROR:
+                        rptType = "ERROR  ";
+                        break;
+                    case _CRT_ASSERT:
+                        rptType = "ASSERT ";
+                        break;
+                    default:
+                        break;
+                    }
+
+                    printf (
+                            "%s - %s"
+                        ,   rptType
+                        ,   szMsg
+                        );
+                    return 0;
+                };
+                _CrtSetReportHook (reporter);
+
+               _CrtMemDumpStatistics (&diff);
+
+                printf ("Dumping leaked objects...\r\n");
+
+                _CrtDumpMemoryLeaks ();
+
+                printf (
+                    "Objects dumped\r\n"
+                    "Note: Some leaks are expected due to CRT allocatations\r\n"
+                    );
+
+                _CrtSetReportHook (nullptr);
+
+                failures_detected = true;
+            }
+            else
+            {
+                failures_detected = false;
+            }
+
+            printf ("Memory leak detection finished\r\n");
+        }
+        break;
+#   endif
 #endif
+#ifndef _DEBUG
+    case 'p':
+        printf ("Starting functional + performance tests...\r\n");
 
+        failures_detected = run_all_tests (true);
 
-    return r ? 101 : 0;
+        printf ("Functional + performance tests finished\r\n");
+        break;
+#endif
+    case 'f':
+    default:
+        printf ("Starting functional tests...\r\n");
+
+        failures_detected = run_all_tests (false);
+
+        printf ("Functional tests finished\r\n");
+        break;
+    }
+
+    if (failures_detected)
+    {
+        printf ("Tests failed, reporting 101\r\n");
+        return 101;
+    }
+    else
+    {
+        printf ("Tests succeeded, reporting 0\r\n");
+        return 0;
+    }
 }
 // ---------------------------------------------------------------------------- -
 
