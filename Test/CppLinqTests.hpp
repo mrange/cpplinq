@@ -209,7 +209,7 @@ namespace
         )
     {
         printf (
-                "%s(%d): RUNNING: %s\r\n"
+                "%s(%d): RUNNING: %s\n"
             ,   file
             ,   line_no
             ,   test
@@ -230,7 +230,7 @@ namespace
         {
             ++errors;
             printf (
-                    "%s(%d): ERROR_EXPECTED: %s(%s), FOUND: %s(%s)\r\n"
+                    "%s(%d): ERROR_EXPECTED: %s(%s), FOUND: %s(%s)\n"
                 ,   file
                 ,   line_no
                 ,   expected    ? "true" : "false"
@@ -257,7 +257,7 @@ namespace
         {
             ++errors;
             printf (
-                    "%s(%d): ERROR_EXPECTED: %s(%s), FOUND: %s(%s)\r\n"
+                    "%s(%d): ERROR_EXPECTED: %s(%s), FOUND: %s(%s)\n"
                 ,   file
                 ,   line_no
                 ,   expected.c_str ()
@@ -284,7 +284,7 @@ namespace
         {
             ++errors;
             printf (
-                    "%s(%d): ERROR_EXPECTED: %d(%s), FOUND: %d(%s)\r\n"
+                    "%s(%d): ERROR_EXPECTED: %d(%s), FOUND: %d(%s)\n"
                 ,   file
                 ,   line_no
                 ,   expected
@@ -311,7 +311,7 @@ namespace
         {
             ++errors;
             printf (
-                    "%s(%d): ERROR_EXPECTED: %u(%s), FOUND: %u(%s)\r\n"
+                    "%s(%d): ERROR_EXPECTED: %u(%s), FOUND: %u(%s)\n"
                 ,   file
                 ,   line_no
                 ,   expected
@@ -339,7 +339,7 @@ namespace
         {
             ++errors;
             printf (
-                    "%s(%d): ERROR_EXPECTED: (%u,%s,%s)(%s), FOUND: (%u,%s,%s)(%s)\r\n"
+                    "%s(%d): ERROR_EXPECTED: (%u,%s,%s)(%s), FOUND: (%u,%s,%s)(%s)\n"
                 ,   file
                 ,   line_no
                 ,   expected.id, expected.first_name.c_str (), expected.last_name.c_str ()
@@ -362,7 +362,7 @@ namespace
         }
         else
         {
-            printf ("    @index:%u\r\n", index);
+            printf ("    @index:%u\n", index);
         }
     }
 
@@ -507,7 +507,7 @@ namespace
                         // this is ok
                         if (!TEST_ASSERT (customers[iter].id, results[iter].id))
                         {
-                            printf ("    @index:%u\r\n", iter);
+                            printf ("    @index:%u\n", iter);
                         }
                     }
                 }
@@ -523,12 +523,12 @@ namespace
 
                     if (!TEST_ASSERT (customer.id, result.id))
                     {
-                        printf ("    @id:%u\r\n", customer.id);
+                        printf ("    @id:%u\n", customer.id);
                     }
                 }
                 else
                 {
-                    printf ("    @id:%u\r\n", customer.id);
+                    printf ("    @id:%u\n", customer.id);
                 }
             }
         }
@@ -710,7 +710,7 @@ namespace
             {
                 if (!TEST_ASSERT (index, q.front ()))
                 {
-                        printf ("    @index:%u\r\n", index);
+                        printf ("    @index:%u\n", index);
                 }
                 ++index;
             }
@@ -755,7 +755,7 @@ namespace
             {
                 if (!TEST_ASSERT (value, r.front ()))
                 {
-                        printf ("    @index:%u\r\n", total);
+                        printf ("    @index:%u\n", total);
                 }
                 ++total;
             }
@@ -773,7 +773,7 @@ namespace
             {
                 if (!TEST_ASSERT (value, r.front ()))
                 {
-                        printf ("    @index:%u\r\n", total);
+                        printf ("    @index:%u\n", total);
                 }
                 ++total;
             }
@@ -1256,7 +1256,7 @@ namespace
                     }
                     else
                     {
-                        printf ("    @index:%u\r\n", index);
+                        printf ("    @index:%u\n", index);
                     }
                 }
             }
@@ -1292,12 +1292,12 @@ namespace
 
                     if (!TEST_ASSERT (customer.id, result.id))
                     {
-                        printf ("    @id:%u\r\n", customer.id);
+                        printf ("    @id:%u\n", customer.id);
                     }
                 }
                 else
                 {
-                    printf ("    @id:%u\r\n", customer.id);
+                    printf ("    @id:%u\n", customer.id);
                 }
             }
         }
@@ -1441,7 +1441,7 @@ namespace
             {
                 if (!TEST_ASSERT (customers[index].id, sz))
                 {
-                    printf ("    @index:%u\r\n", index);
+                    printf ("    @index:%u\n", index);
                 }
 
                 ++index;
@@ -1574,7 +1574,7 @@ namespace
                 {
                     if (!TEST_ASSERT (expected[index], select_many_result[index]))
                     {
-                        printf ("    @index:%u\r\n", index);
+                        printf ("    @index:%u\n", index);
                     }
                 }
             }
@@ -1608,7 +1608,7 @@ namespace
                 {
                     if (!TEST_ASSERT (expected[index], c.id))
                     {
-                        printf ("    @index:%u\r\n", index);
+                        printf ("    @index:%u\n", index);
                     }
 
                     ++index;
@@ -2661,7 +2661,7 @@ namespace
         auto ratio          = ((double)expected)/result;
         TEST_ASSERT (true, (ratio > 1/ratio_limit && ratio < ratio_limit));
         printf (
-                "Performance numbers for simple sum over numbers, expected:%lld, result:%lld, ratio_limit:%f, ratio:%f\r\n"
+                "Performance numbers for simple sum over numbers, expected:%lld, result:%lld, ratio_limit:%f, ratio:%f\n"
             ,   expected
             ,   result
             ,   ratio_limit
@@ -2719,7 +2719,7 @@ namespace
         auto ratio          = ((double)expected)/result;
         TEST_ASSERT (true, (ratio > 1/ratio_limit && ratio < ratio_limit));
         printf (
-                "Performance numbers for simple sum over numbers, expected:%lld, result:%lld, ratio_limit:%f, ratio:%f\r\n"
+                "Performance numbers for simple sum over numbers, expected:%lld, result:%lld, ratio_limit:%f, ratio:%f\n"
             ,   expected
             ,   result
             ,   ratio_limit
@@ -2809,7 +2809,7 @@ namespace
         auto ratio          = ((double)expected)/result;
         TEST_ASSERT (true, (ratio > 1/ratio_limit && ratio < ratio_limit));
         printf (
-                "Performance numbers for computing primes, expected:%lld, result:%lld, ratio_limit:%f, ratio:%f\r\n"
+                "Performance numbers for computing primes, expected:%lld, result:%lld, ratio_limit:%f, ratio:%f\n"
             ,   expected
             ,   result
             ,   ratio_limit
@@ -2876,11 +2876,11 @@ namespace
         // -------------------------------------------------------------------------
         if (errors == 0)
         {
-            printf ("PASS\r\n");
+            printf ("PASS\n");
         }
         else
         {
-            printf ("FAIL\r\n");
+            printf ("FAIL\n");
         }
         // -------------------------------------------------------------------------
         return errors > 0;
