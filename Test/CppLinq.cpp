@@ -16,16 +16,16 @@
 int main (int argc, char const * argv[])
 {
     printf (
-        "CppLinq test program\r\n"
-        "====================\r\n"
-        "Command line options:\r\n"
-        "f - run functional tests (default)\r\n"
+        "CppLinq test program\n"
+        "====================\n"
+        "Command line options:\n"
+        "f - run functional tests (default)\n"
 #ifndef _DEBUG
-        "p - run functional + performance tests\r\n"
+        "p - run functional + performance tests\n"
 #endif
 #ifdef _MSC_VER
 #   ifdef _DEBUG
-        "m - run memory leak detection test\r\n"
+        "m - run memory leak detection test\n"
 #   endif
 #endif
         );
@@ -40,7 +40,7 @@ int main (int argc, char const * argv[])
 #   ifdef _DEBUG
     case 'm':
         {
-            printf ("Starting memory leak detection test...\r\n");
+            printf ("Starting memory leak detection test...\n");
 
             _CrtMemState before;
             _CrtMemState after;
@@ -84,13 +84,13 @@ int main (int argc, char const * argv[])
 
                _CrtMemDumpStatistics (&diff);
 
-                printf ("Dumping leaked objects...\r\n");
+                printf ("Dumping leaked objects...\n");
 
                 _CrtDumpMemoryLeaks ();
 
                 printf (
-                    "Objects dumped\r\n"
-                    "Note: Some leaks are expected due to CRT allocatations\r\n"
+                    "Objects dumped\n"
+                    "Note: Some leaks are expected due to CRT allocatations\n"
                     );
 
                 _CrtSetReportHook (nullptr);
@@ -102,38 +102,38 @@ int main (int argc, char const * argv[])
                 failures_detected = false;
             }
 
-            printf ("Memory leak detection finished\r\n");
+            printf ("Memory leak detection finished\n");
         }
         break;
 #   endif
 #endif
 #ifndef _DEBUG
     case 'p':
-        printf ("Starting functional + performance tests...\r\n");
+        printf ("Starting functional + performance tests...\n");
 
         failures_detected = run_all_tests (true);
 
-        printf ("Functional + performance tests finished\r\n");
+        printf ("Functional + performance tests finished\n");
         break;
 #endif
     case 'f':
     default:
-        printf ("Starting functional tests...\r\n");
+        printf ("Starting functional tests...\n");
 
         failures_detected = run_all_tests (false);
 
-        printf ("Functional tests finished\r\n");
+        printf ("Functional tests finished\n");
         break;
     }
 
     if (failures_detected)
     {
-        printf ("Tests failed, reporting 101\r\n");
+        printf ("Tests failed, reporting 101\n");
         return 101;
     }
     else
     {
-        printf ("Tests succeeded, reporting 0\r\n");
+        printf ("Tests succeeded, reporting 0\n");
         return 0;
     }
 }
