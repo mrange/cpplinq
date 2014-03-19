@@ -108,7 +108,7 @@ namespace
     };
 
     template <typename T>
-    void ignore (T && v) throw ()
+    void ignore (T && v) CPPLINQ_NOEXCEPT
     {
 
     }
