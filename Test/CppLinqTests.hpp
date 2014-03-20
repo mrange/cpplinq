@@ -18,6 +18,7 @@
 // ----------------------------------------------------------------------------------------------
 #include <algorithm>
 #include <chrono>
+#include <cstdint>
 #include <map>
 #include <numeric>
 #include <string>
@@ -31,6 +32,7 @@
 // ----------------------------------------------------------------------------------------------
 #define TEST_PRELUDE()                  test_prelude(__FILE__, __LINE__, __FUNCTION__)
 #define TEST_ASSERT(expected, found)    test_assert(__FILE__, __LINE__, expected, #expected, found, #found, (expected == found))
+#define PRINT_INDEX(idx)                print_index (#idx, idx);
 // ----------------------------------------------------------------------------------------------
 namespace
 {
@@ -133,7 +135,7 @@ namespace
         return c;
     }
 
-    std::size_t             errors          = 0;
+    std::size_t             errors          = 0U;
 
     std::vector<int>        empty_vector    ;
 
@@ -201,6 +203,10 @@ namespace
     auto                mul_aggregator          = [](int s, int i) {return s*i;};
     auto                to_string               = [](int i) -> std::string {std::stringstream sstr; sstr<<i; return sstr.str ();};
 
+    void print_index (char const * name, std::size_t index)
+    {
+        printf ("    @%s:%u\n", name, static_cast<std::uint32_t> (index));  // VS doesn't support %zu yet
+    }
 
     void test_prelude (
             char const *    file
@@ -314,9 +320,9 @@ namespace
                     "%s(%d): ERROR_EXPECTED: %u(%s), FOUND: %u(%s)\n"
                 ,   file
                 ,   line_no
-                ,   expected
+                ,   static_cast<std::uint32_t> (expected)   // VS doesn't support %zu yet
                 ,   expected_name
-                ,   found
+                ,   static_cast<std::uint32_t> (found)      // VS doesn't support %zu yet
                 ,   found_name
                 );
         }
@@ -342,9 +348,9 @@ namespace
                     "%s(%d): ERROR_EXPECTED: (%u,%s,%s)(%s), FOUND: (%u,%s,%s)(%s)\n"
                 ,   file
                 ,   line_no
-                ,   expected.id, expected.first_name.c_str (), expected.last_name.c_str ()
+                ,   static_cast<std::uint32_t> (expected.id), expected.first_name.c_str (), expected.last_name.c_str () // VS doesn't support %zu yet
                 ,   expected_name
-                ,   found.id, found.first_name.c_str (), found.last_name.c_str ()
+                ,   static_cast<std::uint32_t> (found.id), found.first_name.c_str (), found.last_name.c_str ()  // VS doesn't support %zu yet
                 ,   found_name
                 );
         }
@@ -362,7 +368,7 @@ namespace
         }
         else
         {
-            printf ("    @index:%u\n", index);
+            PRINT_INDEX (index);
         }
     }
 
@@ -501,13 +507,13 @@ namespace
                 auto results = lookup.range_of_values () >> to_vector ();
                 if (TEST_ASSERT (count_of_customers, results.size ()))
                 {
-                    for (auto iter = 0U; iter < count_of_customers; ++iter)
+                    for (std::size_t iter = 0U; iter < count_of_customers; ++iter)
                     {
                         // As customers are sorted on id in the test data set
                         // this is ok
                         if (!TEST_ASSERT (customers[iter].id, results[iter].id))
                         {
-                            printf ("    @index:%u\n", iter);
+                            PRINT_INDEX (iter);
                         }
                     }
                 }
@@ -523,12 +529,12 @@ namespace
 
                     if (!TEST_ASSERT (customer.id, result.id))
                     {
-                        printf ("    @id:%u\n", customer.id);
+                        PRINT_INDEX (customer.id);
                     }
                 }
                 else
                 {
-                    printf ("    @id:%u\n", customer.id);
+                    PRINT_INDEX (customer.id);
                 }
             }
         }
@@ -710,7 +716,7 @@ namespace
             {
                 if (!TEST_ASSERT (index, q.front ()))
                 {
-                        printf ("    @index:%u\n", index);
+                    PRINT_INDEX (index);
                 }
                 ++index;
             }
@@ -755,7 +761,7 @@ namespace
             {
                 if (!TEST_ASSERT (value, r.front ()))
                 {
-                        printf ("    @index:%u\n", total);
+                    PRINT_INDEX (total);
                 }
                 ++total;
             }
@@ -773,7 +779,7 @@ namespace
             {
                 if (!TEST_ASSERT (value, r.front ()))
                 {
-                        printf ("    @index:%u\n", total);
+                    PRINT_INDEX (total);
                 }
                 ++total;
             }
@@ -1256,7 +1262,7 @@ namespace
                     }
                     else
                     {
-                        printf ("    @index:%u\n", index);
+                        PRINT_INDEX (index);
                     }
                 }
             }
@@ -1292,12 +1298,12 @@ namespace
 
                     if (!TEST_ASSERT (customer.id, result.id))
                     {
-                        printf ("    @id:%u\n", customer.id);
+                        PRINT_INDEX (customer.id);
                     }
                 }
                 else
                 {
-                    printf ("    @id:%u\n", customer.id);
+                    PRINT_INDEX (customer.id);
                 }
             }
         }
@@ -1436,12 +1442,12 @@ namespace
                 >>  to_vector ()
                 ;
 
-            auto index = 0U;
+            std::size_t index = 0U;
             for (auto sz : select_result)
             {
                 if (!TEST_ASSERT (customers[index].id, sz))
                 {
-                    printf ("    @index:%u\n", index);
+                    PRINT_INDEX (index);
                 }
 
                 ++index;
@@ -1570,11 +1576,11 @@ namespace
 
             if (TEST_ASSERT (expected.size (), select_many_result.size ()))
             {
-                for (auto index = 0U; index < expected.size (); ++index)
+                for (std::size_t index = 0U; index < expected.size (); ++index)
                 {
                     if (!TEST_ASSERT (expected[index], select_many_result[index]))
                     {
-                        printf ("    @index:%u\n", index);
+                        PRINT_INDEX (index);
                     }
                 }
             }
@@ -1603,12 +1609,12 @@ namespace
             auto sz = sequence.size ();
             if (TEST_ASSERT (test_set_size, sz))
             {
-                auto index = 0U;
+                std::size_t index = 0U;
                 for (auto c : sequence)
                 {
                     if (!TEST_ASSERT (expected[index], c.id))
                     {
-                        printf ("    @index:%u\n", index);
+                        PRINT_INDEX (index);
                     }
 
                     ++index;
