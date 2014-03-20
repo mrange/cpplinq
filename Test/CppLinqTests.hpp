@@ -1424,6 +1424,43 @@ namespace
         }
     }
 
+    void test_ref ()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE ();
+
+        {
+            std::vector<std::reference_wrapper<int const>> ref_result =
+                    from (empty_vector)
+                >>  ref ()
+                >>  to_vector ()
+                ;
+            TEST_ASSERT (0U, ref_result.size ());
+        }
+
+        {
+            std::vector<std::reference_wrapper<customer const>> ref_result =
+                    from_array (customers)
+                >>  ref ()
+                >>  to_vector ()
+                ;
+
+            auto index = 0U;
+            for (auto customer : ref_result)
+            {
+                if (!TEST_ASSERT (customers[index].id, customer.get ().id))
+                {
+                    PRINT_INDEX (index);
+                }
+
+                ++index;
+            }
+
+            TEST_ASSERT (count_of_customers, ref_result.size ());
+        }
+    }
+
     void test_select ()
     {
         using namespace cpplinq;
@@ -2852,6 +2889,7 @@ namespace
         test_to_list                ();
         test_container              ();
         test_where                  ();
+        test_ref                    ();
         test_select                 ();
         test_select_many            ();
         test_join                   ();

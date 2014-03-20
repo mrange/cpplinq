@@ -1833,6 +1833,88 @@ namespace cpplinq
 
         // -------------------------------------------------------------------------
 
+        template<typename TRange>
+        struct ref_range : base_range
+        {
+            typedef        std::reference_wrapper<
+                                typename TRange::value_type const>  value_type  ;
+            typedef                 value_type                      return_type ;
+            enum
+            {
+                returns_reference   = 0   ,
+            };
+
+            typedef                 ref_range<TRange>               this_type   ;
+            typedef                 TRange                          range_type  ;
+
+            range_type              range       ;
+
+            CPPLINQ_INLINEMETHOD ref_range (
+                    range_type      range
+                ) CPPLINQ_NOEXCEPT
+                :   range       (std::move (range))
+            {
+                static_assert (
+                        TRange::returns_reference
+                    ,   "ref may only follow a range that returns references"
+                    );
+            }
+
+            CPPLINQ_INLINEMETHOD ref_range (ref_range const & v)
+                :   range       (v.range)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD ref_range (ref_range && v) CPPLINQ_NOEXCEPT
+                :   range       (std::move (v.range))
+            {
+            }
+
+            template<typename TRangeBuilder>
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const
+            {
+                return range_builder.build (*this);
+            }
+
+            CPPLINQ_INLINEMETHOD return_type front () const
+            {
+                return value_type (range.front ());
+            }
+
+            CPPLINQ_INLINEMETHOD bool next ()
+            {
+                return range.next ();
+            }
+        };
+
+        struct ref_builder : base_builder
+        {
+            typedef                 ref_builder this_type   ;
+
+            CPPLINQ_INLINEMETHOD ref_builder () CPPLINQ_NOEXCEPT
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD ref_builder (ref_builder const & v)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD ref_builder (ref_builder && v) CPPLINQ_NOEXCEPT
+            {
+            }
+
+            template<typename TRange>
+            CPPLINQ_INLINEMETHOD ref_range<TRange> build (TRange range) const
+            {
+                return ref_range<TRange>(std::move (range));
+            }
+
+        };
+
+        // -------------------------------------------------------------------------
+
+        // -------------------------------------------------------------------------
+
         template<typename TRange, typename TPredicate>
         struct select_range : base_range
         {
@@ -4982,6 +5064,11 @@ namespace cpplinq
     }
 
     // Projection operators
+
+    CPPLINQ_INLINEMETHOD detail::ref_builder ref () CPPLINQ_NOEXCEPT
+    {
+        return detail::ref_builder ();
+    }
 
     template<typename TPredicate>
     CPPLINQ_INLINEMETHOD detail::select_builder<TPredicate> select (
