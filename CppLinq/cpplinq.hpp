@@ -966,7 +966,7 @@ namespace cpplinq
                     std::sort (
                             sorted_values.begin ()
                         ,   sorted_values.end ()
-                        ,   [=] (value_type const & l, value_type const & r)
+                        ,   [this] (value_type const & l, value_type const & r)
                             {
                                 return this->compare_values (l,r);
                             }
@@ -1143,7 +1143,7 @@ namespace cpplinq
                     std::sort (
                             sorted_values.begin ()
                         ,   sorted_values.end ()
-                        ,   [=] (value_type const & l, value_type const & r)
+                        ,   [this] (value_type const & l, value_type const & r)
                             {
                                 return this->compare_values (l,r);
                             }
