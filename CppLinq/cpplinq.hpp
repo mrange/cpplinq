@@ -2928,6 +2928,7 @@ namespace cpplinq
                         return true;
                     }
 
+                    state = state_end;
                     return false;
                 case state_iterating_range:
                     if (range.next ())
@@ -2941,6 +2942,7 @@ namespace cpplinq
                         return true;
                     }
 
+                    state = state_end;
                     return false;
                 case state_iterating_other_range:
                     if (other_range.next ())
@@ -2948,6 +2950,7 @@ namespace cpplinq
                         return true;
                     }
 
+                    state = state_end;
                     return false;
                 case state_end:
                 default:
@@ -3495,11 +3498,6 @@ namespace cpplinq
             CPPLINQ_METHOD lookup_range operator[](key_type const & key) const CPPLINQ_NOEXCEPT
             {
                 if (values.empty ())
-                {
-                    return lookup_range (std::addressof (values), 0U, 0U);
-                }
-
-                if (keys.empty ())
                 {
                     return lookup_range (std::addressof (values), 0U, 0U);
                 }

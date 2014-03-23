@@ -597,6 +597,7 @@ namespace
                 TEST_ASSERT (0U, results.size ());
             }
         }
+
     }
 
     void test_from ()
@@ -1358,6 +1359,16 @@ namespace
                 TEST_ASSERT (0U, results.size ());
             }
         }
+
+        // code coverage test
+        {
+            auto lookup = empty<int>() >> to_lookup ([] (int i) {return i;});
+
+            auto q = lookup[999];
+
+            TEST_ASSERT (false, q.next ());
+            TEST_ASSERT (false, q.next ());
+        }
     }
 
     void test_to_list ()
@@ -1439,6 +1450,11 @@ namespace
         {
             auto c = from_array (ints) >> where (is_even) >> count ();
             TEST_ASSERT (even_count_of_ints, c);
+        }
+
+        {
+            auto v = from_array (ints) >> where (is_even) >> first_or_default ();
+            TEST_ASSERT (4, v);
         }
     }
 
@@ -1654,6 +1670,16 @@ namespace
             TEST_ASSERT (0U, c);
         }
 
+        {
+            auto c = 
+                    from (empty_customers) 
+                >>  orderby_ascending ([] (customer const & c) {return c.last_name;})
+                >>  thenby_ascending ([] (customer const & c) {return c.first_name;})
+                >>  count ()
+                ;
+            TEST_ASSERT (0U, c);
+        }
+
         const std::size_t test_set_size = 7;
 
         auto verify = [=](
@@ -1814,6 +1840,14 @@ namespace
                 TEST_ASSERT (expected[i], result[i]);
             }
         }
+
+        // code coverage test
+        {
+            auto q = empty<int>() >> reverse ();
+
+            TEST_ASSERT (false, q.next ());
+            TEST_ASSERT (false, q.next ());
+        }
     }
 
     void test_skip ()
@@ -1844,6 +1878,14 @@ namespace
                 ++index;
             }
             TEST_ASSERT (count_of_ints, index);
+        }
+
+        // code coverage test
+        {
+            auto q = from (empty_vector) >> skip (1);
+
+            TEST_ASSERT (false, q.next ());
+            TEST_ASSERT (false, q.next ());
         }
     }
 
@@ -1906,6 +1948,11 @@ namespace
             }
             TEST_ASSERT (5U, index);
         }
+        {
+            auto c = from_array (ints) >> take (5) >> count ();
+
+            TEST_ASSERT (5U, c);
+        }
     }
 
     void test_take_while ()
@@ -1936,6 +1983,14 @@ namespace
                 ++index;
             }
             TEST_ASSERT (4U, index);
+        }
+
+        // code coverage test
+        {
+            auto q = from_array (ints) >> take_while ([] (int i) {return i < 0;});
+
+            TEST_ASSERT (false, q.next ());
+            TEST_ASSERT (false, q.next ());
         }
     }
 
@@ -2259,6 +2314,14 @@ namespace
                TEST_ASSERT (expected[i], result[i]);
             }
         }
+
+        // code coverage test
+        {
+            auto q = from (empty_vector) >> intersect_with (from (empty_vector) );
+
+            TEST_ASSERT (false, q.next ());
+            TEST_ASSERT (false, q.next ());
+        }
     }
 
     void test_except ()
@@ -2431,6 +2494,13 @@ namespace
             }
         }
 
+        // code coverage test
+        {
+            auto q = empty<int>() >> concat (empty<int>());
+
+            TEST_ASSERT (false, q.next ());
+            TEST_ASSERT (false, q.next ());
+        }
     }
 
     void test_sequence_equal ()
