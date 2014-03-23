@@ -13,4 +13,7 @@
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="CppLinqTest.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="CodeCoverage.runsettings" />
+  </ItemGroup>
 </Project>

@@ -393,6 +393,22 @@ namespace
             TEST_ASSERT (true, (bool)o2);
             TEST_ASSERT (10, *o2);
 
+            o1 = o1;
+            o2 = o2;
+            TEST_ASSERT (false, o1.has_value ());
+            TEST_ASSERT (false, o1);
+            TEST_ASSERT (true, o2.has_value ());
+            TEST_ASSERT (true, (bool)o2);
+            TEST_ASSERT (10, *o2);
+
+            o1 = std::move (o1);
+            o2 = std::move (o2);
+            TEST_ASSERT (false, o1.has_value ());
+            TEST_ASSERT (false, o1);
+            TEST_ASSERT (true, o2.has_value ());
+            TEST_ASSERT (true, (bool)o2);
+            TEST_ASSERT (10, *o2);
+
             opt<int> o3 (o2);
             opt<int> o4 (o1);
             o3.swap (o4);
@@ -408,6 +424,8 @@ namespace
             TEST_ASSERT (10, *o1);
             TEST_ASSERT (false, o2.has_value ());
             TEST_ASSERT (false, o2);
+
+
 
             o2 = o1;
             TEST_ASSERT (true, o1.has_value ());
@@ -1660,6 +1678,46 @@ namespace
             }
         };
 
+        {
+            std::size_t expected[] =
+                {
+                    1,
+                    2,
+                    3,
+                    4,
+                    11,
+                    12,
+                    21,
+                };
+
+            auto sequence =
+                    from_array (customers)
+                >>  orderby_ascending ([] (customer const & c) {return c.id;})
+                >>  to_vector ()
+                ;
+
+            verify (expected, sequence);
+        }
+        {
+            std::size_t expected[] =
+                {
+                    21,
+                    12,
+                    11,
+                    4,
+                    3,
+                    2,
+                    1,
+                };
+
+            auto sequence =
+                    from_array (customers)
+                >>  orderby_descending ([] (customer const & c) {return c.id;})
+                >>  to_vector ()
+                ;
+
+            verify (expected, sequence);
+        }
         {
             std::size_t expected[] =
                 {
