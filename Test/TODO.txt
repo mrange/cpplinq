@@ -1,8 +1,4 @@
 ﻿NEXT:25
-23. Document first ()
-24. Document ref ()
-8.  Document select_many () 
-12. Document - How to build a range source
 4.  to_map should accept a value selector predicate
 22. Do we use cleanup_type overzeolously? It adds performance impact going value_type when reference type would work 
 7.  Fix container range aggregator iterator semantics
