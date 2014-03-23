@@ -1,5 +1,5 @@
-ï»¿// ----------------------------------------------------------------------------------------------
-// Copyright (c) MÃ¥rten RÃ¥nge.
+// ----------------------------------------------------------------------------------------------
+// Copyright (c) Mårten Rånge.
 // ----------------------------------------------------------------------------------------------
 // This source code is subject to terms and conditions of the Microsoft Public License. A 
 // copy of the license can be found in the License.html file at the root of this distribution. 
@@ -9,24 +9,21 @@
 // ----------------------------------------------------------------------------------------------
 // You must not remove this notice, or any other, from this software.
 // ----------------------------------------------------------------------------------------------
-#include "stdafx.h"
+#pragma once
 // ----------------------------------------------------------------------------------------------
-#include "../CppLinq/cpplinq.hpp"
+#include <stdio.h>
 // ----------------------------------------------------------------------------------------------
-int main (int argc, char* args[])
-{
-    using namespace cpplinq;
-    auto begin = args;
-    auto end = args + argc;
-
-    auto result = from_iterators (begin, end)
-        >> skip (1)
-        >> select ([] (char * cs) {return strlen (cs);})
-        >> sum ()
-        ;
-
-    printf ("%d\n", result);
-
-    return 0;
-}
+#include <algorithm>
+#include <chrono>
+#include <cassert>
+#include <climits>
+#include <exception>
+#include <iterator>
+#include <list>
+#include <map>
+#include <numeric>
+#include <set>
+#include <string>
+#include <type_traits>
+#include <vector>
 // ----------------------------------------------------------------------------------------------

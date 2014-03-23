@@ -1,1 +1,1 @@
-clang++ -std=c++11 -O2 -Wall CppLinq.cpp -o cpplinq.clang++
+clang++ -std=c++11 -O2 -Wall -Wformat=2 -Wformat-security -Wpedantic CppLinq.cpp -o cpplinq.clang++
