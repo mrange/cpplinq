@@ -38,9 +38,18 @@
                                         // other predicates are reachable.
 #endif
 // ----------------------------------------------------------------------------
-#define CPPLINQ_METHOD
-#define CPPLINQ_INLINEMETHOD inline
-#define CPPLINQ_NOEXCEPT throw ()
+#ifndef CPPLINQ_ASSERT
+#   define CPPLINQ_ASSERT(expr) assert(expr)
+#endif
+#ifndef CPPLINQ_METHOD
+#   define CPPLINQ_METHOD
+#endif
+#ifndef CPPLINQ_INLINEMETHOD
+#   define CPPLINQ_INLINEMETHOD inline
+#endif
+#ifndef CPPLINQ_NOEXCEPT
+#   define CPPLINQ_NOEXCEPT throw ()
+#endif
 // ----------------------------------------------------------------------------
 
 // TODO:    Struggled with getting slice protection
@@ -280,13 +289,13 @@ namespace cpplinq
 
             CPPLINQ_INLINEMETHOD value_type const & get () const CPPLINQ_NOEXCEPT
             {
-                assert (is_initialized);
+                CPPLINQ_ASSERT (is_initialized);
                 return *get_ptr ();
             }
 
             CPPLINQ_INLINEMETHOD value_type & get () CPPLINQ_NOEXCEPT
             {
-                assert (is_initialized);
+                CPPLINQ_ASSERT (is_initialized);
                 return *get_ptr ();
             }
 
@@ -487,8 +496,8 @@ namespace cpplinq
 
             CPPLINQ_INLINEMETHOD return_type front () const
             {
-                assert (current != upcoming);
-                assert (current != end);
+                CPPLINQ_ASSERT (current != upcoming);
+                CPPLINQ_ASSERT (current != end);
 
                 return *current;
             }
@@ -574,8 +583,8 @@ namespace cpplinq
 
             CPPLINQ_INLINEMETHOD return_type front () const
             {
-                assert (current != upcoming);
-                assert (current != end);
+                CPPLINQ_ASSERT (current != upcoming);
+                CPPLINQ_ASSERT (current != end);
 
                 return *current;
             }
@@ -757,7 +766,7 @@ namespace cpplinq
 
             CPPLINQ_INLINEMETHOD return_type front () const
             {
-                assert (false);
+                CPPLINQ_ASSERT (false);
                 throw programming_error_exception ();
             }
 
@@ -1255,8 +1264,8 @@ namespace cpplinq
 
             CPPLINQ_INLINEMETHOD return_type front () const CPPLINQ_NOEXCEPT
             {
-                assert (!start);
-                assert (!reversed.empty ());
+                CPPLINQ_ASSERT (!start);
+                CPPLINQ_ASSERT (!reversed.empty ());
                 return reversed[reversed.size () - 1];
             }
 
@@ -2079,7 +2088,7 @@ namespace cpplinq
 
             CPPLINQ_INLINEMETHOD return_type front () const
             {
-                assert (inner_range);
+                CPPLINQ_ASSERT (inner_range);
                 return inner_range->front ();
             }
 
@@ -2240,7 +2249,7 @@ namespace cpplinq
 
             CPPLINQ_INLINEMETHOD return_type front () const
             {
-                assert (current != map.end ());
+                CPPLINQ_ASSERT (current != map.end ());
                 return combiner (range.front (), current->second);
             }
 
@@ -2629,7 +2638,7 @@ namespace cpplinq
 
             CPPLINQ_INLINEMETHOD return_type front () const
             {
-                assert (!start);
+                CPPLINQ_ASSERT (!start);
                 return *current;
             }
 
@@ -2894,7 +2903,7 @@ namespace cpplinq
                 case state_initial:
                 case state_end:
                 default:
-                    assert (false);       // Intentionally falls through
+                    CPPLINQ_ASSERT (false);       // Intentionally falls through
                 case state_iterating_range:
                     return range.front ();
                 case state_iterating_other_range:
@@ -2919,6 +2928,7 @@ namespace cpplinq
                         return true;
                     }
 
+                    state = state_end;
                     return false;
                 case state_iterating_range:
                     if (range.next ())
@@ -2932,6 +2942,7 @@ namespace cpplinq
                         return true;
                     }
 
+                    state = state_end;
                     return false;
                 case state_iterating_other_range:
                     if (other_range.next ())
@@ -2939,6 +2950,7 @@ namespace cpplinq
                         return true;
                     }
 
+                    state = state_end;
                     return false;
                 case state_end:
                 default:
@@ -3031,8 +3043,8 @@ namespace cpplinq
 
                 CPPLINQ_INLINEMETHOD return_type        operator* () const
                 {
-                    assert (has_value);
-                    assert (range);
+                    CPPLINQ_ASSERT (has_value);
+                    CPPLINQ_ASSERT (range);
                     return range->front ();
                 }
 
@@ -3422,7 +3434,7 @@ namespace cpplinq
                     ,   end     (end)
                     ,   state   (state_initial)
                 {
-                    assert (values);
+                    CPPLINQ_ASSERT (values);
                 }
 
                 CPPLINQ_INLINEMETHOD lookup_range (lookup_range const & v) CPPLINQ_NOEXCEPT
@@ -3449,8 +3461,8 @@ namespace cpplinq
 
                 CPPLINQ_INLINEMETHOD return_type front () const CPPLINQ_NOEXCEPT
                 {
-                    assert (state == state_iterating);
-                    assert (iter < end);
+                    CPPLINQ_ASSERT (state == state_iterating);
+                    CPPLINQ_ASSERT (iter < end);
 
                     return (*values)[iter];
                 }
@@ -3486,11 +3498,6 @@ namespace cpplinq
             CPPLINQ_METHOD lookup_range operator[](key_type const & key) const CPPLINQ_NOEXCEPT
             {
                 if (values.empty ())
-                {
-                    return lookup_range (std::addressof (values), 0U, 0U);
-                }
-
-                if (keys.empty ())
                 {
                     return lookup_range (std::addressof (values), 0U, 0U);
                 }
@@ -4780,8 +4787,8 @@ namespace cpplinq
 
             CPPLINQ_INLINEMETHOD return_type front () const
             {
-                assert (previous.has_value ());
-                assert (current.has_value ());
+                CPPLINQ_ASSERT (previous.has_value ());
+                CPPLINQ_ASSERT (current.has_value ());
                 return std::make_pair (previous.get (), current.get ());
             }
 
@@ -4975,7 +4982,7 @@ namespace cpplinq
 
             CPPLINQ_INLINEMETHOD return_type front () const
             {
-                assert (current_value);
+                CPPLINQ_ASSERT (current_value);
                 return *current_value;
             }
 

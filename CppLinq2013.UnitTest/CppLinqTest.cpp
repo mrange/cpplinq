@@ -12,6 +12,9 @@
 #include "stdafx.h"
 #include "CppUnitTest.h"
 // ----------------------------------------------------------------------------------------------
+// In order to suppress code coverage of assert macros
+#define CPPLINQ_ASSERT(expr)
+// ----------------------------------------------------------------------------------------------
 #include "../Test/CppLinqTests.hpp"
 // ----------------------------------------------------------------------------------------------
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
