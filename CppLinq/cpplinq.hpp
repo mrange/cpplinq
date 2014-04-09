@@ -304,6 +304,7 @@ namespace cpplinq
                 return is_initialized;
             }
 
+            // TODO: To be replaced with explicit operator bool ()
             typedef bool (opt::*type_safe_bool_type) () const;
 
             CPPLINQ_INLINEMETHOD operator type_safe_bool_type () const CPPLINQ_NOEXCEPT
