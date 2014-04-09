@@ -23,4 +23,5 @@ CppLinq2013.UnitTest/Intermediate2013/
 ipch/
 _Resharper.CppLinq/
 Test/cpplinq.*
+TestResults/
 
