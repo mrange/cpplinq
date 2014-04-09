@@ -1,7 +1,7 @@
 cpplinq - LINQ-like list manipulations for C++11
 ================================================
 
-LINQ for C++ is an attempt to bring LINQ-like list manipulation to C++11.
+LINQ for C++ (cpplinq) is an extensible C++11 library of higher-order functions for range manipulation. cpplinq draws inspiration from LINQ for C#.
 
 ```cpp
 #include "cpplinq.hpp"
