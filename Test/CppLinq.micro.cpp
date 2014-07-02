@@ -1,10 +1,10 @@
 // ----------------------------------------------------------------------------------------------
 // Copyright (c) Mårten Rånge.
 // ----------------------------------------------------------------------------------------------
-// This source code is subject to terms and conditions of the Microsoft Public License. A 
-// copy of the license can be found in the License.html file at the root of this distribution. 
-// If you cannot locate the  Microsoft Public License, please send an email to 
-// dlr@microsoft.com. By using this source code in any fashion, you are agreeing to be bound 
+// This source code is subject to terms and conditions of the Microsoft Public License. A
+// copy of the license can be found in the License.html file at the root of this distribution.
+// If you cannot locate the  Microsoft Public License, please send an email to
+// dlr@microsoft.com. By using this source code in any fashion, you are agreeing to be bound
 //  by the terms of the Microsoft Public License.
 // ----------------------------------------------------------------------------------------------
 // You must not remove this notice, or any other, from this software.
@@ -26,7 +26,7 @@
 #include <type_traits>
 #include <vector>
 // ----------------------------------------------------------------------------------------------
-#ifdef _MSC_VER 
+#ifdef _MSC_VER
 #   pragma warning (disable:4100)
 #   pragma warning (disable:4996)
 #endif
@@ -49,7 +49,7 @@
 // ----------------------------------------------------------------------------------------------
 #define TEST_PRELUDE()                  test_prelude(__FILE__, __LINE__, __FUNCTION__)
 #define TEST_ASSERT(expected, found)    test_assert(__FILE__, __LINE__, expected, #expected, found, #found, (expected == found))
-// ---------------------------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------------------------
 namespace
 {
 
@@ -104,7 +104,7 @@ namespace
             return !(*this == c);
         }
 
-        bool operator<(customer const & c) const 
+        bool operator<(customer const & c) const
         {
             return id < c.id;
         }
@@ -146,12 +146,12 @@ namespace
     }
 
     std::size_t             errors          = 0;
-    
+
     std::vector<int>        empty_vector    ;
 
     std::vector<customer>   empty_customers ;
 
-    customer                customers[] = 
+    customer                customers[] =
         {
             customer (1 , "Bill"    , "Gates"   ),
             customer (2 , "Steve"   , "Jobs"    ),
@@ -163,7 +163,7 @@ namespace
 
             customer (21, "Melinda" , "Gates"   ),
         };
-    int const           count_of_customers  = get_array_size (customers); 
+    int const           count_of_customers  = get_array_size (customers);
 
     customer_address        customer_addresses[] =
         {
@@ -171,9 +171,9 @@ namespace
             customer_address (3, 4, "USA"       ),
             customer_address (1, 1, "USA"       ),
         };
-    int const           count_of_customer_addresses = get_array_size (customer_addresses); 
+    int const           count_of_customer_addresses = get_array_size (customer_addresses);
 
-    customer                customers_set1[] = 
+    customer                customers_set1[] =
         {
             customer (1 , "Bill"    , "Gates"   ),
             customer (2 , "Steve"   , "Jobs"    ),
@@ -184,7 +184,7 @@ namespace
             customer (1 , "Bill"    , "Gates"   ),
         };
 
-    customer                customers_set2[] = 
+    customer                customers_set2[] =
         {
             customer (1 , "Bill"    , "Gates"   ),
             customer (11, "Steve"   , "Ballmer" ),
@@ -444,7 +444,7 @@ namespace
             TEST_ASSERT (true, (bool)o2);
             TEST_ASSERT ("Test", *o2);
             TEST_ASSERT (4, (int)o2->size ());
-        
+
             o1 = "Test2";
             o2 = "Test3";
             TEST_ASSERT (true, o1.has_value ());
@@ -475,7 +475,7 @@ namespace
             lookup<size_type, customer> lookup (
                     16U
                 ,   from (empty_customers)
-                ,   [] (customer const & c){return c.id;} 
+                ,   [] (customer const & c){return c.id;}
                 );
 
             TEST_ASSERT (0, (int)lookup.size_of_keys ());
@@ -496,7 +496,7 @@ namespace
             lookup<size_type, customer> lookup (
                     16U
                 ,   from_array (customers)
-                ,   [] (customer const & c){return c.id;} 
+                ,   [] (customer const & c){return c.id;}
                 );
 
             TEST_ASSERT (count_of_customers, (int)lookup.size_of_keys ());
@@ -542,7 +542,7 @@ namespace
             lookup<size_type, customer_address> lookup (
                     16U
                 ,   from_array (customer_addresses)
-                ,   [] (customer_address const & ca){return ca.customer_id;} 
+                ,   [] (customer_address const & ca){return ca.customer_id;}
                 );
 
             TEST_ASSERT (2, (int)lookup.size_of_keys ());
@@ -591,7 +591,7 @@ namespace
 
             typedef decltype (q.front ())   return_type;
             static_assert (
-                    std::is_reference<return_type>::value 
+                    std::is_reference<return_type>::value
                 ,   "from::front () must return reference"
                 );
 
@@ -609,7 +609,7 @@ namespace
 
             typedef decltype (q.front ())   return_type;
             static_assert (
-                    std::is_reference<return_type>::value 
+                    std::is_reference<return_type>::value
                 ,   "from::front () must return reference"
                 );
 
@@ -627,7 +627,7 @@ namespace
 
             typedef decltype (q.front ())   return_type;
             static_assert (
-                    std::is_reference<return_type>::value 
+                    std::is_reference<return_type>::value
                 ,   "from::front () must return reference"
                 );
 
@@ -646,7 +646,7 @@ namespace
 
             typedef decltype (q.front ())   return_type;
             static_assert (
-                    std::is_reference<return_type>::value 
+                    std::is_reference<return_type>::value
                 ,   "from::front () must return reference"
                 );
 
@@ -663,7 +663,7 @@ namespace
             auto q = from_array (customers);
             typedef decltype (q.front ())   return_type;
             static_assert (
-                    std::is_reference<return_type>::value 
+                    std::is_reference<return_type>::value
                 ,   "front () must return non-reference when value_type = customer"
                 );
         }
@@ -672,7 +672,7 @@ namespace
             auto q = from_copy (cs);
             typedef decltype (q.front ())   return_type;
             static_assert (
-                    std::is_reference<return_type>::value 
+                    std::is_reference<return_type>::value
                 ,   "front () must return non-reference when value_type = customer"
                 );
         }
@@ -693,7 +693,7 @@ namespace
 
             typedef decltype (q.front ())   return_type;
             static_assert (
-                    !std::is_reference<return_type>::value 
+                    !std::is_reference<return_type>::value
                 ,   "front () must return non-reference when value_type = int"
                 );
 
@@ -720,7 +720,7 @@ namespace
 
             typedef decltype (r.front ())   return_type;
             static_assert (
-                    !std::is_reference<return_type>::value 
+                    !std::is_reference<return_type>::value
                 ,   "front () must return non-reference when value_type = int"
                 );
 
@@ -738,7 +738,7 @@ namespace
 
             typedef decltype (r.front ())   return_type;
             static_assert (
-                    !std::is_reference<return_type>::value 
+                    !std::is_reference<return_type>::value
                 ,   "front () must return non-reference when value_type = int"
                 );
 
@@ -783,7 +783,7 @@ namespace
 
             typedef decltype (r.front ())   return_type;
             static_assert (
-                    !std::is_reference<return_type>::value 
+                    !std::is_reference<return_type>::value
                 ,   "front () must return non-reference when value_type = int"
                 );
 
@@ -1035,8 +1035,8 @@ namespace
         TEST_PRELUDE ();
 
         {
-            std::wstring concatenate_result = 
-                    from (empty_vector) 
+            std::wstring concatenate_result =
+                    from (empty_vector)
                 >>  select ([] (int i){return std::wstring ();})
                 >>  concatenate (L"")
                 ;
@@ -1044,8 +1044,8 @@ namespace
         }
 
         {
-            std::string concatenate_result = 
-                    from_array (customers) 
+            std::string concatenate_result =
+                    from_array (customers)
                 >>  select ([](customer const & c){return c.last_name;})
                 >>  concatenate (", ")
                 ;
@@ -1172,14 +1172,14 @@ namespace
         TEST_PRELUDE ();
 
         {
-            auto lookup = from (empty_customers) >> to_lookup ([] (customer const & c){return c.id;}); 
+            auto lookup = from (empty_customers) >> to_lookup ([] (customer const & c){return c.id;});
 
             TEST_ASSERT (0, (int)lookup.size_of_keys ());
             TEST_ASSERT (0, (int)lookup.size_of_values ());
         }
 
         {
-            auto lookup = from_array (customers) >> to_lookup ([] (customer const & c){return c.id;}); 
+            auto lookup = from_array (customers) >> to_lookup ([] (customer const & c){return c.id;});
 
             TEST_ASSERT (count_of_customers, (int)lookup.size_of_keys ());
             TEST_ASSERT (count_of_customers, (int)lookup.size_of_values ());
@@ -1204,7 +1204,7 @@ namespace
         }
 
         {
-            auto lookup = from_array (customer_addresses) >> to_lookup ([] (customer_address const & ca){return ca.customer_id;}); 
+            auto lookup = from_array (customer_addresses) >> to_lookup ([] (customer_address const & ca){return ca.customer_id;});
 
             TEST_ASSERT (2, (int)lookup.size_of_keys ());
             TEST_ASSERT (count_of_customer_addresses, (int)lookup.size_of_values ());
@@ -1331,9 +1331,9 @@ namespace
         }
 
         {
-            std::vector<std::size_t> select_result = 
-                    from_array (customers) 
-                >>  select ([](customer const & c){return c.id;}) 
+            std::vector<std::size_t> select_result =
+                    from_array (customers)
+                >>  select ([](customer const & c){return c.id;})
                 >>  to_vector ()
                 ;
 
@@ -1444,16 +1444,16 @@ namespace
         TEST_PRELUDE ();
 
         {
-            std::vector<char> select_many_result = 
-                    from_iterators (customers, customers) 
-                >>  select_many ([](customer const & c){return from (c.last_name);}) 
+            std::vector<char> select_many_result =
+                    from_iterators (customers, customers)
+                >>  select_many ([](customer const & c){return from (c.last_name);})
                 >>  to_vector ()
                 ;
 
             TEST_ASSERT (0, (int)select_many_result.size ());
         }
         {
-            std::vector<char> expected; 
+            std::vector<char> expected;
             for (auto customer : customers)
             {
                 expected.insert (
@@ -1463,9 +1463,9 @@ namespace
                     );
             }
 
-            std::vector<char> select_many_result = 
-                    from_array (customers) 
-                >>  select_many ([](customer const & c){return from (c.last_name);}) 
+            std::vector<char> select_many_result =
+                    from_array (customers)
+                >>  select_many ([](customer const & c){return from (c.last_name);})
                 >>  to_vector ()
                 ;
 
@@ -1519,7 +1519,7 @@ namespace
         };
 
         {
-            int expected[] = 
+            int expected[] =
                 {
                     11,
                     12,
@@ -1530,8 +1530,8 @@ namespace
                     4,
                 };
 
-            auto sequence = 
-                    from_array (customers) 
+            auto sequence =
+                    from_array (customers)
                 >>  orderby_ascending ([] (customer const & c) {return c.last_name;})
                 >>  thenby_ascending ([] (customer const & c) {return c.first_name;})
                 >>  to_vector ()
@@ -1540,7 +1540,7 @@ namespace
             verify (expected, sequence);
         }
         {
-            int expected[] = 
+            int expected[] =
                 {
                     4,
                     3,
@@ -1551,8 +1551,8 @@ namespace
                     11,
                 };
 
-            auto sequence = 
-                    from_array (customers) 
+            auto sequence =
+                    from_array (customers)
                 >>  orderby_descending ([] (customer const & c) {return c.last_name;})
                 >>  thenby_descending ([] (customer const & c) {return c.first_name;})
                 >>  to_vector ()
@@ -1561,7 +1561,7 @@ namespace
             verify (expected, sequence);
         }
         {
-            int expected[] = 
+            int expected[] =
                 {
                     11,
                     12,
@@ -1572,8 +1572,8 @@ namespace
                     4,
                 };
 
-            auto sequence = 
-                    from_array (customers) 
+            auto sequence =
+                    from_array (customers)
                 >>  orderby ([] (customer const & c) {return c.last_name;}, true)
                 >>  thenby ([] (customer const & c) {return c.first_name;}, false)
                 >>  to_vector ()
@@ -1756,8 +1756,8 @@ namespace
         }
 
         {
-            bool result = 
-                from (empty_customers) 
+            bool result =
+                from (empty_customers)
                 >> contains (
                     customer (1, "Bill", "Gates"),
                     [](customer const& c1, customer const& c2) {return c1.id == c2.id;});
@@ -1766,8 +1766,8 @@ namespace
         }
 
         {
-            bool result = 
-                from_array (customers) 
+            bool result =
+                from_array (customers)
                 >> contains (
                     customer (1, "Bill", "Gates"),
                     [](customer const& c1, customer const& c2) {return c1.id == c2.id;});
@@ -1776,8 +1776,8 @@ namespace
         }
 
         {
-            bool result = 
-                from_array (customers) 
+            bool result =
+                from_array (customers)
                 >> contains (
                     customer (42, "Bill", "Gates"),
                     [](customer const& c1, customer const& c2) {return c1.id == c2.id;});
@@ -1870,12 +1870,12 @@ namespace
         using namespace cpplinq;
 
         TEST_PRELUDE ();
-        
+
         {
             auto d = from (empty_vector) >> distinct () >> to_vector ();
             TEST_ASSERT (0, (int)d.size ());
         }
-        
+
         {
             int expected[] = {5,4,3,2,1};
             const int expected_size = (int)(sizeof (expected)/sizeof (int));
@@ -1902,7 +1902,7 @@ namespace
         using namespace cpplinq;
 
         TEST_PRELUDE ();
-        
+
         // union of two empty ranges
         {
             auto result = from (empty_vector) >> union_with (from (empty_vector) ) >> to_vector ();
@@ -1975,7 +1975,7 @@ namespace
         using namespace cpplinq;
 
         TEST_PRELUDE ();
-        
+
         // intersection of two empty ranges
         {
             auto result = from (empty_vector) >> intersect_with (from (empty_vector) ) >> to_vector ();
@@ -2043,7 +2043,7 @@ namespace
         using namespace cpplinq;
 
         TEST_PRELUDE ();
-        
+
         // difference of two empty ranges
         {
             auto result = from (empty_vector) >> except (from (empty_vector)) >> to_vector ();
@@ -2265,7 +2265,7 @@ namespace
             TEST_ASSERT (true, result);
         }
 
-        auto comparer = [](customer const& c1, customer const& c2) 
+        auto comparer = [](customer const& c1, customer const& c2)
         {return c1.first_name == c2.first_name && c1.last_name == c2.last_name;};
 
         customer customers1[] = {
@@ -2357,7 +2357,7 @@ namespace
 
         srand (19740531);
 
-        auto test_set = 
+        auto test_set =
                 range (0, test_size)
             >>  select ([] (int i){return rand ();})
             >>  to_vector (test_size)
@@ -2387,13 +2387,13 @@ namespace
                         >>  sum ()
                         ;
                     result_complete_sum += set_sum;
-                }                 
+                }
             );
 
         printf ("Expected sum: %d\r\n", expected_complete_sum);
         printf ("Result sum: %d\r\n", result_complete_sum);
 
-        auto ratio_limit    = 3.0; 
+        auto ratio_limit    = 3.0;
         auto ratio          = ((double)expected)/result;
         TEST_ASSERT (true, (ratio > 1/ratio_limit && ratio < ratio_limit));
         printf (
@@ -2476,10 +2476,10 @@ namespace
 
                     // To suppress not used warnings
                     prime_sum = prime_sum;
-                }                 
+                }
             );
 
-        auto ratio_limit    = 1.25; 
+        auto ratio_limit    = 1.25;
         auto ratio          = ((double)expected)/result;
         TEST_ASSERT (true, (ratio > 1/ratio_limit && ratio < ratio_limit));
         printf (
@@ -2554,7 +2554,7 @@ namespace
         return errors > 0;
         // -------------------------------------------------------------------------
     }
-} 
+}
 
 
 
