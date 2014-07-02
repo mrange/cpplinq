@@ -1654,8 +1654,8 @@ namespace
         }
 
         {
-            auto c = 
-                    from (empty_customers) 
+            auto c =
+                    from (empty_customers)
                 >>  orderby_ascending ([] (customer const & c) {return c.last_name;})
                 >>  thenby_ascending ([] (customer const & c) {return c.first_name;})
                 >>  count ()

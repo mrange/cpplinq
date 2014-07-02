@@ -35,10 +35,10 @@ Comparison to the .NET Standard Query Operators
 Advanced usages of CppLinq
   http://cpplinq.codeplex.com/wikipage?title=Advanced%20usages%20of%20CppLinq&referringTitle=Documentation
   Explains how to extend the library API with new operators.
-  
+
 cpplinq - LINQ Query Operators for C++ Sequences
   http://www.codeproject.com/Articles/488177/cpplinq-LINQ-Query-Operators-for-Cplusplus-Sequenc
-  
+
 == HOW TO USE ==
 1. Download the latest version of the source code from here (it's small): http://cpplinq.codeplex.com/downloads/get/616650
 2. Add the header file to your C++ project
@@ -85,7 +85,7 @@ Given the customer and customer_address types shown bellow and the arrays with c
         std::string     country     ;
     };
 
-    customer customers[] = 
+    customer customers[] =
     {
         customer (1 , "Bill"    , "Gates"   ),
         customer (2 , "Steve"   , "Jobs"    ),
@@ -99,11 +99,11 @@ Given the customer and customer_address types shown bellow and the arrays with c
         customer_address (2, 4, "Finland"   ),
         customer_address (3, 4, "USA"       ),
     };
-    
+
 we can join them with the following piece of code:
 
-    auto result = 
-           from_array(customers)                                                                   
+    auto result =
+           from_array(customers)
         >> join (
                 from_array(customer_addresses),
                 [](customer const & c) {return c.id;},
