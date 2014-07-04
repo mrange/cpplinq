@@ -144,7 +144,7 @@ namespace cpplinq
             };
 
             typedef typename    cleanup_type<TValue>::type  value_type      ;
-            typedef             value_type*                 iterator_type   ;
+            typedef             value_type const *          iterator_type   ;
         };
 
         template<typename TValue>
