@@ -3655,7 +3655,7 @@ namespace cpplinq
             }
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD typename TRange::return_type build (TRange range)
+            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
             {
                 while (range.next ())
                 {
@@ -3689,7 +3689,7 @@ namespace cpplinq
             }
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD typename TRange::return_type build (TRange range)
+            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
             {
                 if (range.next ())
                 {

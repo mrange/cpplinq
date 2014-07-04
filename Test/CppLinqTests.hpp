@@ -967,6 +967,19 @@ namespace
             TEST_ASSERT (4, first_result);
         }
 
+        {
+            // Issue: https://cpplinq.codeplex.com/workitem/15
+            // Reported by: Sepidar
+            auto result =
+                    range (0, 3)
+                >>  where ([](int i) {return i % 2 == 1;})
+                >>  orderby ([](int i) {return i;})
+                >>  first ()
+                ;
+
+            TEST_ASSERT (1, result);
+        }
+
     }
 
     void test_first_or_default ()
