@@ -194,6 +194,9 @@ namespace
     int                 set2[]                  = {9,8,4,5,6,7,1,8,9};
     std::size_t const   count_of_set2           = get_array_size (set2);
 
+    double              double_set[]            = {-1.0,0.0,2.0};
+    std::size_t const   count_of_double_set     = get_array_size (double_set);
+
     auto                is_even                 = [](int i) {return i%2==0;};
     auto                is_odd                  = [](int i) {return i%2==1;};
     auto                smaller_than_five       = [](int i) {return i < 5;};
@@ -291,6 +294,33 @@ namespace
             ++errors;
             printf (
                     "%s(%d): ERROR_EXPECTED: %d(%s), FOUND: %d(%s)\n"
+                ,   file
+                ,   line_no
+                ,   expected
+                ,   expected_name
+                ,   found
+                ,   found_name
+                );
+        }
+
+        return result;
+    }
+
+    bool test_assert (
+            char const *    file
+        ,   int             line_no
+        ,   double          expected
+        ,   char const *    expected_name
+        ,   double          found
+        ,   char const *    found_name
+        ,   bool            result
+        )
+    {
+        if (!result)
+        {
+            ++errors;
+            printf (
+                    "%s(%d): ERROR_EXPECTED: %f(%s), FOUND: %f(%s)\n"
                 ,   file
                 ,   line_no
                 ,   expected
@@ -1091,6 +1121,11 @@ namespace
             int min_result = from_array (ints) >> min (double_it);
             TEST_ASSERT (2, min_result);
         }
+
+        {
+            double min_result = from_array (double_set) >> min ();
+            TEST_ASSERT (-1.0, min_result);
+        }
     }
 
     void test_avg ()
@@ -1146,6 +1181,10 @@ namespace
             TEST_ASSERT (18, max_result);
         }
 
+        {
+            double max_result = from_array (double_set) >> max ();
+            TEST_ASSERT (2.0, max_result);
+        }
     }
 
     void test_concatenate ()
