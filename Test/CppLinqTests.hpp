@@ -121,7 +121,7 @@ namespace
         return cpplinq::detail::get_array_properties<TValueArray>::size;
     }
 
-    std::size_t get_even_counts (int* is, std::size_t count)
+    std::size_t get_even_counts (int const * is, std::size_t count)
     {
         auto c = 0U;
         for (auto index = 0U; index < count; ++index)
@@ -137,11 +137,11 @@ namespace
 
     std::size_t             errors          = 0U;
 
-    std::vector<int>        empty_vector    ;
+    std::vector<int> const  empty_vector    ;
 
     std::vector<customer>   empty_customers ;
 
-    customer                customers[] =
+    customer const          customers[] =
         {
             customer (1 , "Bill"    , "Gates"   ),
             customer (2 , "Steve"   , "Jobs"    ),
@@ -155,7 +155,7 @@ namespace
         };
     std::size_t const   count_of_customers  = get_array_size (customers);
 
-    customer_address        customer_addresses[] =
+    customer_address const  customer_addresses[] =
         {
             customer_address (2, 4, "Finland"   ),
             customer_address (3, 4, "USA"       ),
@@ -163,7 +163,7 @@ namespace
         };
     std::size_t const       count_of_customer_addresses = get_array_size (customer_addresses);
 
-    customer                customers_set1[] =
+    customer const          customers_set1[] =
         {
             customer (1 , "Bill"    , "Gates"   ),
             customer (2 , "Steve"   , "Jobs"    ),
@@ -174,25 +174,29 @@ namespace
             customer (1 , "Bill"    , "Gates"   ),
         };
 
-    customer                customers_set2[] =
+    customer const          customers_set2[] =
         {
             customer (1 , "Bill"    , "Gates"   ),
             customer (11, "Steve"   , "Ballmer" ),
             customer (12, "Tim"     , "Cook"    ),
         };
 
-    int                 ints[]                  = {3,1,4,1,5,9,2,6,5,3,5,8,9,7,9,3,2,3,8,4,6,2,6,4,3,3,8,3,2,7,9,5};
+    int const           ints[]                  = {3,1,4,1,5,9,2,6,5,3,5,8,9,7,9,3,2,3,8,4,6,2,6,4,3,3,8,3,2,7,9,5};
     std::size_t const   count_of_ints           = get_array_size (ints);
 
     std::size_t const   even_count_of_ints      = get_even_counts (ints, count_of_ints);
 
-    int                 simple_ints[]           = {1,2,3,4,5,6,7,8,9};
+    int const           simple_ints[]           = {1,2,3,4,5,6,7,8,9};
     std::size_t const   count_of_simple_ints    = get_array_size (simple_ints);
 
-    int                 set1[]                  = {5,4,3,2,1,2,3,4,5};
+    int const           set1[]                  = {5,4,3,2,1,2,3,4,5};
     std::size_t const   count_of_set1           = get_array_size (set1);
-    int                 set2[]                  = {9,8,4,5,6,7,1,8,9};
+
+    int const           set2[]                  = {9,8,4,5,6,7,1,8,9};
     std::size_t const   count_of_set2           = get_array_size (set2);
+
+    double const        double_set[]            = {-1.0,0.0,2.0};
+    std::size_t const   count_of_double_set     = get_array_size (double_set);
 
     auto                is_even                 = [](int i) {return i%2==0;};
     auto                is_odd                  = [](int i) {return i%2==1;};
@@ -291,6 +295,33 @@ namespace
             ++errors;
             printf (
                     "%s(%d): ERROR_EXPECTED: %d(%s), FOUND: %d(%s)\n"
+                ,   file
+                ,   line_no
+                ,   expected
+                ,   expected_name
+                ,   found
+                ,   found_name
+                );
+        }
+
+        return result;
+    }
+
+    bool test_assert (
+            char const *    file
+        ,   int             line_no
+        ,   double          expected
+        ,   char const *    expected_name
+        ,   double          found
+        ,   char const *    found_name
+        ,   bool            result
+        )
+    {
+        if (!result)
+        {
+            ++errors;
+            printf (
+                    "%s(%d): ERROR_EXPECTED: %f(%s), FOUND: %f(%s)\n"
                 ,   file
                 ,   line_no
                 ,   expected
@@ -1091,6 +1122,11 @@ namespace
             int min_result = from_array (ints) >> min (double_it);
             TEST_ASSERT (2, min_result);
         }
+
+        {
+            double min_result = from_array (double_set) >> min ();
+            TEST_ASSERT (-1.0, min_result);
+        }
     }
 
     void test_avg ()
@@ -1146,6 +1182,10 @@ namespace
             TEST_ASSERT (18, max_result);
         }
 
+        {
+            double max_result = from_array (double_set) >> max ();
+            TEST_ASSERT (2.0, max_result);
+        }
     }
 
     void test_concatenate ()

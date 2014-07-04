@@ -144,7 +144,7 @@ namespace cpplinq
             };
 
             typedef typename    cleanup_type<TValue>::type  value_type      ;
-            typedef             value_type*                 iterator_type   ;
+            typedef             value_type const *          iterator_type   ;
         };
 
         template<typename TValue>
@@ -4012,7 +4012,7 @@ namespace cpplinq
             template<typename TRange>
             CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range) const
             {
-                auto current = std::numeric_limits<typename TRange::value_type>::min ();
+                auto current = std::numeric_limits<typename TRange::value_type>::lowest ();
                 while (range.next ())
                 {
                     auto v = selector (range.front ());
@@ -4047,7 +4047,7 @@ namespace cpplinq
             template<typename TRange>
             CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range) const
             {
-                auto current = std::numeric_limits<typename TRange::value_type>::min ();
+                auto current = std::numeric_limits<typename TRange::value_type>::lowest ();
                 while (range.next ())
                 {
                     auto v = range.front ();
@@ -5030,7 +5030,7 @@ namespace cpplinq
         ) CPPLINQ_NOEXCEPT
     {
         typedef detail::get_array_properties<TValueArray>   array_properties;
-        typedef typename array_properties::iterator_type iterator_type;
+        typedef typename array_properties::iterator_type    iterator_type   ;
 
         iterator_type begin = a;
         iterator_type end   = begin + array_properties::size;
