@@ -1934,10 +1934,10 @@ namespace cpplinq
 
             typedef        decltype (get_predicate ()(get_source ()))   raw_value_type  ;
             typedef        typename cleanup_type<raw_value_type>::type  value_type      ;
-            typedef                 value_type                          return_type     ;
+            typedef                 value_type const &                  return_type     ;
             enum
             {
-                returns_reference   = 0   ,
+                returns_reference   = 1   ,
             };
 
             typedef                 select_range<TRange, TPredicate>    this_type       ;
@@ -1946,6 +1946,8 @@ namespace cpplinq
 
             range_type              range       ;
             predicate_type          predicate   ;
+
+            opt<value_type>         cache_value ;
 
             CPPLINQ_INLINEMETHOD select_range (
                     range_type      range
@@ -1959,12 +1961,14 @@ namespace cpplinq
             CPPLINQ_INLINEMETHOD select_range (select_range const & v)
                 :   range       (v.range)
                 ,   predicate   (v.predicate)
+                ,   cache_value (v.cache_value)
             {
             }
 
             CPPLINQ_INLINEMETHOD select_range (select_range && v) CPPLINQ_NOEXCEPT
                 :   range       (std::move (v.range))
                 ,   predicate   (std::move (v.predicate))
+                ,   cache_value (std::move (v.cache_value))
             {
             }
 
@@ -1976,12 +1980,21 @@ namespace cpplinq
 
             CPPLINQ_INLINEMETHOD return_type front () const
             {
-                return predicate (range.front ());
+                CPPLINQ_ASSERT (cache_value);
+                return *cache_value;
             }
 
             CPPLINQ_INLINEMETHOD bool next ()
             {
-                return range.next ();
+                if (range.next ())
+                {
+                    cache_value = predicate (range.front ());
+                    return true;
+                }
+
+                cache_value.clear ();
+
+                return false;
             }
         };
 
@@ -2105,6 +2118,8 @@ namespace cpplinq
                     inner_range = predicate (range.front ());
                     return inner_range && inner_range->next ();
                 }
+
+                inner_range.clear ();
 
                 return false;
             }
@@ -4814,6 +4829,9 @@ namespace cpplinq
                     current = range.front ();
                     return true;
                 }
+
+                previous.clear ();
+                current.clear ();
 
                 return false;
             }
