@@ -16,6 +16,10 @@
 #   pragma warning (disable:4996)
 #endif
 // ----------------------------------------------------------------------------------------------
+#ifdef _MSC_VER
+#   include <windows.h>
+#endif
+// ----------------------------------------------------------------------------------------------
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
@@ -3077,6 +3081,10 @@ namespace
         // -------------------------------------------------------------------------
         if (run_perfomance_tests)
         {
+#ifdef _MSC_VER
+            // In order to make performance number more predictable
+            SetPriorityClass (GetCurrentProcess (), HIGH_PRIORITY_CLASS);
+#endif
             test_performance_range_sum ();
             test_performance_sum ();
             test_performance_is_prime ();
