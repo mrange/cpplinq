@@ -3958,9 +3958,11 @@ namespace cpplinq
             }
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range) const
+            CPPLINQ_INLINEMETHOD typename get_transformed_type<selector_type, typename TRange::value_type>::type build (TRange range) const
             {
-                auto sum = typename TRange::value_type ();
+                typedef typename get_transformed_type<selector_type, typename TRange::value_type>::type value_type;
+
+                auto sum = value_type ();
                 while (range.next ())
                 {
                     sum += selector (range.front ());
@@ -4025,9 +4027,11 @@ namespace cpplinq
             }
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range) const
+            CPPLINQ_INLINEMETHOD typename get_transformed_type<selector_type, typename TRange::value_type>::type build (TRange range) const
             {
-                auto current = std::numeric_limits<typename TRange::value_type>::lowest ();
+                typedef typename get_transformed_type<selector_type, typename TRange::value_type>::type value_type;
+
+                auto current = std::numeric_limits<value_type>::lowest ();
                 while (range.next ())
                 {
                     auto v = selector (range.front ());
@@ -4104,9 +4108,11 @@ namespace cpplinq
 
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range) const
+            CPPLINQ_INLINEMETHOD typename get_transformed_type<selector_type, typename TRange::value_type>::type build (TRange range) const
             {
-                auto current = std::numeric_limits<typename TRange::value_type>::max ();
+                typedef typename get_transformed_type<selector_type, typename TRange::value_type>::type value_type;
+
+                auto current = std::numeric_limits<value_type>::max ();
                 while (range.next ())
                 {
                     auto v = selector (range.front ());
@@ -4183,9 +4189,11 @@ namespace cpplinq
 
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range) const
+            CPPLINQ_INLINEMETHOD typename get_transformed_type<selector_type, typename TRange::value_type>::type build (TRange range) const
             {
-                auto sum = typename TRange::value_type ();
+                typedef typename get_transformed_type<selector_type, typename TRange::value_type>::type value_type;
+
+                auto sum = value_type ();
                 int count = 0;
                 while (range.next ())
                 {
