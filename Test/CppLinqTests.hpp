@@ -25,6 +25,7 @@
 #include <cstdint>
 #include <map>
 #include <numeric>
+#include <set>
 #include <string>
 #include <sstream>
 #include <vector>
@@ -111,6 +112,17 @@ namespace
         {
         }
 
+    };
+
+    struct player
+    {
+        std::size_t id;
+    };
+
+    struct game
+    {
+        std::size_t         id      ;
+        std::set<player*>   players ;
     };
 
     template <typename T>
@@ -201,6 +213,8 @@ namespace
 
     double const        double_set[]            = {-1.0,0.0,2.0};
     std::size_t const   count_of_double_set     = get_array_size (double_set);
+
+    std::set<game*>     empty_game_set          ;
 
     auto                is_even                 = [](int i) {return i%2==0;};
     auto                is_odd                  = [](int i) {return i%2==1;};
@@ -901,6 +915,49 @@ namespace
         }
     }
 
+    void test_set ()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE ();
+
+        {
+            auto count_result = from (empty_game_set) >> count ();
+            TEST_ASSERT (0U, count_result);
+        }
+
+        {
+            auto count_result =
+                from (empty_game_set)
+                >> select ([] (game * g) { return g->id; })
+                >> distinct ()
+                >> count ()
+                ;
+            TEST_ASSERT (0U, count_result);
+        }
+        {
+            // TODO: Test code for more complex select_many
+            auto count_result =
+                from (empty_game_set)
+                >> where ([] (game * g) { return g != nullptr; })
+                >> select_many (
+                    [] (game * g)
+                    {
+                        auto r =
+                            from (g->players)
+//                            >> where ([] (player * p) { return p != nullptr; })
+//                            >> select ([] (player* p) { return p->id; })
+                            ;
+                        return r;
+                    })
+                >> distinct ()
+                >> count ()
+                ;
+
+            TEST_ASSERT (0U, count_result);
+        }
+    }
+
     void test_count ()
     {
         using namespace cpplinq;
@@ -1099,6 +1156,12 @@ namespace
             int sum_result = from_array (ints) >> sum (double_it);
             TEST_ASSERT (2*sum_of_ints, sum_result);
         }
+
+        {
+            std::size_t sum_result = from_array (customers) >> sum ([] (customer const & c) { return c.id; });
+            TEST_ASSERT (54U, sum_result);
+        }
+
     }
 
     void test_min ()
@@ -1131,6 +1194,11 @@ namespace
             double min_result = from_array (double_set) >> min ();
             TEST_ASSERT (-1.0, min_result);
         }
+
+        {
+            std::size_t min_result = from_array (customers) >> min ([] (customer const & c) { return c.id; });
+            TEST_ASSERT (1U, min_result);
+        }
     }
 
     void test_avg ()
@@ -1157,6 +1225,11 @@ namespace
         {
             int avg_result = from_array (ints) >> avg (double_it);
             TEST_ASSERT (9, avg_result);
+        }
+
+        {
+            std::size_t avg_result = from_array (customers) >> avg ([] (customer const & c) { return c.id; });
+            TEST_ASSERT (7U, avg_result);
         }
     }
 
@@ -1190,6 +1263,12 @@ namespace
             double max_result = from_array (double_set) >> max ();
             TEST_ASSERT (2.0, max_result);
         }
+
+        {
+            std::size_t max_result = from_array (customers) >> max ([] (customer const & c) { return c.id; });
+            TEST_ASSERT (21U, max_result);
+        }
+
     }
 
     void test_concatenate ()
@@ -3039,6 +3118,7 @@ namespace
         test_empty                  ();
         test_singleton              ();
         test_generate               ();
+        test_set                    ();
         test_count                  ();
         test_any                    ();
         test_first                  ();
