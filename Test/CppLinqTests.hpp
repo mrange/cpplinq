@@ -29,6 +29,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <deque>
 // ----------------------------------------------------------------------------------------------
 #include <limits.h>
 #include <stdio.h>
@@ -1364,6 +1365,27 @@ namespace
             for (auto index = 0U; index < to_vector_result.size (); ++index)
             {
                 test_int_at (index, to_vector_result[index]);
+            }
+        }
+    }
+
+    void test_to_deque ()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE ();
+
+        {
+            std::deque<int> to_deque_result = from (empty_vector) >> to_deque ();
+            TEST_ASSERT (0U, to_deque_result.size ());
+        }
+
+        {
+            std::deque<int> to_deque_result = from_array (ints) >> to_deque ();
+            TEST_ASSERT (count_of_ints, to_deque_result.size ());
+            for (auto index = 0U; index < to_deque_result.size (); ++index)
+            {
+                test_int_at (index, to_deque_result[index]);
             }
         }
     }

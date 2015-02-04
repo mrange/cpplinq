@@ -27,6 +27,7 @@
 #include <string>
 #include <type_traits>
 #include <vector>
+#include <deque>
 #// ----------------------------------------------------------------------------
 #ifdef _MSC_VER
 #   pragma warning (push)
@@ -3296,6 +3297,39 @@ namespace cpplinq
 
         // -------------------------------------------------------------------------
 
+        struct to_deque_builder : base_builder
+        {
+            typedef                 to_deque_builder       this_type;
+
+            CPPLINQ_INLINEMETHOD explicit to_deque_builder() CPPLINQ_NOEXCEPT
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD to_deque_builder(to_deque_builder const & v) CPPLINQ_NOEXCEPT
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD to_deque_builder(to_deque_builder && v) CPPLINQ_NOEXCEPT
+            {
+            }
+
+            template<typename TRange>
+            CPPLINQ_METHOD std::deque<typename TRange::value_type> build(TRange range) const
+            {
+                std::deque<typename TRange::value_type> result;
+
+                while (range.next())
+                {
+                    result.push_back(range.front());
+                }
+
+                return result;
+            }
+
+        };
+
+        // -------------------------------------------------------------------------
+
         template<typename TKey, typename TValue>
         struct lookup
         {
@@ -5275,6 +5309,11 @@ namespace cpplinq
     CPPLINQ_INLINEMETHOD detail::to_vector_builder to_vector (size_type capacity = 16U) CPPLINQ_NOEXCEPT
     {
         return detail::to_vector_builder (capacity);
+    }
+
+    CPPLINQ_INLINEMETHOD detail::to_deque_builder to_deque() CPPLINQ_NOEXCEPT
+    {
+        return detail::to_deque_builder();
     }
 
     CPPLINQ_INLINEMETHOD detail::to_list_builder to_list () CPPLINQ_NOEXCEPT
