@@ -16,11 +16,16 @@
 #   pragma warning (disable:4996)
 #endif
 // ----------------------------------------------------------------------------------------------
+#ifdef _MSC_VER
+#   include <windows.h>
+#endif
+// ----------------------------------------------------------------------------------------------
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
 #include <map>
 #include <numeric>
+#include <set>
 #include <string>
 #include <sstream>
 #include <vector>
@@ -109,6 +114,17 @@ namespace
 
     };
 
+    struct player
+    {
+        std::size_t id;
+    };
+
+    struct game
+    {
+        std::size_t         id      ;
+        std::set<player*>   players ;
+    };
+
     template <typename T>
     void ignore (T && v) CPPLINQ_NOEXCEPT
     {
@@ -121,7 +137,7 @@ namespace
         return cpplinq::detail::get_array_properties<TValueArray>::size;
     }
 
-    std::size_t get_even_counts (int* is, std::size_t count)
+    std::size_t get_even_counts (int const * is, std::size_t count)
     {
         auto c = 0U;
         for (auto index = 0U; index < count; ++index)
@@ -137,11 +153,11 @@ namespace
 
     std::size_t             errors          = 0U;
 
-    std::vector<int>        empty_vector    ;
+    std::vector<int> const  empty_vector    ;
 
     std::vector<customer>   empty_customers ;
 
-    customer                customers[] =
+    customer const          customers[] =
         {
             customer (1 , "Bill"    , "Gates"   ),
             customer (2 , "Steve"   , "Jobs"    ),
@@ -155,7 +171,7 @@ namespace
         };
     std::size_t const   count_of_customers  = get_array_size (customers);
 
-    customer_address        customer_addresses[] =
+    customer_address const  customer_addresses[] =
         {
             customer_address (2, 4, "Finland"   ),
             customer_address (3, 4, "USA"       ),
@@ -163,7 +179,7 @@ namespace
         };
     std::size_t const       count_of_customer_addresses = get_array_size (customer_addresses);
 
-    customer                customers_set1[] =
+    customer const          customers_set1[] =
         {
             customer (1 , "Bill"    , "Gates"   ),
             customer (2 , "Steve"   , "Jobs"    ),
@@ -174,25 +190,31 @@ namespace
             customer (1 , "Bill"    , "Gates"   ),
         };
 
-    customer                customers_set2[] =
+    customer const          customers_set2[] =
         {
             customer (1 , "Bill"    , "Gates"   ),
             customer (11, "Steve"   , "Ballmer" ),
             customer (12, "Tim"     , "Cook"    ),
         };
 
-    int                 ints[]                  = {3,1,4,1,5,9,2,6,5,3,5,8,9,7,9,3,2,3,8,4,6,2,6,4,3,3,8,3,2,7,9,5};
+    int const           ints[]                  = {3,1,4,1,5,9,2,6,5,3,5,8,9,7,9,3,2,3,8,4,6,2,6,4,3,3,8,3,2,7,9,5};
     std::size_t const   count_of_ints           = get_array_size (ints);
 
     std::size_t const   even_count_of_ints      = get_even_counts (ints, count_of_ints);
 
-    int                 simple_ints[]           = {1,2,3,4,5,6,7,8,9};
+    int const           simple_ints[]           = {1,2,3,4,5,6,7,8,9};
     std::size_t const   count_of_simple_ints    = get_array_size (simple_ints);
 
-    int                 set1[]                  = {5,4,3,2,1,2,3,4,5};
+    int const           set1[]                  = {5,4,3,2,1,2,3,4,5};
     std::size_t const   count_of_set1           = get_array_size (set1);
-    int                 set2[]                  = {9,8,4,5,6,7,1,8,9};
+
+    int const           set2[]                  = {9,8,4,5,6,7,1,8,9};
     std::size_t const   count_of_set2           = get_array_size (set2);
+
+    double const        double_set[]            = {-1.0,0.0,2.0};
+    std::size_t const   count_of_double_set     = get_array_size (double_set);
+
+    std::set<game*>     empty_game_set          ;
 
     auto                is_even                 = [](int i) {return i%2==0;};
     auto                is_odd                  = [](int i) {return i%2==1;};
@@ -291,6 +313,33 @@ namespace
             ++errors;
             printf (
                     "%s(%d): ERROR_EXPECTED: %d(%s), FOUND: %d(%s)\n"
+                ,   file
+                ,   line_no
+                ,   expected
+                ,   expected_name
+                ,   found
+                ,   found_name
+                );
+        }
+
+        return result;
+    }
+
+    bool test_assert (
+            char const *    file
+        ,   int             line_no
+        ,   double          expected
+        ,   char const *    expected_name
+        ,   double          found
+        ,   char const *    found_name
+        ,   bool            result
+        )
+    {
+        if (!result)
+        {
+            ++errors;
+            printf (
+                    "%s(%d): ERROR_EXPECTED: %f(%s), FOUND: %f(%s)\n"
                 ,   file
                 ,   line_no
                 ,   expected
@@ -866,6 +915,49 @@ namespace
         }
     }
 
+    void test_set ()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE ();
+
+        {
+            auto count_result = from (empty_game_set) >> count ();
+            TEST_ASSERT (0U, count_result);
+        }
+
+        {
+            auto count_result =
+                from (empty_game_set)
+                >> select ([] (game * g) { return g->id; })
+                >> distinct ()
+                >> count ()
+                ;
+            TEST_ASSERT (0U, count_result);
+        }
+        {
+            // TODO: Test code for more complex select_many
+            auto count_result =
+                from (empty_game_set)
+                >> where ([] (game * g) { return g != nullptr; })
+                >> select_many (
+                    [] (game * g)
+                    {
+                        auto r =
+                            from (g->players)
+//                            >> where ([] (player * p) { return p != nullptr; })
+//                            >> select ([] (player* p) { return p->id; })
+                            ;
+                        return r;
+                    })
+                >> distinct ()
+                >> count ()
+                ;
+
+            TEST_ASSERT (0U, count_result);
+        }
+    }
+
     void test_count ()
     {
         using namespace cpplinq;
@@ -967,6 +1059,19 @@ namespace
             TEST_ASSERT (4, first_result);
         }
 
+        {
+            // Issue: https://cpplinq.codeplex.com/workitem/15
+            // Reported by: Sepidar
+            auto result =
+                    range (0, 3)
+                >>  where ([](int i) {return i % 2 == 1;})
+                >>  orderby ([](int i) {return i;})
+                >>  first ()
+                ;
+
+            TEST_ASSERT (1, result);
+        }
+
     }
 
     void test_first_or_default ()
@@ -1051,6 +1156,12 @@ namespace
             int sum_result = from_array (ints) >> sum (double_it);
             TEST_ASSERT (2*sum_of_ints, sum_result);
         }
+
+        {
+            std::size_t sum_result = from_array (customers) >> sum ([] (customer const & c) { return c.id; });
+            TEST_ASSERT (54U, sum_result);
+        }
+
     }
 
     void test_min ()
@@ -1077,6 +1188,16 @@ namespace
         {
             int min_result = from_array (ints) >> min (double_it);
             TEST_ASSERT (2, min_result);
+        }
+
+        {
+            double min_result = from_array (double_set) >> min ();
+            TEST_ASSERT (-1.0, min_result);
+        }
+
+        {
+            std::size_t min_result = from_array (customers) >> min ([] (customer const & c) { return c.id; });
+            TEST_ASSERT (1U, min_result);
         }
     }
 
@@ -1105,6 +1226,11 @@ namespace
             int avg_result = from_array (ints) >> avg (double_it);
             TEST_ASSERT (9, avg_result);
         }
+
+        {
+            std::size_t avg_result = from_array (customers) >> avg ([] (customer const & c) { return c.id; });
+            TEST_ASSERT (7U, avg_result);
+        }
     }
 
     void test_max ()
@@ -1131,6 +1257,16 @@ namespace
         {
             int max_result = from_array (ints) >> max (double_it);
             TEST_ASSERT (18, max_result);
+        }
+
+        {
+            double max_result = from_array (double_set) >> max ();
+            TEST_ASSERT (2.0, max_result);
+        }
+
+        {
+            std::size_t max_result = from_array (customers) >> max ([] (customer const & c) { return c.id; });
+            TEST_ASSERT (21U, max_result);
         }
 
     }
@@ -1654,8 +1790,8 @@ namespace
         }
 
         {
-            auto c = 
-                    from (empty_customers) 
+            auto c =
+                    from (empty_customers)
                 >>  orderby_ascending ([] (customer const & c) {return c.last_name;})
                 >>  thenby_ascending ([] (customer const & c) {return c.first_name;})
                 >>  count ()
@@ -2982,6 +3118,7 @@ namespace
         test_empty                  ();
         test_singleton              ();
         test_generate               ();
+        test_set                    ();
         test_count                  ();
         test_any                    ();
         test_first                  ();
@@ -3024,6 +3161,10 @@ namespace
         // -------------------------------------------------------------------------
         if (run_perfomance_tests)
         {
+#ifdef _MSC_VER
+            // In order to make performance number more predictable
+            SetPriorityClass (GetCurrentProcess (), HIGH_PRIORITY_CLASS);
+#endif
             test_performance_range_sum ();
             test_performance_sum ();
             test_performance_is_prime ();

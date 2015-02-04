@@ -144,7 +144,7 @@ namespace cpplinq
             };
 
             typedef typename    cleanup_type<TValue>::type  value_type      ;
-            typedef             value_type*                 iterator_type   ;
+            typedef             value_type const *          iterator_type   ;
         };
 
         template<typename TValue>
@@ -1934,10 +1934,10 @@ namespace cpplinq
 
             typedef        decltype (get_predicate ()(get_source ()))   raw_value_type  ;
             typedef        typename cleanup_type<raw_value_type>::type  value_type      ;
-            typedef                 value_type                          return_type     ;
+            typedef                 value_type const &                  return_type     ;
             enum
             {
-                returns_reference   = 0   ,
+                returns_reference   = 1   ,
             };
 
             typedef                 select_range<TRange, TPredicate>    this_type       ;
@@ -1946,6 +1946,8 @@ namespace cpplinq
 
             range_type              range       ;
             predicate_type          predicate   ;
+
+            opt<value_type>         cache_value ;
 
             CPPLINQ_INLINEMETHOD select_range (
                     range_type      range
@@ -1959,12 +1961,14 @@ namespace cpplinq
             CPPLINQ_INLINEMETHOD select_range (select_range const & v)
                 :   range       (v.range)
                 ,   predicate   (v.predicate)
+                ,   cache_value (v.cache_value)
             {
             }
 
             CPPLINQ_INLINEMETHOD select_range (select_range && v) CPPLINQ_NOEXCEPT
                 :   range       (std::move (v.range))
                 ,   predicate   (std::move (v.predicate))
+                ,   cache_value (std::move (v.cache_value))
             {
             }
 
@@ -1976,12 +1980,21 @@ namespace cpplinq
 
             CPPLINQ_INLINEMETHOD return_type front () const
             {
-                return predicate (range.front ());
+                CPPLINQ_ASSERT (cache_value);
+                return *cache_value;
             }
 
             CPPLINQ_INLINEMETHOD bool next ()
             {
-                return range.next ();
+                if (range.next ())
+                {
+                    cache_value = predicate (range.front ());
+                    return true;
+                }
+
+                cache_value.clear ();
+
+                return false;
             }
         };
 
@@ -2105,6 +2118,8 @@ namespace cpplinq
                     inner_range = predicate (range.front ());
                     return inner_range && inner_range->next ();
                 }
+
+                inner_range.clear ();
 
                 return false;
             }
@@ -3655,7 +3670,7 @@ namespace cpplinq
             }
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD typename TRange::return_type build (TRange range)
+            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
             {
                 while (range.next ())
                 {
@@ -3689,7 +3704,7 @@ namespace cpplinq
             }
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD typename TRange::return_type build (TRange range)
+            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
             {
                 if (range.next ())
                 {
@@ -3943,9 +3958,11 @@ namespace cpplinq
             }
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range) const
+            CPPLINQ_INLINEMETHOD typename get_transformed_type<selector_type, typename TRange::value_type>::type build (TRange range) const
             {
-                auto sum = typename TRange::value_type ();
+                typedef typename get_transformed_type<selector_type, typename TRange::value_type>::type value_type;
+
+                auto sum = value_type ();
                 while (range.next ())
                 {
                     sum += selector (range.front ());
@@ -4010,9 +4027,11 @@ namespace cpplinq
             }
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range) const
+            CPPLINQ_INLINEMETHOD typename get_transformed_type<selector_type, typename TRange::value_type>::type build (TRange range) const
             {
-                auto current = std::numeric_limits<typename TRange::value_type>::min ();
+                typedef typename get_transformed_type<selector_type, typename TRange::value_type>::type value_type;
+
+                auto current = std::numeric_limits<value_type>::lowest ();
                 while (range.next ())
                 {
                     auto v = selector (range.front ());
@@ -4047,7 +4066,7 @@ namespace cpplinq
             template<typename TRange>
             CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range) const
             {
-                auto current = std::numeric_limits<typename TRange::value_type>::min ();
+                auto current = std::numeric_limits<typename TRange::value_type>::lowest ();
                 while (range.next ())
                 {
                     auto v = range.front ();
@@ -4089,9 +4108,11 @@ namespace cpplinq
 
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range) const
+            CPPLINQ_INLINEMETHOD typename get_transformed_type<selector_type, typename TRange::value_type>::type build (TRange range) const
             {
-                auto current = std::numeric_limits<typename TRange::value_type>::max ();
+                typedef typename get_transformed_type<selector_type, typename TRange::value_type>::type value_type;
+
+                auto current = std::numeric_limits<value_type>::max ();
                 while (range.next ())
                 {
                     auto v = selector (range.front ());
@@ -4168,9 +4189,11 @@ namespace cpplinq
 
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range) const
+            CPPLINQ_INLINEMETHOD typename get_transformed_type<selector_type, typename TRange::value_type>::type build (TRange range) const
             {
-                auto sum = typename TRange::value_type ();
+                typedef typename get_transformed_type<selector_type, typename TRange::value_type>::type value_type;
+
+                auto sum = value_type ();
                 int count = 0;
                 while (range.next ())
                 {
@@ -4815,6 +4838,9 @@ namespace cpplinq
                     return true;
                 }
 
+                previous.clear ();
+                current.clear ();
+
                 return false;
             }
         };
@@ -5030,7 +5056,7 @@ namespace cpplinq
         ) CPPLINQ_NOEXCEPT
     {
         typedef detail::get_array_properties<TValueArray>   array_properties;
-        typedef typename array_properties::iterator_type iterator_type;
+        typedef typename array_properties::iterator_type    iterator_type   ;
 
         iterator_type begin = a;
         iterator_type end   = begin + array_properties::size;
