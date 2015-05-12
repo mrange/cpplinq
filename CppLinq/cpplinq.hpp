@@ -3788,6 +3788,102 @@ namespace cpplinq
         };
 
         // -------------------------------------------------------------------------
+
+        template<typename TPredicate>
+        struct last_predicate_builder : base_builder
+        {
+            typedef                 last_predicate_builder<TPredicate>     this_type           ;
+            typedef                 TPredicate                              predicate_type      ;
+
+            predicate_type          predicate   ;
+
+            CPPLINQ_INLINEMETHOD last_predicate_builder (predicate_type predicate) CPPLINQ_NOEXCEPT
+                :   predicate (std::move (predicate))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD last_predicate_builder (last_predicate_builder const & v) CPPLINQ_NOEXCEPT
+                :   predicate (v.predicate)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD last_predicate_builder (last_predicate_builder && v) CPPLINQ_NOEXCEPT
+                : predicate (std::move (v.predicate))
+            {
+            }
+
+            template<typename TRange>
+            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
+            {
+				bool found = false;
+
+                auto current = typename TRange::value_type ();
+
+                while (range.next ())
+                {
+                    if (predicate (range.front ()))
+                    {
+						found = true;
+                        current = std::move (range.front ());
+                    }
+                }
+
+				if (found)
+				{
+					return current;
+				}
+				else
+				{
+					throw sequence_empty_exception ();
+				}
+            }
+
+        };
+
+        // -------------------------------------------------------------------------
+
+        struct last_builder : base_builder
+        {
+            typedef                 last_builder                   this_type       ;
+
+            CPPLINQ_INLINEMETHOD last_builder () CPPLINQ_NOEXCEPT
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD last_builder (last_builder const & v) CPPLINQ_NOEXCEPT
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD last_builder (last_builder && v) CPPLINQ_NOEXCEPT
+            {
+            }
+
+            template<typename TRange>
+            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
+            {
+				bool found = false;
+
+                auto current = typename TRange::value_type ();
+
+                while (range.next ())
+                {
+					found = true;
+					current = std::move (range.front ());
+                }
+
+				if (found)
+				{
+					return current;
+				}
+				else
+				{
+					throw sequence_empty_exception ();
+				}
+            }
+
+        };
+
+        // -------------------------------------------------------------------------
         template<typename TPredicate>
         struct last_or_default_predicate_builder : base_builder
         {
@@ -4275,7 +4371,7 @@ namespace cpplinq
             }
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range) const
+            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
             {
 				if (!range.next ())
 				{
@@ -4322,7 +4418,7 @@ namespace cpplinq
             }
 
             template<typename TRange>
-            CPPLINQ_INLINEMETHOD typename get_transformed_type<result_selector_type, typename TRange::value_type>::type build (TRange range) const
+            CPPLINQ_INLINEMETHOD typename get_transformed_type<result_selector_type, typename TRange::value_type>::type build (TRange range)
             {
 				if (!range.next ())
 				{
@@ -5434,6 +5530,19 @@ namespace cpplinq
         ) CPPLINQ_NOEXCEPT
     {
         return detail::last_or_default_predicate_builder<TPredicate> (predicate);
+    }
+
+    template <typename TPredicate>
+    CPPLINQ_INLINEMETHOD detail::last_predicate_builder<TPredicate> last (
+            TPredicate predicate
+        )
+    {
+        return detail::last_predicate_builder<TPredicate> (std::move (predicate));
+    }
+
+    CPPLINQ_INLINEMETHOD detail::last_builder last ()
+    {
+        return detail::last_builder ();
     }
 
     CPPLINQ_INLINEMETHOD detail::last_or_default_builder last_or_default () CPPLINQ_NOEXCEPT

@@ -1102,6 +1102,67 @@ namespace
 
     }
 
+    void test_last ()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE ();
+
+        std::string expected_on_failure ("sequence_empty_exception");
+
+        {
+            sequence_empty_exception caught_exception;
+            try
+            {
+                int last_result = from (empty_vector) >> last ();
+                ignore (last_result);
+            }
+            catch (sequence_empty_exception const & ex)
+            {
+                caught_exception = ex;
+            }
+            TEST_ASSERT (expected_on_failure, caught_exception.what ());
+        }
+
+        {
+            int last_result = from_array (ints) >> last ();
+            TEST_ASSERT (5, last_result);
+        }
+
+        {
+            sequence_empty_exception caught_exception;
+            try
+            {
+                int last_result = from (empty_vector) >> last (is_even);
+                ignore (last_result);
+            }
+            catch (sequence_empty_exception const & ex)
+            {
+                caught_exception = ex;
+            }
+            TEST_ASSERT (expected_on_failure, caught_exception.what ());
+        }
+
+        {
+            int last_result = from_array (ints) >> last (is_even);
+            TEST_ASSERT (2, last_result);
+        }
+
+        {
+            // Issue: https://cpplinq.codeplex.com/workitem/15
+            // Reported by: Sepidar
+            auto result =
+                    range (0, 4)
+                >>  where ([](int i) {return i % 2 == 1;})
+                >>  orderby ([](int i) {return i;})
+                >>  last ()
+                ;
+
+            TEST_ASSERT (3, result);
+        }
+
+    }
+
     void test_last_or_default ()
     {
         using namespace cpplinq;
@@ -1109,23 +1170,23 @@ namespace
         TEST_PRELUDE ();
 
         {
-            int first_result = from (empty_vector) >> last_or_default ();
-            TEST_ASSERT (0, first_result);
+            int last_result = from (empty_vector) >> last_or_default ();
+            TEST_ASSERT (0, last_result);
         }
 
         {
-            int first_result = from_array (ints) >> last_or_default ();
-            TEST_ASSERT (5, first_result);
+            int last_result = from_array (ints) >> last_or_default ();
+            TEST_ASSERT (5, last_result);
         }
 
         {
-            int first_result = from (empty_vector) >> last_or_default (is_even);
-            TEST_ASSERT (0, first_result);
+            int last_result = from (empty_vector) >> last_or_default (is_even);
+            TEST_ASSERT (0, last_result);
         }
 
         {
-            int first_result = from_array (ints) >> last_or_default (is_even);
-            TEST_ASSERT (2, first_result);
+            int last_result = from_array (ints) >> last_or_default (is_even);
+            TEST_ASSERT (2, last_result);
         }
     }
 
@@ -3184,6 +3245,7 @@ namespace
         test_any                    ();
         test_first                  ();
         test_first_or_default       ();
+        test_last                   ();
         test_last_or_default        ();
         test_sum                    ();
         test_avg                    ();
