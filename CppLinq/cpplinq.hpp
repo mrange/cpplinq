@@ -4249,6 +4249,97 @@ namespace cpplinq
 
         };
 
+		// -------------------------------------------------------------------------
+
+        template <typename TAccumulator>
+        struct reduce_builder : base_builder
+        {
+            typedef                 reduce_builder<TAccumulator>					this_type       ;
+            typedef                 TAccumulator                                    accumulator_type;
+
+            accumulator_type        accumulator;
+
+            CPPLINQ_INLINEMETHOD reduce_builder (accumulator_type accumulator) CPPLINQ_NOEXCEPT
+                :   accumulator (std::move (accumulator))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD reduce_builder (reduce_builder const & v) CPPLINQ_NOEXCEPT
+                :   accumulator (v.accumulator)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD reduce_builder (reduce_builder && v) CPPLINQ_NOEXCEPT
+                :   accumulator (std::move (v.accumulator))
+            {
+            }
+
+            template<typename TRange>
+            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range) const
+            {
+				if (!range.next ())
+				{
+					throw sequence_empty_exception ();
+				}
+
+                auto sum = range.front ();
+                while (range.next ())
+                {
+                    sum = accumulator (sum, range.front ());
+                }
+                return std::move (sum);
+            }
+
+        };
+
+
+        template <typename TAccumulator, typename TSelector>
+        struct reduce_result_selector_builder : base_builder
+        {
+            typedef                 reduce_result_selector_builder<TAccumulator, TSelector>					this_type       ;
+            typedef                 TAccumulator                                                            accumulator_type;
+            typedef                 TSelector                                                               result_selector_type;
+
+            accumulator_type        accumulator;
+            result_selector_type    result_selector;
+
+            CPPLINQ_INLINEMETHOD reduce_result_selector_builder(accumulator_type accumulator, result_selector_type result_selector) CPPLINQ_NOEXCEPT
+                :   accumulator     (std::move (accumulator))
+                ,   result_selector (std::move (result_selector))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD reduce_result_selector_builder(reduce_result_selector_builder const & v) CPPLINQ_NOEXCEPT
+                :   accumulator     (v.accumulator)
+                ,   result_selector (v.result_selector)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD reduce_result_selector_builder(reduce_result_selector_builder && v) CPPLINQ_NOEXCEPT
+                :   accumulator     (std::move (v.accumulator))
+                ,   result_selector (std::move (v.result_selector))
+            {
+            }
+
+            template<typename TRange>
+            CPPLINQ_INLINEMETHOD typename get_transformed_type<result_selector_type, typename TRange::value_type>::type build (TRange range) const
+            {
+				if (!range.next ())
+				{
+					throw sequence_empty_exception ();
+				}
+
+                auto sum = range.front ();
+                while (range.next ())
+                {
+                    sum = accumulator (sum, range.front ());
+                }
+
+                return result_selector (sum);
+            }
+
+        };
+
         // -------------------------------------------------------------------------
 
         template <typename TAccumulate, typename TAccumulator>
@@ -5496,6 +5587,23 @@ namespace cpplinq
     CPPLINQ_INLINEMETHOD detail::avg_builder avg () CPPLINQ_NOEXCEPT
     {
         return detail::avg_builder ();
+    }
+
+	template <typename TAccumulator>
+	CPPLINQ_INLINEMETHOD detail::reduce_builder<TAccumulator> reduce (
+		TAccumulator accumulator
+		) CPPLINQ_NOEXCEPT
+	{
+		return detail::reduce_builder<TAccumulator> (accumulator);
+	}
+
+    template <typename TAccumulator, typename TSelector>
+    CPPLINQ_INLINEMETHOD detail::reduce_result_selector_builder<TAccumulator, TSelector> reduce (
+		    TAccumulator accumulator
+        ,   TSelector result_selector
+        ) CPPLINQ_NOEXCEPT
+    {
+        return detail::reduce_result_selector_builder<TAccumulator, TSelector> (accumulator, result_selector);
     }
 
     template <typename TAccumulate, typename TAccumulator>
