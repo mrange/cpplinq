@@ -2221,6 +2221,73 @@ namespace
         }
     }
 
+    void test_element_at ()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE ();
+
+        std::string expected_on_failure ("sequence_empty_exception");
+
+        {
+			sequence_empty_exception caught_exception;
+			try
+            {
+				auto result = from (empty_vector) >> element_at (0);
+                ignore (result);
+            }
+            catch (sequence_empty_exception const & ex)
+            {
+                caught_exception = ex;
+            }
+            TEST_ASSERT (expected_on_failure, caught_exception.what ());
+        }
+
+        {
+			sequence_empty_exception caught_exception;
+			try
+            {
+				auto result = from (empty_vector) >> element_at (1);
+                ignore (result);
+            }
+            catch (sequence_empty_exception const & ex)
+            {
+                caught_exception = ex;
+            }
+            TEST_ASSERT (expected_on_failure, caught_exception.what ());
+        }
+
+        {
+            auto result = from_array (ints) >> element_at (0);
+            TEST_ASSERT (3, result);
+        }
+
+        {
+            auto result = from_array (ints) >> element_at (1);
+            TEST_ASSERT (1, result);
+        }
+
+        {
+            auto result = from_array (ints) >> element_at (count_of_ints-1);
+            TEST_ASSERT (5, result);
+        }
+
+        {
+			sequence_empty_exception caught_exception;
+			try
+            {
+				auto result = from_array (ints) >> element_at (count_of_ints);
+                ignore (result);
+            }
+            catch (sequence_empty_exception const & ex)
+            {
+                caught_exception = ex;
+            }
+            TEST_ASSERT (expected_on_failure, caught_exception.what ());
+        }
+
+    }
+
     void test_element_at_or_default ()
     {
         using namespace cpplinq;
@@ -2297,7 +2364,7 @@ namespace
             sequence_empty_exception caught_exception;
             try
             {
-				auto reduce_result = from (empty_vector) >> reduce (sum_aggregator, to_string);
+                auto reduce_result = from (empty_vector) >> reduce (sum_aggregator, to_string);
                 ignore (reduce_result);
             }
             catch (sequence_empty_exception const & ex)
@@ -3271,6 +3338,7 @@ namespace
         test_take_while             ();
         test_skip_while             ();
         test_contains               ();
+        test_element_at             ();
         test_element_at_or_default  ();
         test_reduce                 ();
         test_aggregate              ();

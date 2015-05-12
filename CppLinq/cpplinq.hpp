@@ -3815,7 +3815,7 @@ namespace cpplinq
             template<typename TRange>
             CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
             {
-				bool found = false;
+                bool found = false;
 
                 auto current = typename TRange::value_type ();
 
@@ -3823,19 +3823,19 @@ namespace cpplinq
                 {
                     if (predicate (range.front ()))
                     {
-						found = true;
+                        found = true;
                         current = std::move (range.front ());
                     }
                 }
 
-				if (found)
-				{
-					return current;
-				}
-				else
-				{
-					throw sequence_empty_exception ();
-				}
+                if (found)
+                {
+                    return current;
+                }
+                else
+                {
+                    throw sequence_empty_exception ();
+                }
             }
 
         };
@@ -3861,24 +3861,24 @@ namespace cpplinq
             template<typename TRange>
             CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
             {
-				bool found = false;
+                bool found = false;
 
                 auto current = typename TRange::value_type ();
 
                 while (range.next ())
                 {
-					found = true;
-					current = std::move (range.front ());
+                    found = true;
+                    current = std::move (range.front ());
                 }
 
-				if (found)
-				{
-					return current;
-				}
-				else
-				{
-					throw sequence_empty_exception ();
-				}
+                if (found)
+                {
+                    return current;
+                }
+                else
+                {
+                    throw sequence_empty_exception ();
+                }
             }
 
         };
@@ -4345,7 +4345,7 @@ namespace cpplinq
 
         };
 
-		// -------------------------------------------------------------------------
+        // -------------------------------------------------------------------------
 
         template <typename TAccumulator>
         struct reduce_builder : base_builder
@@ -4373,10 +4373,10 @@ namespace cpplinq
             template<typename TRange>
             CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
             {
-				if (!range.next ())
-				{
-					throw sequence_empty_exception ();
-				}
+                if (!range.next ())
+                {
+                    throw sequence_empty_exception ();
+                }
 
                 auto sum = range.front ();
                 while (range.next ())
@@ -4420,10 +4420,10 @@ namespace cpplinq
             template<typename TRange>
             CPPLINQ_INLINEMETHOD typename get_transformed_type<result_selector_type, typename TRange::value_type>::type build (TRange range)
             {
-				if (!range.next ())
-				{
-					throw sequence_empty_exception ();
-				}
+                if (!range.next ())
+                {
+                    throw sequence_empty_exception ();
+                }
 
                 auto sum = range.front ();
                 while (range.next ())
@@ -4942,6 +4942,53 @@ namespace cpplinq
                 }
 
                 return typename TRange::value_type ();
+
+            }
+
+        };
+
+        // -------------------------------------------------------------------------
+
+        struct element_at_builder : base_builder
+        {
+            typedef                 element_at_builder   this_type       ;
+
+            size_type               index;
+
+            CPPLINQ_INLINEMETHOD element_at_builder (size_type index) CPPLINQ_NOEXCEPT
+                :   index (std::move (index))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD element_at_builder (element_at_builder const & v) CPPLINQ_NOEXCEPT
+                :   index (v.index)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD element_at_builder (element_at_builder && v) CPPLINQ_NOEXCEPT
+                :   index (std::move (v.index))
+            {
+            }
+
+
+            template<typename TRange>
+            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
+            {
+                size_type current = 0U;
+
+                while (range.next ())
+                {
+                    if (current < index)
+                    {
+                        ++current;
+                    }
+                    else
+                    {
+                        return range.front ();
+                    }
+                }
+
+                throw sequence_empty_exception ();
 
             }
 
@@ -5550,6 +5597,13 @@ namespace cpplinq
         return detail::last_or_default_builder ();
     }
 
+    CPPLINQ_INLINEMETHOD detail::element_at_builder element_at (
+            size_type   index
+        ) CPPLINQ_NOEXCEPT
+    {
+        return detail::element_at_builder (index);
+    }
+
     CPPLINQ_INLINEMETHOD detail::element_at_or_default_builder element_at_or_default (
             size_type   index
         ) CPPLINQ_NOEXCEPT
@@ -5698,17 +5752,17 @@ namespace cpplinq
         return detail::avg_builder ();
     }
 
-	template <typename TAccumulator>
-	CPPLINQ_INLINEMETHOD detail::reduce_builder<TAccumulator> reduce (
-		TAccumulator accumulator
-		) CPPLINQ_NOEXCEPT
-	{
-		return detail::reduce_builder<TAccumulator> (accumulator);
-	}
+    template <typename TAccumulator>
+    CPPLINQ_INLINEMETHOD detail::reduce_builder<TAccumulator> reduce (
+        TAccumulator accumulator
+        ) CPPLINQ_NOEXCEPT
+    {
+        return detail::reduce_builder<TAccumulator> (accumulator);
+    }
 
     template <typename TAccumulator, typename TSelector>
     CPPLINQ_INLINEMETHOD detail::reduce_result_selector_builder<TAccumulator, TSelector> reduce (
-		    TAccumulator accumulator
+            TAccumulator accumulator
         ,   TSelector result_selector
         ) CPPLINQ_NOEXCEPT
     {
