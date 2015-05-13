@@ -2242,10 +2242,10 @@ namespace
         std::string expected_on_failure ("sequence_empty_exception");
 
         {
-			sequence_empty_exception caught_exception;
-			try
+            sequence_empty_exception caught_exception;
+            try
             {
-				auto result = from (empty_vector) >> element_at (0);
+                auto result = from (empty_vector) >> element_at (0);
                 ignore (result);
             }
             catch (sequence_empty_exception const & ex)
@@ -2256,10 +2256,10 @@ namespace
         }
 
         {
-			sequence_empty_exception caught_exception;
-			try
+            sequence_empty_exception caught_exception;
+            try
             {
-				auto result = from (empty_vector) >> element_at (1);
+                auto result = from (empty_vector) >> element_at (1);
                 ignore (result);
             }
             catch (sequence_empty_exception const & ex)
@@ -2285,10 +2285,10 @@ namespace
         }
 
         {
-			sequence_empty_exception caught_exception;
-			try
+            sequence_empty_exception caught_exception;
+            try
             {
-				auto result = from_array (ints) >> element_at (count_of_ints);
+                auto result = from_array (ints) >> element_at (count_of_ints);
                 ignore (result);
             }
             catch (sequence_empty_exception const & ex)
