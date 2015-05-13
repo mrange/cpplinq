@@ -197,6 +197,16 @@ namespace
             customer (12, "Tim"     , "Cook"    ),
         };
 
+    customer const          customers_set3[] =
+        {
+            customer (1 , "Bill"    , "Gates"   ),
+            customer (2 , "Steve"   , "Jobs"    ),
+            customer (3 , "Richard" , "Stallman"),
+            customer (4 , "XXX"     , "Jobs"    ),
+            customer (5 , "XXX"     , "Stallman"),
+            customer (6 , "???"     , "Stallman"),
+        };
+
     int const           ints[]                  = {3,1,4,1,5,9,2,6,5,3,5,8,9,7,9,3,2,3,8,4,6,2,6,4,3,3,8,3,2,7,9,5};
     std::size_t const   count_of_ints           = get_array_size (ints);
 
@@ -224,6 +234,8 @@ namespace
     auto                sum_aggregator          = [](int s, int i) {return s+i;};
     auto                mul_aggregator          = [](int s, int i) {return s*i;};
     auto                to_string               = [](int i) -> std::string {std::stringstream sstr; sstr<<i; return sstr.str ();};
+    auto                modular_of_four         = [](int i) {return i%4;};
+    auto                customer_last_name     = [](customer const & c) {return c.last_name;};
 
     void print_index (char const * name, std::size_t index)
     {
@@ -2297,7 +2309,7 @@ namespace
             sequence_empty_exception caught_exception;
             try
             {
-				auto reduce_result = from (empty_vector) >> reduce (sum_aggregator, to_string);
+                auto reduce_result = from (empty_vector) >> reduce (sum_aggregator, to_string);
                 ignore (reduce_result);
             }
             catch (sequence_empty_exception const & ex)
@@ -2389,6 +2401,30 @@ namespace
         {
             auto d = from_array (customers_set1) >> distinct () >> to_vector ();
             TEST_ASSERT (4U, d.size ());
+        }
+
+        {
+            auto d = from (empty_vector) >> distinct (modular_of_four) >> to_vector ();
+            TEST_ASSERT (0U, d.size ());
+        }
+
+        {
+            int expected[] = {5,4,3,2};
+            auto expected_size = get_array_size (expected);
+
+            auto result = from_array (set1) >> distinct (modular_of_four) >> to_vector ();
+            auto result_size = result.size ();
+
+            TEST_ASSERT (expected_size, result_size);
+            for (auto i = 0U; i < expected_size && i < result_size; ++i)
+            {
+                TEST_ASSERT (expected[i], result[i]);
+            }
+        }
+
+        {
+            auto d = from_array (customers_set3) >> distinct (customer_last_name) >> to_vector ();
+            TEST_ASSERT (3U, d.size ());
         }
 
     }

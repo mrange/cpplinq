@@ -2477,6 +2477,108 @@ namespace cpplinq
 
         // -------------------------------------------------------------------------
 
+        template<typename TRange, typename TSelector>
+        struct distinct_key_selector_range : base_range
+        {
+            typedef             distinct_key_selector_range<TRange, TSelector>      this_type           ;
+            typedef             TRange                                              range_type          ;
+            typedef             TSelector                                           key_selector_type   ;
+
+            typedef    typename cleanup_type<typename TRange::value_type>::type     value_type          ;
+            typedef             value_type const &                                  return_type         ;
+            enum
+            {
+                returns_reference   = 1 ,
+            };
+
+            typedef    typename get_transformed_type<key_selector_type, typename TRange::value_type>::type      key_type                ;
+            typedef             std::set<key_type>                                                              set_type                ;
+
+            range_type                  range               ;
+            key_selector_type           key_selector        ;
+            set_type                    set                 ;
+
+            CPPLINQ_INLINEMETHOD distinct_key_selector_range (
+                        range_type          range
+                    ,   key_selector_type   key_selector
+                ) CPPLINQ_NOEXCEPT
+                :   range               (std::move (range))
+                ,   key_selector        (std::move (key_selector))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD distinct_key_selector_range (distinct_key_selector_range const & v) CPPLINQ_NOEXCEPT
+                :   range               (v.range)
+                ,   key_selector        (v.key_selector)
+                ,   set                 (v.set)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD distinct_key_selector_range (distinct_key_selector_range && v) CPPLINQ_NOEXCEPT
+                :   range               (std::move (v.range))
+                ,   key_selector        (std::move (v.key_selector))
+                ,   set                 (std::move (v.set))
+            {
+            }
+
+            template<typename TRangeBuilder>
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const
+            {
+                return range_builder.build (*this);
+            }
+
+            CPPLINQ_INLINEMETHOD return_type front () const
+            {
+                return range.front ();
+            }
+
+            CPPLINQ_INLINEMETHOD bool next ()
+            {
+                while (range.next ())
+                {
+                    auto result = set.insert (key_selector (range.front ()));
+                    if (result.second)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        };
+
+        template <typename TSelector>
+        struct distinct_key_selector_builder : base_builder
+        {
+            typedef             distinct_key_selector_builder<TSelector>                    this_type           ;
+            typedef             TSelector                                                   key_selector_type   ;
+
+            key_selector_type       key_selector;
+
+            CPPLINQ_INLINEMETHOD distinct_key_selector_builder (key_selector_type key_selector) CPPLINQ_NOEXCEPT
+                :   key_selector (std::move (key_selector))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD distinct_key_selector_builder (distinct_key_selector_builder const & v) CPPLINQ_NOEXCEPT
+                :   key_selector (v.key_selector)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD distinct_key_selector_builder (distinct_key_selector_builder && v) CPPLINQ_NOEXCEPT
+                :   key_selector (std::move (v.key_selector))
+            {
+            }
+
+            template<typename TRange>
+            CPPLINQ_INLINEMETHOD distinct_key_selector_range<TRange, TSelector> build (TRange range) const
+            {
+                return distinct_key_selector_range<TRange, TSelector> (std::move (range), key_selector);
+            }
+        };
+
+        // -------------------------------------------------------------------------
+
         template<typename TRange, typename TOtherRange>
         struct union_range : base_range
         {
@@ -3815,7 +3917,7 @@ namespace cpplinq
             template<typename TRange>
             CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
             {
-				bool found = false;
+                bool found = false;
 
                 auto current = typename TRange::value_type ();
 
@@ -3823,19 +3925,19 @@ namespace cpplinq
                 {
                     if (predicate (range.front ()))
                     {
-						found = true;
+                        found = true;
                         current = std::move (range.front ());
                     }
                 }
 
-				if (found)
-				{
-					return current;
-				}
-				else
-				{
-					throw sequence_empty_exception ();
-				}
+                if (found)
+                {
+                    return current;
+                }
+                else
+                {
+                    throw sequence_empty_exception ();
+                }
             }
 
         };
@@ -3861,24 +3963,24 @@ namespace cpplinq
             template<typename TRange>
             CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
             {
-				bool found = false;
+                bool found = false;
 
                 auto current = typename TRange::value_type ();
 
                 while (range.next ())
                 {
-					found = true;
-					current = std::move (range.front ());
+                    found = true;
+                    current = std::move (range.front ());
                 }
 
-				if (found)
-				{
-					return current;
-				}
-				else
-				{
-					throw sequence_empty_exception ();
-				}
+                if (found)
+                {
+                    return current;
+                }
+                else
+                {
+                    throw sequence_empty_exception ();
+                }
             }
 
         };
@@ -4345,12 +4447,12 @@ namespace cpplinq
 
         };
 
-		// -------------------------------------------------------------------------
+        // -------------------------------------------------------------------------
 
         template <typename TAccumulator>
         struct reduce_builder : base_builder
         {
-            typedef                 reduce_builder<TAccumulator>					this_type       ;
+            typedef                 reduce_builder<TAccumulator>                    this_type       ;
             typedef                 TAccumulator                                    accumulator_type;
 
             accumulator_type        accumulator;
@@ -4373,10 +4475,10 @@ namespace cpplinq
             template<typename TRange>
             CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
             {
-				if (!range.next ())
-				{
-					throw sequence_empty_exception ();
-				}
+                if (!range.next ())
+                {
+                    throw sequence_empty_exception ();
+                }
 
                 auto sum = range.front ();
                 while (range.next ())
@@ -4392,7 +4494,7 @@ namespace cpplinq
         template <typename TAccumulator, typename TSelector>
         struct reduce_result_selector_builder : base_builder
         {
-            typedef                 reduce_result_selector_builder<TAccumulator, TSelector>					this_type       ;
+            typedef                 reduce_result_selector_builder<TAccumulator, TSelector>                 this_type       ;
             typedef                 TAccumulator                                                            accumulator_type;
             typedef                 TSelector                                                               result_selector_type;
 
@@ -4420,10 +4522,10 @@ namespace cpplinq
             template<typename TRange>
             CPPLINQ_INLINEMETHOD typename get_transformed_type<result_selector_type, typename TRange::value_type>::type build (TRange range)
             {
-				if (!range.next ())
-				{
-					throw sequence_empty_exception ();
-				}
+                if (!range.next ())
+                {
+                    throw sequence_empty_exception ();
+                }
 
                 auto sum = range.front ();
                 while (range.next ())
@@ -5698,17 +5800,17 @@ namespace cpplinq
         return detail::avg_builder ();
     }
 
-	template <typename TAccumulator>
-	CPPLINQ_INLINEMETHOD detail::reduce_builder<TAccumulator> reduce (
-		TAccumulator accumulator
-		) CPPLINQ_NOEXCEPT
-	{
-		return detail::reduce_builder<TAccumulator> (accumulator);
-	}
+    template <typename TAccumulator>
+    CPPLINQ_INLINEMETHOD detail::reduce_builder<TAccumulator> reduce (
+        TAccumulator accumulator
+        ) CPPLINQ_NOEXCEPT
+    {
+        return detail::reduce_builder<TAccumulator> (accumulator);
+    }
 
     template <typename TAccumulator, typename TSelector>
     CPPLINQ_INLINEMETHOD detail::reduce_result_selector_builder<TAccumulator, TSelector> reduce (
-		    TAccumulator accumulator
+            TAccumulator accumulator
         ,   TSelector result_selector
         ) CPPLINQ_NOEXCEPT
     {
@@ -5738,6 +5840,12 @@ namespace cpplinq
     CPPLINQ_INLINEMETHOD detail::distinct_builder distinct () CPPLINQ_NOEXCEPT
     {
         return detail::distinct_builder ();
+    }
+
+    template <typename TSelector>
+    CPPLINQ_INLINEMETHOD detail::distinct_key_selector_builder<TSelector> distinct (TSelector key_selector) CPPLINQ_NOEXCEPT
+    {
+        return detail::distinct_key_selector_builder<TSelector> (key_selector);
     }
 
     template <typename TOtherRange>
