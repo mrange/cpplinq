@@ -5051,6 +5051,53 @@ namespace cpplinq
 
         // -------------------------------------------------------------------------
 
+        struct element_at_builder : base_builder
+        {
+            typedef                 element_at_builder   this_type       ;
+
+            size_type               index;
+
+            CPPLINQ_INLINEMETHOD element_at_builder (size_type index) CPPLINQ_NOEXCEPT
+                :   index (std::move (index))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD element_at_builder (element_at_builder const & v) CPPLINQ_NOEXCEPT
+                :   index (v.index)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD element_at_builder (element_at_builder && v) CPPLINQ_NOEXCEPT
+                :   index (std::move (v.index))
+            {
+            }
+
+
+            template<typename TRange>
+            CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
+            {
+                size_type current = 0U;
+
+                while (range.next ())
+                {
+                    if (current < index)
+                    {
+                        ++current;
+                    }
+                    else
+                    {
+                        return range.front ();
+                    }
+                }
+
+                throw sequence_empty_exception ();
+
+            }
+
+        };
+
+        // -------------------------------------------------------------------------
+
         template<typename TRange>
         struct pairwise_range : base_range
         {
@@ -5650,6 +5697,13 @@ namespace cpplinq
     CPPLINQ_INLINEMETHOD detail::last_or_default_builder last_or_default () CPPLINQ_NOEXCEPT
     {
         return detail::last_or_default_builder ();
+    }
+
+    CPPLINQ_INLINEMETHOD detail::element_at_builder element_at (
+            size_type   index
+        ) CPPLINQ_NOEXCEPT
+    {
+        return detail::element_at_builder (index);
     }
 
     CPPLINQ_INLINEMETHOD detail::element_at_or_default_builder element_at_or_default (
