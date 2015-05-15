@@ -2847,6 +2847,89 @@ namespace
         }
     }
 
+    void test_start_with ()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE ();
+
+        // start_with two empty ranges
+        {
+            auto result = empty<int>() >> start_with (empty<int>()) >> to_vector ();
+            TEST_ASSERT (0U, result.size ());
+        }
+
+        // start_with two empty ranges
+        {
+            auto result = from (empty_vector) >> start_with (empty<int>()) >> to_vector ();
+            TEST_ASSERT (0U, result.size ());
+        }
+
+        // start_with an empty range with a non empty range
+        {
+            auto expected = range (0,10);
+            auto expected_result = expected >> to_vector ();
+            auto result = empty<int>() >> start_with (expected) >> to_vector ();
+            TEST_ASSERT (expected_result.size (), result.size ());
+            for (auto i = 0U; i < expected_result.size () && i < result.size ();++i)
+            {
+                TEST_ASSERT (expected_result[i], result[i]);
+            }
+        }
+
+        // start_with an empty range with a non empty range
+        {
+            auto result = empty<int>() >> start_with (from_array (ints)) >> to_vector ();
+            TEST_ASSERT (count_of_ints, result.size ());
+            for (auto i = 0U; i < count_of_ints && i < result.size ();++i)
+            {
+                TEST_ASSERT (ints[i], result[i]);
+            }
+        }
+
+        // start_with a non empty range with an empty range
+        {
+            auto expected = range (0,10);
+            auto expected_result = expected >> to_vector ();
+            auto result = expected >> start_with (empty<int>()) >> to_vector ();
+            TEST_ASSERT (expected_result.size (), result.size ());
+            for (auto i = 0U; i < expected_result.size () && i < result.size ();++i)
+            {
+                TEST_ASSERT (expected_result[i], result[i]);
+            }
+        }
+
+        // start_with a non empty range with an empty range
+        {
+            auto result = from_array (ints) >> start_with (empty<int>()) >> to_vector ();
+            TEST_ASSERT (count_of_ints, result.size ());
+            for (auto i = 0U; i < count_of_ints && i < result.size ();++i)
+            {
+                TEST_ASSERT (ints[i], result[i]);
+            }
+        }
+
+        // start_with two non-empty ranges
+        {
+            int set1[] = {6,7,8,9};
+            int set2[] = {0,1,2,3,4,5};
+            auto result = from_array (set1) >> start_with (from_array (set2)) >> to_vector ();
+            TEST_ASSERT (10U, result.size ());
+            for (auto i = 0U; i < 10 && i < result.size (); ++i)
+            {
+                TEST_ASSERT (static_cast<int> (i), result[i]);
+            }
+        }
+
+        // code coverage test
+        {
+            auto q = empty<int>() >> start_with (empty<int>());
+
+            TEST_ASSERT (false, q.next ());
+            TEST_ASSERT (false, q.next ());
+        }
+    }
+
     void test_sequence_equal ()
     {
         using namespace cpplinq;
@@ -3383,6 +3466,7 @@ namespace
         test_intersect_with         ();
         test_except                 ();
         test_concat                 ();
+        test_start_with             ();
         test_sequence_equal         ();
         test_pairwise               ();
         test_zip_with               ();

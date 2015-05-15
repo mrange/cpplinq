@@ -3109,6 +3109,159 @@ namespace cpplinq
 
         // -------------------------------------------------------------------------
 
+        template<typename TRange, typename TOtherRange>
+        struct start_with_range : base_range
+        {
+            typedef             start_with_range<TRange, TOtherRange>                   this_type           ;
+            typedef             TRange                                                  range_type          ;
+            typedef             TOtherRange                                             other_range_type    ;
+
+            typedef typename    cleanup_type<typename TRange::value_type>::type         value_type          ;
+            typedef typename    cleanup_type<typename TOtherRange::value_type>::type    other_value_type    ;
+            typedef             value_type                                              return_type         ;
+
+            enum
+            {
+                returns_reference   = 0         ,
+            };
+
+            enum state
+            {
+                state_initial                   ,
+                state_iterating_other_range     ,
+                state_iterating_range           ,
+                state_end                       ,
+            };
+
+            range_type                  range               ;
+            other_range_type            other_range         ;
+            state                       state               ;
+
+            CPPLINQ_INLINEMETHOD start_with_range (
+                        range_type          range
+                    ,   other_range_type    other_range
+                ) CPPLINQ_NOEXCEPT
+                :   range               (std::move (range))
+                ,   other_range         (std::move (other_range))
+                ,   state               (state_initial)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD start_with_range (start_with_range const & v) CPPLINQ_NOEXCEPT
+                :   range               (v.range)
+                ,   other_range         (v.other_range)
+                ,   state               (v.state)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD start_with_range (start_with_range && v) CPPLINQ_NOEXCEPT
+                :   range               (std::move (v.range))
+                ,   other_range         (std::move (v.other_range))
+                ,   state               (std::move (v.state))
+            {
+            }
+
+            template<typename TRangeBuilder>
+            CPPLINQ_INLINEMETHOD typename get_builtup_type<TRangeBuilder, this_type>::type operator>>(TRangeBuilder range_builder) const
+            {
+                return range_builder.build (*this);
+            }
+
+            CPPLINQ_INLINEMETHOD return_type front () const
+            {
+                switch (state)
+                {
+                case state_initial:
+                case state_end:
+                default:
+                    CPPLINQ_ASSERT (false);       // Intentionally falls through
+                case state_iterating_range:
+                    return range.front ();
+                case state_iterating_other_range:
+                    return other_range.front ();
+                };
+            }
+
+            CPPLINQ_INLINEMETHOD bool next ()
+            {
+                switch (state)
+                {
+                case state_initial:
+                    if (other_range.next ())
+                    {
+                        state = state_iterating_other_range;
+                        return true;
+                    }
+
+                    if (range.next ())
+                    {
+                        state = state_iterating_range;
+                        return true;
+                    }
+
+                    state = state_end;
+                    return false;
+                case state_iterating_other_range:
+                    if (other_range.next ())
+                    {
+                        return true;
+                    }
+
+                    if (range.next ())
+                    {
+                        state = state_iterating_range;
+                        return true;
+                    }
+
+                    state = state_end;
+                    return false;
+                case state_iterating_range:
+                    if (range.next ())
+                    {
+                        return true;
+                    }
+
+                    state = state_end;
+                    return false;
+                case state_end:
+                default:
+                    return false;
+                }
+            }
+        };
+
+        template <typename TOtherRange>
+        struct start_with_builder : base_builder
+        {
+            typedef                 start_with_builder<TOtherRange>         this_type       ;
+            typedef                 TOtherRange                             other_range_type;
+
+            other_range_type        other_range         ;
+
+            CPPLINQ_INLINEMETHOD start_with_builder (TOtherRange other_range) CPPLINQ_NOEXCEPT
+                : other_range (std::move (other_range))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD start_with_builder (start_with_builder const & v) CPPLINQ_NOEXCEPT
+                : other_range (v.other_range)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD start_with_builder (start_with_builder && v) CPPLINQ_NOEXCEPT
+                : other_range (std::move (v.other_range))
+            {
+            }
+
+            template <typename TRange>
+            CPPLINQ_INLINEMETHOD start_with_range<TRange, TOtherRange> build (TRange range) const
+            {
+                return start_with_range<TRange, TOtherRange> (std::move (range), std::move (other_range));
+            }
+        };
+
+        // -------------------------------------------------------------------------
+
         namespace experimental
         {
             // -------------------------------------------------------------------------
@@ -5494,6 +5647,12 @@ namespace cpplinq
     CPPLINQ_INLINEMETHOD detail::concat_builder<TOtherRange> concat (TOtherRange other_range) CPPLINQ_NOEXCEPT
     {
         return detail::concat_builder<TOtherRange> (std::move (other_range));
+    }
+
+    template <typename TOtherRange>
+    CPPLINQ_INLINEMETHOD detail::start_with_builder<TOtherRange> start_with (TOtherRange other_range) CPPLINQ_NOEXCEPT
+    {
+        return detail::start_with_builder<TOtherRange> (std::move (other_range));
     }
 
     // Partitioning operators
