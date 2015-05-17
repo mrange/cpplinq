@@ -235,7 +235,7 @@ namespace
     auto                mul_aggregator          = [](int s, int i) {return s*i;};
     auto                to_string               = [](int i) -> std::string {std::stringstream sstr; sstr<<i; return sstr.str ();};
     auto                modular_of_four         = [](int i) {return i%4;};
-    auto                customer_last_name     = [](customer const & c) {return c.last_name;};
+    auto                customer_last_name      = [](customer const & c) {return c.last_name;};
 
     void print_index (char const * name, std::size_t index)
     {
@@ -550,6 +550,11 @@ namespace
             }
 
             {
+                auto results = lookup.range_of_keys () >> to_vector ();
+                TEST_ASSERT (0U, results.size ());
+            }
+
+            {
                 auto results = lookup.range_of_values () >> to_vector ();
                 TEST_ASSERT (0U, results.size ());
             }
@@ -564,6 +569,23 @@ namespace
 
             TEST_ASSERT (count_of_customers, lookup.size_of_keys ());
             TEST_ASSERT (count_of_customers, lookup.size_of_values ());
+
+            {
+                auto results = lookup.range_of_keys () >> to_vector ();
+                if (TEST_ASSERT (count_of_customers, results.size ()))
+                {
+                    for (std::size_t iter = 0U; iter < count_of_customers; ++iter)
+                    {
+                        // As customers are sorted on id in the test data set
+                        // this is ok
+                        if (!TEST_ASSERT (customers[iter].id, results[iter].first))
+                        {
+                            PRINT_INDEX (iter);
+                        }
+                    }
+                }
+
+            }
 
             {
                 auto results = lookup.range_of_values () >> to_vector ();
@@ -612,9 +634,14 @@ namespace
             TEST_ASSERT (count_of_customer_addresses, lookup.size_of_values ());
 
             {
+                auto results = lookup.range_of_keys () >> to_vector ();
+                TEST_ASSERT (2U, results.size ());
+            }
+            {
                 auto results = lookup.range_of_values () >> to_vector ();
                 TEST_ASSERT (count_of_customer_addresses, results.size ());
             }
+
             {
                 auto results = lookup[1] >> to_vector ();
                 if (TEST_ASSERT (1U, results.size ()))
@@ -633,6 +660,144 @@ namespace
 
                     auto result2 = results[1];
                     TEST_ASSERT (3U, result2.id);
+                }
+            }
+
+            {
+                auto results = lookup[999] >> to_vector ();
+                TEST_ASSERT (0U, results.size ());
+            }
+        }
+
+        {
+            lookup<size_type, std::string> lookup (
+                    16U
+                ,   from (empty_customers)
+                ,   [] (customer const & c){return c.id;}
+                ,   [] (customer const & c){return c.last_name;}
+                );
+
+            TEST_ASSERT (0U, lookup.size_of_keys ());
+            TEST_ASSERT (0U, lookup.size_of_values ());
+
+            {
+                auto results = lookup[999] >> to_vector ();
+                TEST_ASSERT (0U, results.size ());
+            }
+
+            {
+                auto results = lookup.range_of_keys () >> to_vector ();
+                TEST_ASSERT (0U, results.size ());
+            }
+
+            {
+                auto results = lookup.range_of_values () >> to_vector ();
+                TEST_ASSERT (0U, results.size ());
+            }
+        }
+
+        {
+            lookup<size_type, std::string> lookup (
+                    16U
+                ,   from_array (customers)
+                ,   [] (customer const & c){return c.id;}
+                ,   [] (customer const & c){return c.last_name;}
+                );
+
+            TEST_ASSERT (count_of_customers, lookup.size_of_keys ());
+            TEST_ASSERT (count_of_customers, lookup.size_of_values ());
+
+            {
+                auto results = lookup.range_of_keys () >> to_vector ();
+                if (TEST_ASSERT (count_of_customers, results.size ()))
+                {
+                    for (std::size_t iter = 0U; iter < count_of_customers; ++iter)
+                    {
+                        // As customers are sorted on id in the test data set
+                        // this is ok
+                        if (!TEST_ASSERT (customers[iter].id, results[iter].first))
+                        {
+                            PRINT_INDEX (iter);
+                        }
+                    }
+                }
+
+            }
+
+            {
+                auto results = lookup.range_of_values () >> to_vector ();
+                if (TEST_ASSERT (count_of_customers, results.size ()))
+                {
+                    for (std::size_t iter = 0U; iter < count_of_customers; ++iter)
+                    {
+                        // As customers are sorted on id in the test data set
+                        // this is ok
+                        if (!TEST_ASSERT (customers[iter].last_name, results[iter]))
+                        {
+                            PRINT_INDEX (iter);
+                        }
+                    }
+                }
+
+            }
+
+            for (auto customer : customers)
+            {
+                auto results = lookup[customer.id] >> to_vector ();
+                if (TEST_ASSERT (1U, results.size ()))
+                {
+                    auto result = results.front ();
+
+                    if (!TEST_ASSERT (customer.last_name, result))
+                    {
+                        PRINT_INDEX (customer.id);
+                    }
+                }
+                else
+                {
+                    PRINT_INDEX (customer.id);
+                }
+            }
+        }
+
+        {
+            lookup<size_type, std::string> lookup (
+                    16U
+                ,   from_array (customer_addresses)
+                ,   [] (customer_address const & ca){return ca.customer_id;}
+                ,   [] (customer_address const & ca){return ca.country;}
+                );
+
+            TEST_ASSERT (2U, lookup.size_of_keys ());
+            TEST_ASSERT (count_of_customer_addresses, lookup.size_of_values ());
+
+            {
+                auto results = lookup.range_of_keys () >> to_vector ();
+                TEST_ASSERT (2U, results.size ());
+            }
+            {
+                auto results = lookup.range_of_values () >> to_vector ();
+                TEST_ASSERT (count_of_customer_addresses, results.size ());
+            }
+
+            {
+                auto results = lookup[1] >> to_vector ();
+                if (TEST_ASSERT (1U, results.size ()))
+                {
+                    auto result = results.front ();
+                    TEST_ASSERT ("USA", result);
+                }
+            }
+
+            {
+                auto results = lookup[4] >> to_vector ();
+                if (TEST_ASSERT (2U, results.size ()))
+                {
+                    auto result1 = results[0];
+                    TEST_ASSERT ("Finland", result1);
+
+                    auto result2 = results[1];
+                    TEST_ASSERT ("USA", result2);
                 }
             }
 
@@ -1555,6 +1720,81 @@ namespace
         // code coverage test
         {
             auto lookup = empty<int>() >> to_lookup ([] (int i) {return i;});
+
+            auto q = lookup[999];
+
+            TEST_ASSERT (false, q.next ());
+            TEST_ASSERT (false, q.next ());
+        }
+
+        {
+            auto lookup = from (empty_customers) >> to_lookup ([] (customer const & c){return c.id;}, [] (customer const & c){return c.last_name;});
+
+            TEST_ASSERT (0U, lookup.size_of_keys ());
+            TEST_ASSERT (0U, lookup.size_of_values ());
+        }
+
+        {
+            auto lookup = from_array (customers) >> to_lookup ([] (customer const & c){return c.id;}, [] (customer const & c){return c.last_name;});
+
+            TEST_ASSERT (count_of_customers, lookup.size_of_keys ());
+            TEST_ASSERT (count_of_customers, lookup.size_of_values ());
+
+            for (auto customer : customers)
+            {
+                auto results = lookup[customer.id] >> to_vector ();
+                if (TEST_ASSERT (1U, results.size ()))
+                {
+                    auto result = results.front ();
+
+                    if (!TEST_ASSERT (customer.last_name, result))
+                    {
+                        PRINT_INDEX (customer.id);
+                    }
+                }
+                else
+                {
+                    PRINT_INDEX (customer.id);
+                }
+            }
+        }
+
+        {
+            auto lookup = from_array (customer_addresses) >> to_lookup ([] (customer_address const & ca){return ca.customer_id;}, [] (customer_address const & ca){return ca.country;});
+
+            TEST_ASSERT (2U, lookup.size_of_keys ());
+            TEST_ASSERT (count_of_customer_addresses, lookup.size_of_values ());
+
+            {
+                auto results = lookup[1] >> to_vector ();
+                if (TEST_ASSERT (1U, results.size ()))
+                {
+                    auto result = results.front ();
+                    TEST_ASSERT ("USA", result);
+                }
+            }
+
+            {
+                auto results = lookup[4] >> to_vector ();
+                if (TEST_ASSERT (2U, results.size ()))
+                {
+                    auto result1 = results[0];
+                    TEST_ASSERT ("Finland", result1);
+
+                    auto result2 = results[1];
+                    TEST_ASSERT ("USA", result2);
+                }
+            }
+
+            {
+                auto results = lookup[999] >> to_vector ();
+                TEST_ASSERT (0U, results.size ());
+            }
+        }
+
+        // code coverage test
+        {
+            auto lookup = empty<int>() >> to_lookup ([] (int i) {return i;}, [] (int i) {return i;});
 
             auto q = lookup[999];
 

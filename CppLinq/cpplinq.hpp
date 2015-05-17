@@ -3498,39 +3498,39 @@ namespace cpplinq
 
         // -------------------------------------------------------------------------
 
-        template<typename TKeyPredicate>
+        template<typename KeySelector>
         struct to_map_builder : base_builder
         {
-            static TKeyPredicate get_key_predicate ();
+            static KeySelector get_key_selector ();
 
-            typedef                     to_map_builder<TKeyPredicate>   this_type           ;
-            typedef                     TKeyPredicate                   key_predicate_type  ;
+            typedef                     to_map_builder<KeySelector>   this_type         ;
+            typedef                     KeySelector                   key_selector_type ;
 
-            key_predicate_type          key_predicate   ;
+            key_selector_type          key_selector   ;
 
-            CPPLINQ_INLINEMETHOD explicit to_map_builder (key_predicate_type key_predicate) CPPLINQ_NOEXCEPT
-                :   key_predicate   (std::move (key_predicate))
+            CPPLINQ_INLINEMETHOD explicit to_map_builder (key_selector_type key_selector) CPPLINQ_NOEXCEPT
+                :   key_selector   (std::move (key_selector))
             {
             }
 
             CPPLINQ_INLINEMETHOD to_map_builder (to_map_builder const & v)
-                :   key_predicate (v.key_predicate)
+                :   key_selector (v.key_selector)
             {
             }
 
             CPPLINQ_INLINEMETHOD to_map_builder (to_map_builder && v) CPPLINQ_NOEXCEPT
-                :   key_predicate (std::move (v.key_predicate))
+                :   key_selector (std::move (v.key_selector))
             {
             }
 
             template<typename TRange>
             CPPLINQ_METHOD std::map<
-                    typename get_transformed_type<key_predicate_type, typename TRange::value_type>::type
+                    typename get_transformed_type<key_selector_type, typename TRange::value_type>::type
                 ,   typename TRange::value_type
                 > build (TRange range) const
             {
                 typedef std::map<
-                    typename get_transformed_type<key_predicate_type, typename TRange::value_type>::type
+                    typename get_transformed_type<key_selector_type, typename TRange::value_type>::type
                 ,   typename TRange::value_type
                 >   result_type;
 
@@ -3539,7 +3539,7 @@ namespace cpplinq
                 while (range.next ())
                 {
                     auto v = range.front ();
-                    auto k = key_predicate (v);
+                    auto k = key_selector (v);
 
                     result.insert (typename result_type::value_type (std::move (k), std::move (v)));
                 }
@@ -3560,6 +3560,7 @@ namespace cpplinq
             typedef             std::vector<std::pair<key_type, size_type>>     keys_type           ;
             typedef             std::vector<value_type>                         values_type         ;
 
+            typedef typename    keys_type::const_iterator                       keys_iterator_type  ;
             typedef typename    values_type::const_iterator                     values_iterator_type;
 
             template<typename TRange, typename TSelector>
@@ -3576,6 +3577,71 @@ namespace cpplinq
                     auto value  = range.front ();
                     auto key    = selector (value);
                     v.push_back (std::move (value));
+                    k.push_back (typename keys_type::value_type (std::move (key), index));
+                    ++index;
+                }
+
+                if (v.size () == 0)
+                {
+                    return;
+                }
+
+                std::sort (
+                        k.begin ()
+                    ,   k.end ()
+                    ,   [] (typename keys_type::value_type const & l, typename keys_type::value_type const & r)
+                        {
+                            return l.first < r.first;
+                        }
+                    );
+
+                keys.reserve (k.size ());
+                values.reserve (v.size ());
+
+                auto iter       = k.begin ();
+                auto end        = k.end ();
+
+                index = 0U;
+
+                if (iter != end)
+                {
+                    values.push_back (std::move (v[iter->second]));
+                    keys.push_back (typename keys_type::value_type (iter->first, index));
+                }
+
+                auto previous   = iter;
+                ++iter;
+                ++index;
+
+                while (iter != end)
+                {
+                    values.push_back (v[iter->second]);
+
+                    if (previous->first < iter->first)
+                    {
+                        keys.push_back (typename keys_type::value_type (iter->first, index));
+                    }
+
+                    previous = iter;
+                    ++iter;
+                    ++index;
+                }
+            }
+
+            template<typename TRange, typename TKeySelector, typename TValueSelector>
+            CPPLINQ_METHOD lookup (size_type capacity, TRange range, TKeySelector key_selector, TValueSelector value_selector)
+            {
+                keys_type   k;
+                values_type v;
+                k.reserve (capacity);
+                v.reserve (capacity);
+
+                auto index = 0U;
+                while (range.next ())
+                {
+                    auto value  = range.front ();
+                    auto key    = key_selector (value);
+                    v.push_back (value_selector (value));
                     k.push_back (typename keys_type::value_type (std::move (key), index));
                     ++index;
                 }
@@ -3806,6 +3872,14 @@ namespace cpplinq
                 return values.size ();
             }
 
+            CPPLINQ_INLINEMETHOD from_range<keys_iterator_type> range_of_keys () const CPPLINQ_NOEXCEPT
+            {
+                return from_range<keys_iterator_type> (
+                        keys.begin ()
+                    ,   keys.end ()
+                    );
+            }
+
             CPPLINQ_INLINEMETHOD from_range<values_iterator_type> range_of_values () const CPPLINQ_NOEXCEPT
             {
                 return from_range<values_iterator_type> (
@@ -3819,43 +3893,87 @@ namespace cpplinq
             keys_type   keys    ;
         };
 
-        template<typename TKeyPredicate>
+        template<typename TKeySelector>
         struct to_lookup_builder : base_builder
         {
-            static TKeyPredicate get_key_predicate ();
+            typedef                     to_lookup_builder<TKeySelector>    this_type          ;
+            typedef                     TKeySelector                       key_selector_type  ;
 
-            typedef                     to_lookup_builder<TKeyPredicate>    this_type           ;
-            typedef                     TKeyPredicate                       key_predicate_type  ;
+            key_selector_type          key_selector   ;
 
-            key_predicate_type          key_predicate   ;
-
-            CPPLINQ_INLINEMETHOD explicit to_lookup_builder (key_predicate_type key_predicate) CPPLINQ_NOEXCEPT
-                :   key_predicate   (std::move (key_predicate))
+            CPPLINQ_INLINEMETHOD explicit to_lookup_builder (key_selector_type key_selector) CPPLINQ_NOEXCEPT
+                :   key_selector   (std::move (key_selector))
             {
             }
 
             CPPLINQ_INLINEMETHOD to_lookup_builder (to_lookup_builder const & v)
-                :   key_predicate (v.key_predicate)
+                :   key_selector (v.key_selector)
             {
             }
 
             CPPLINQ_INLINEMETHOD to_lookup_builder (to_lookup_builder && v) CPPLINQ_NOEXCEPT
-                :   key_predicate (std::move (v.key_predicate))
+                :   key_selector (std::move (v.key_selector))
             {
             }
 
             template<typename TRange>
             CPPLINQ_INLINEMETHOD lookup<
-                    typename get_transformed_type<key_predicate_type, typename TRange::value_type>::type
+                    typename get_transformed_type<key_selector_type, typename TRange::value_type>::type
                 ,   typename TRange::value_type
                 > build (TRange range) const
             {
                 typedef lookup<
-                    typename get_transformed_type<key_predicate_type, typename TRange::value_type>::type
+                    typename get_transformed_type<key_selector_type, typename TRange::value_type>::type
                 ,   typename TRange::value_type
                 >   result_type;
 
-                result_type result (16U, range, key_predicate);
+                result_type result (16U, range, key_selector);
+
+                return result;
+            }
+
+        };
+
+        template<typename TKeySelector, typename TValueSelector>
+        struct to_lookup_value_selector_builder : base_builder
+        {
+            typedef     to_lookup_value_selector_builder<TKeySelector, TValueSelector>    this_type             ;
+            typedef     TKeySelector                                                      key_selector_type     ;
+            typedef     TValueSelector                                                    value_selector_type   ;
+
+            key_selector_type          key_selector     ;
+            value_selector_type        value_selector   ;
+
+            CPPLINQ_INLINEMETHOD explicit to_lookup_value_selector_builder (key_selector_type key_selector, value_selector_type value_selector) CPPLINQ_NOEXCEPT
+                :   key_selector   (std::move (key_selector))
+                ,   value_selector (std::move (value_selector))
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD to_lookup_value_selector_builder (to_lookup_value_selector_builder const & v)
+                :   key_selector    (v.key_selector)
+                :   value_selector  (v.value_selector)
+            {
+            }
+
+            CPPLINQ_INLINEMETHOD to_lookup_value_selector_builder (to_lookup_value_selector_builder && v) CPPLINQ_NOEXCEPT
+                :   key_selector    (std::move (v.key_selector))
+                ,   value_selector  (std::move (v.value_selector))
+            {
+            }
+
+            template<typename TRange>
+            CPPLINQ_INLINEMETHOD lookup<
+                    typename get_transformed_type<key_selector_type, typename TRange::value_type>::type
+                ,   typename get_transformed_type<value_selector_type, typename TRange::value_type>::type
+                > build (TRange range) const
+            {
+                typedef lookup<
+                    typename get_transformed_type<key_selector_type, typename TRange::value_type>::type
+                ,   typename get_transformed_type<value_selector_type, typename TRange::value_type>::type
+                >   result_type;
+
+                result_type result (16U, range, key_selector, value_selector);
 
                 return result;
             }
@@ -5777,16 +5895,22 @@ namespace cpplinq
         return detail::to_list_builder ();
     }
 
-    template<typename TKeyPredicate>
-    CPPLINQ_INLINEMETHOD detail::to_map_builder<TKeyPredicate> to_map (TKeyPredicate key_predicate) CPPLINQ_NOEXCEPT
+    template<typename TKeySelector>
+    CPPLINQ_INLINEMETHOD detail::to_map_builder<TKeySelector> to_map (TKeySelector key_selector) CPPLINQ_NOEXCEPT
     {
-        return detail::to_map_builder<TKeyPredicate>(std::move (key_predicate));
+        return detail::to_map_builder<TKeySelector>(std::move (key_selector));
     }
 
-    template<typename TKeyPredicate>
-    CPPLINQ_INLINEMETHOD detail::to_lookup_builder<TKeyPredicate> to_lookup (TKeyPredicate key_predicate) CPPLINQ_NOEXCEPT
+    template<typename TKeySelector>
+    CPPLINQ_INLINEMETHOD detail::to_lookup_builder<TKeySelector> to_lookup (TKeySelector key_selector) CPPLINQ_NOEXCEPT
     {
-        return detail::to_lookup_builder<TKeyPredicate>(std::move (key_predicate));
+        return detail::to_lookup_builder<TKeySelector>(std::move (key_selector));
+    }
+
+    template<typename TKeySelector, typename TValueSelector>
+    CPPLINQ_INLINEMETHOD detail::to_lookup_value_selector_builder<TKeySelector, TValueSelector> to_lookup (TKeySelector key_selector, TValueSelector value_selector) CPPLINQ_NOEXCEPT
+    {
+        return detail::to_lookup_value_selector_builder<TKeySelector, TValueSelector>(std::move (key_selector), std::move (value_selector));
     }
 
     // Equality operators
