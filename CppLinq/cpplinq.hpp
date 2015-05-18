@@ -4188,22 +4188,21 @@ namespace cpplinq
             template<typename TRange>
             CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
             {
-                bool found = false;
+                typedef opt<typename TRange::value_type>    opt_type;
 
-                auto current = typename TRange::value_type ();
+                auto current = opt_type ();
 
                 while (range.next ())
                 {
                     if (predicate (range.front ()))
                     {
-                        found = true;
-                        current = std::move (range.front ());
+                        current = opt_type (range.front ());
                     }
                 }
 
-                if (found)
+                if (current.has_value ())
                 {
-                    return current;
+                    return current.get ();
                 }
                 else
                 {
@@ -4234,19 +4233,18 @@ namespace cpplinq
             template<typename TRange>
             CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
             {
-                bool found = false;
+                typedef opt<typename TRange::value_type>    opt_type;
 
-                auto current = typename TRange::value_type ();
+                auto current = opt_type ();
 
                 while (range.next ())
                 {
-                    found = true;
-                    current = std::move (range.front ());
+                    current = opt_type (range.front ());
                 }
 
-                if (found)
+                if (current.has_value ())
                 {
-                    return current;
+                    return current.get ();
                 }
                 else
                 {
@@ -4289,7 +4287,7 @@ namespace cpplinq
                 {
                     if (predicate (range.front ()))
                     {
-                        current = std::move (range.front ());
+                        current = range.front ();
                     }
                 }
 
@@ -4321,7 +4319,7 @@ namespace cpplinq
 
                 while (range.next ())
                 {
-                    current = std::move (range.front ());
+                    current = range.front ();
                 }
 
                 return current;
