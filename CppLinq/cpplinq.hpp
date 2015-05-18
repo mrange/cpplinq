@@ -3498,13 +3498,13 @@ namespace cpplinq
 
         // -------------------------------------------------------------------------
 
-        template<typename KeySelector>
+        template<typename TKeySelector>
         struct to_map_builder : base_builder
         {
-            static KeySelector get_key_selector ();
+            static TKeySelector get_key_selector ();
 
-            typedef                     to_map_builder<KeySelector>   this_type         ;
-            typedef                     KeySelector                   key_selector_type ;
+            typedef                     to_map_builder<TKeySelector>   this_type         ;
+            typedef                     TKeySelector                   key_selector_type ;
 
             key_selector_type          key_selector   ;
 
