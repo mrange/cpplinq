@@ -90,6 +90,14 @@ namespace cpplinq
         }
     };
 
+    struct out_of_range_exception : base_exception
+    {
+        virtual const char* what ()  const CPPLINQ_NOEXCEPT
+        {
+            return "out_of_range_exception";
+        }
+    };
+
     // -------------------------------------------------------------------------
 
     // -------------------------------------------------------------------------
@@ -5359,7 +5367,7 @@ namespace cpplinq
                     }
                 }
 
-                throw sequence_empty_exception ();
+                throw out_of_range_exception ();
 
             }
 
