@@ -4196,15 +4196,13 @@ namespace cpplinq
             template<typename TRange>
             CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
             {
-                typedef opt<typename TRange::value_type>    opt_type;
-
-                auto current = opt_type ();
+                opt<typename TRange::value_type>    current;
 
                 while (range.next ())
                 {
                     if (predicate (range.front ()))
                     {
-                        current = opt_type (range.front ());
+                        current = range.front ();
                     }
                 }
 
@@ -4241,13 +4239,11 @@ namespace cpplinq
             template<typename TRange>
             CPPLINQ_INLINEMETHOD typename TRange::value_type build (TRange range)
             {
-                typedef opt<typename TRange::value_type>    opt_type;
-
-                auto current = opt_type ();
+                opt<typename TRange::value_type>    current;
 
                 while (range.next ())
                 {
-                    current = opt_type (range.front ());
+                    current = range.front ();
                 }
 
                 if (current.has_value ())
