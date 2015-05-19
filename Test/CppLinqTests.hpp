@@ -2578,7 +2578,7 @@ namespace
 
     }
 
-    void test_reduce ()
+    void test_aggregate ()
     {
         using namespace cpplinq;
 
@@ -2590,8 +2590,8 @@ namespace
             sequence_empty_exception caught_exception;
             try
             {
-                int reduce_result = from (empty_vector) >> reduce (sum_aggregator);
-                ignore (reduce_result);
+                int sum_result = from (empty_vector) >> aggregate (sum_aggregator);
+                ignore (sum_result);
             }
             catch (sequence_empty_exception const & ex)
             {
@@ -2602,48 +2602,15 @@ namespace
 
         {
             int sum_of_simple_ints = std::accumulate (simple_ints, simple_ints + count_of_simple_ints, 0);
-            int sum_result = from_array (simple_ints) >> reduce (sum_aggregator);
+            int sum_result = from_array (simple_ints) >> aggregate (sum_aggregator);
             TEST_ASSERT (sum_of_simple_ints, sum_result);
         }
 
         {
             int prod_of_simple_ints = std::accumulate (simple_ints, simple_ints + count_of_simple_ints, 1, mul_aggregator);
-            int sum_result = from_array (simple_ints) >> reduce (mul_aggregator);
+            int sum_result = from_array (simple_ints) >> aggregate (mul_aggregator);
             TEST_ASSERT (prod_of_simple_ints, sum_result);
         }
-
-        {
-            sequence_empty_exception caught_exception;
-            try
-            {
-                auto reduce_result = from (empty_vector) >> reduce (sum_aggregator, to_string);
-                ignore (reduce_result);
-            }
-            catch (sequence_empty_exception const & ex)
-            {
-                caught_exception = ex;
-            }
-            TEST_ASSERT (expected_on_failure, caught_exception.what ());
-        }
-
-        {
-            auto sum_of_simple_ints = to_string (std::accumulate (simple_ints, simple_ints + count_of_simple_ints, 0));
-            auto sum_result = from_array (simple_ints) >> reduce (sum_aggregator, to_string);
-            TEST_ASSERT (sum_of_simple_ints, sum_result);
-        }
-
-        {
-            auto prod_of_simple_ints = to_string (std::accumulate (simple_ints, simple_ints + count_of_simple_ints, 1, mul_aggregator));
-            auto sum_result = from_array (simple_ints) >> reduce (mul_aggregator, to_string);
-            TEST_ASSERT (prod_of_simple_ints, sum_result);
-        }
-    }
-
-    void test_aggregate ()
-    {
-        using namespace cpplinq;
-
-        TEST_PRELUDE ();
 
         {
             int sum_result = from (empty_vector) >> aggregate (0, sum_aggregator);
@@ -3699,7 +3666,6 @@ namespace
         test_contains               ();
         test_element_at             ();
         test_element_at_or_default  ();
-        test_reduce                 ();
         test_aggregate              ();
         test_distinct               ();
         test_union_with             ();
