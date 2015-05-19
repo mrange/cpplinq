@@ -197,6 +197,16 @@ namespace
             customer (12, "Tim"     , "Cook"    ),
         };
 
+    customer const          customers_set3[] =
+        {
+            customer (1 , "Bill"    , "Gates"   ),
+            customer (2 , "Steve"   , "Jobs"    ),
+            customer (3 , "Richard" , "Stallman"),
+            customer (4 , "XXX"     , "Jobs"    ),
+            customer (5 , "XXX"     , "Stallman"),
+            customer (6 , "???"     , "Stallman"),
+        };
+
     int const           ints[]                  = {3,1,4,1,5,9,2,6,5,3,5,8,9,7,9,3,2,3,8,4,6,2,6,4,3,3,8,3,2,7,9,5};
     std::size_t const   count_of_ints           = get_array_size (ints);
 
@@ -224,6 +234,8 @@ namespace
     auto                sum_aggregator          = [](int s, int i) {return s+i;};
     auto                mul_aggregator          = [](int s, int i) {return s*i;};
     auto                to_string               = [](int i) -> std::string {std::stringstream sstr; sstr<<i; return sstr.str ();};
+    auto                modular_of_four         = [](int i) {return i%4;};
+    auto                customer_last_name      = [](customer const & c) {return c.last_name;};
 
     void print_index (char const * name, std::size_t index)
     {
@@ -538,6 +550,11 @@ namespace
             }
 
             {
+                auto results = lookup.range_of_keys () >> to_vector ();
+                TEST_ASSERT (0U, results.size ());
+            }
+
+            {
                 auto results = lookup.range_of_values () >> to_vector ();
                 TEST_ASSERT (0U, results.size ());
             }
@@ -552,6 +569,23 @@ namespace
 
             TEST_ASSERT (count_of_customers, lookup.size_of_keys ());
             TEST_ASSERT (count_of_customers, lookup.size_of_values ());
+
+            {
+                auto results = lookup.range_of_keys () >> to_vector ();
+                if (TEST_ASSERT (count_of_customers, results.size ()))
+                {
+                    for (std::size_t iter = 0U; iter < count_of_customers; ++iter)
+                    {
+                        // As customers are sorted on id in the test data set
+                        // this is ok
+                        if (!TEST_ASSERT (customers[iter].id, results[iter].first))
+                        {
+                            PRINT_INDEX (iter);
+                        }
+                    }
+                }
+
+            }
 
             {
                 auto results = lookup.range_of_values () >> to_vector ();
@@ -600,9 +634,14 @@ namespace
             TEST_ASSERT (count_of_customer_addresses, lookup.size_of_values ());
 
             {
+                auto results = lookup.range_of_keys () >> to_vector ();
+                TEST_ASSERT (2U, results.size ());
+            }
+            {
                 auto results = lookup.range_of_values () >> to_vector ();
                 TEST_ASSERT (count_of_customer_addresses, results.size ());
             }
+
             {
                 auto results = lookup[1] >> to_vector ();
                 if (TEST_ASSERT (1U, results.size ()))
@@ -621,6 +660,144 @@ namespace
 
                     auto result2 = results[1];
                     TEST_ASSERT (3U, result2.id);
+                }
+            }
+
+            {
+                auto results = lookup[999] >> to_vector ();
+                TEST_ASSERT (0U, results.size ());
+            }
+        }
+
+        {
+            lookup<size_type, std::string> lookup (
+                    16U
+                ,   from (empty_customers)
+                ,   [] (customer const & c){return c.id;}
+                ,   [] (customer const & c){return c.last_name;}
+                );
+
+            TEST_ASSERT (0U, lookup.size_of_keys ());
+            TEST_ASSERT (0U, lookup.size_of_values ());
+
+            {
+                auto results = lookup[999] >> to_vector ();
+                TEST_ASSERT (0U, results.size ());
+            }
+
+            {
+                auto results = lookup.range_of_keys () >> to_vector ();
+                TEST_ASSERT (0U, results.size ());
+            }
+
+            {
+                auto results = lookup.range_of_values () >> to_vector ();
+                TEST_ASSERT (0U, results.size ());
+            }
+        }
+
+        {
+            lookup<size_type, std::string> lookup (
+                    16U
+                ,   from_array (customers)
+                ,   [] (customer const & c){return c.id;}
+                ,   [] (customer const & c){return c.last_name;}
+                );
+
+            TEST_ASSERT (count_of_customers, lookup.size_of_keys ());
+            TEST_ASSERT (count_of_customers, lookup.size_of_values ());
+
+            {
+                auto results = lookup.range_of_keys () >> to_vector ();
+                if (TEST_ASSERT (count_of_customers, results.size ()))
+                {
+                    for (std::size_t iter = 0U; iter < count_of_customers; ++iter)
+                    {
+                        // As customers are sorted on id in the test data set
+                        // this is ok
+                        if (!TEST_ASSERT (customers[iter].id, results[iter].first))
+                        {
+                            PRINT_INDEX (iter);
+                        }
+                    }
+                }
+
+            }
+
+            {
+                auto results = lookup.range_of_values () >> to_vector ();
+                if (TEST_ASSERT (count_of_customers, results.size ()))
+                {
+                    for (std::size_t iter = 0U; iter < count_of_customers; ++iter)
+                    {
+                        // As customers are sorted on id in the test data set
+                        // this is ok
+                        if (!TEST_ASSERT (customers[iter].last_name, results[iter]))
+                        {
+                            PRINT_INDEX (iter);
+                        }
+                    }
+                }
+
+            }
+
+            for (auto customer : customers)
+            {
+                auto results = lookup[customer.id] >> to_vector ();
+                if (TEST_ASSERT (1U, results.size ()))
+                {
+                    auto result = results.front ();
+
+                    if (!TEST_ASSERT (customer.last_name, result))
+                    {
+                        PRINT_INDEX (customer.id);
+                    }
+                }
+                else
+                {
+                    PRINT_INDEX (customer.id);
+                }
+            }
+        }
+
+        {
+            lookup<size_type, std::string> lookup (
+                    16U
+                ,   from_array (customer_addresses)
+                ,   [] (customer_address const & ca){return ca.customer_id;}
+                ,   [] (customer_address const & ca){return ca.country;}
+                );
+
+            TEST_ASSERT (2U, lookup.size_of_keys ());
+            TEST_ASSERT (count_of_customer_addresses, lookup.size_of_values ());
+
+            {
+                auto results = lookup.range_of_keys () >> to_vector ();
+                TEST_ASSERT (2U, results.size ());
+            }
+            {
+                auto results = lookup.range_of_values () >> to_vector ();
+                TEST_ASSERT (count_of_customer_addresses, results.size ());
+            }
+
+            {
+                auto results = lookup[1] >> to_vector ();
+                if (TEST_ASSERT (1U, results.size ()))
+                {
+                    auto result = results.front ();
+                    TEST_ASSERT ("USA", result);
+                }
+            }
+
+            {
+                auto results = lookup[4] >> to_vector ();
+                if (TEST_ASSERT (2U, results.size ()))
+                {
+                    auto result1 = results[0];
+                    TEST_ASSERT ("Finland", result1);
+
+                    auto result2 = results[1];
+                    TEST_ASSERT ("USA", result2);
                 }
             }
 
@@ -1102,6 +1279,67 @@ namespace
 
     }
 
+    void test_last ()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE ();
+
+        std::string expected_on_failure ("sequence_empty_exception");
+
+        {
+            sequence_empty_exception caught_exception;
+            try
+            {
+                int last_result = from (empty_vector) >> last ();
+                ignore (last_result);
+            }
+            catch (sequence_empty_exception const & ex)
+            {
+                caught_exception = ex;
+            }
+            TEST_ASSERT (expected_on_failure, caught_exception.what ());
+        }
+
+        {
+            int last_result = from_array (ints) >> last ();
+            TEST_ASSERT (5, last_result);
+        }
+
+        {
+            sequence_empty_exception caught_exception;
+            try
+            {
+                int last_result = from (empty_vector) >> last (is_even);
+                ignore (last_result);
+            }
+            catch (sequence_empty_exception const & ex)
+            {
+                caught_exception = ex;
+            }
+            TEST_ASSERT (expected_on_failure, caught_exception.what ());
+        }
+
+        {
+            int last_result = from_array (ints) >> last (is_even);
+            TEST_ASSERT (2, last_result);
+        }
+
+        {
+            // Issue: https://cpplinq.codeplex.com/workitem/15
+            // Reported by: Sepidar
+            auto result =
+                    range (0, 4)
+                >>  where ([](int i) {return i % 2 == 1;})
+                >>  orderby ([](int i) {return i;})
+                >>  last ()
+                ;
+
+            TEST_ASSERT (3, result);
+        }
+
+    }
+
     void test_last_or_default ()
     {
         using namespace cpplinq;
@@ -1109,23 +1347,23 @@ namespace
         TEST_PRELUDE ();
 
         {
-            int first_result = from (empty_vector) >> last_or_default ();
-            TEST_ASSERT (0, first_result);
+            int last_result = from (empty_vector) >> last_or_default ();
+            TEST_ASSERT (0, last_result);
         }
 
         {
-            int first_result = from_array (ints) >> last_or_default ();
-            TEST_ASSERT (5, first_result);
+            int last_result = from_array (ints) >> last_or_default ();
+            TEST_ASSERT (5, last_result);
         }
 
         {
-            int first_result = from (empty_vector) >> last_or_default (is_even);
-            TEST_ASSERT (0, first_result);
+            int last_result = from (empty_vector) >> last_or_default (is_even);
+            TEST_ASSERT (0, last_result);
         }
 
         {
-            int first_result = from_array (ints) >> last_or_default (is_even);
-            TEST_ASSERT (2, first_result);
+            int last_result = from_array (ints) >> last_or_default (is_even);
+            TEST_ASSERT (2, last_result);
         }
     }
 
@@ -1482,6 +1720,81 @@ namespace
         // code coverage test
         {
             auto lookup = empty<int>() >> to_lookup ([] (int i) {return i;});
+
+            auto q = lookup[999];
+
+            TEST_ASSERT (false, q.next ());
+            TEST_ASSERT (false, q.next ());
+        }
+
+        {
+            auto lookup = from (empty_customers) >> to_lookup ([] (customer const & c){return c.id;}, [] (customer const & c){return c.last_name;});
+
+            TEST_ASSERT (0U, lookup.size_of_keys ());
+            TEST_ASSERT (0U, lookup.size_of_values ());
+        }
+
+        {
+            auto lookup = from_array (customers) >> to_lookup ([] (customer const & c){return c.id;}, [] (customer const & c){return c.last_name;});
+
+            TEST_ASSERT (count_of_customers, lookup.size_of_keys ());
+            TEST_ASSERT (count_of_customers, lookup.size_of_values ());
+
+            for (auto customer : customers)
+            {
+                auto results = lookup[customer.id] >> to_vector ();
+                if (TEST_ASSERT (1U, results.size ()))
+                {
+                    auto result = results.front ();
+
+                    if (!TEST_ASSERT (customer.last_name, result))
+                    {
+                        PRINT_INDEX (customer.id);
+                    }
+                }
+                else
+                {
+                    PRINT_INDEX (customer.id);
+                }
+            }
+        }
+
+        {
+            auto lookup = from_array (customer_addresses) >> to_lookup ([] (customer_address const & ca){return ca.customer_id;}, [] (customer_address const & ca){return ca.country;});
+
+            TEST_ASSERT (2U, lookup.size_of_keys ());
+            TEST_ASSERT (count_of_customer_addresses, lookup.size_of_values ());
+
+            {
+                auto results = lookup[1] >> to_vector ();
+                if (TEST_ASSERT (1U, results.size ()))
+                {
+                    auto result = results.front ();
+                    TEST_ASSERT ("USA", result);
+                }
+            }
+
+            {
+                auto results = lookup[4] >> to_vector ();
+                if (TEST_ASSERT (2U, results.size ()))
+                {
+                    auto result1 = results[0];
+                    TEST_ASSERT ("Finland", result1);
+
+                    auto result2 = results[1];
+                    TEST_ASSERT ("USA", result2);
+                }
+            }
+
+            {
+                auto results = lookup[999] >> to_vector ();
+                TEST_ASSERT (0U, results.size ());
+            }
+        }
+
+        // code coverage test
+        {
+            auto lookup = empty<int>() >> to_lookup ([] (int i) {return i;}, [] (int i) {return i;});
 
             auto q = lookup[999];
 
@@ -2160,6 +2473,73 @@ namespace
         }
     }
 
+    void test_element_at ()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE ();
+
+        std::string expected_on_failure ("out_of_range_exception");
+
+        {
+            out_of_range_exception caught_exception;
+            try
+            {
+                auto result = from (empty_vector) >> element_at (0);
+                ignore (result);
+            }
+            catch (out_of_range_exception const & ex)
+            {
+                caught_exception = ex;
+            }
+            TEST_ASSERT (expected_on_failure, caught_exception.what ());
+        }
+
+        {
+            out_of_range_exception caught_exception;
+            try
+            {
+                auto result = from (empty_vector) >> element_at (1);
+                ignore (result);
+            }
+            catch (out_of_range_exception const & ex)
+            {
+                caught_exception = ex;
+            }
+            TEST_ASSERT (expected_on_failure, caught_exception.what ());
+        }
+
+        {
+            auto result = from_array (ints) >> element_at (0);
+            TEST_ASSERT (3, result);
+        }
+
+        {
+            auto result = from_array (ints) >> element_at (1);
+            TEST_ASSERT (1, result);
+        }
+
+        {
+            auto result = from_array (ints) >> element_at (count_of_ints-1);
+            TEST_ASSERT (5, result);
+        }
+
+        {
+            out_of_range_exception caught_exception;
+            try
+            {
+                auto result = from_array (ints) >> element_at (count_of_ints);
+                ignore (result);
+            }
+            catch (out_of_range_exception const & ex)
+            {
+                caught_exception = ex;
+            }
+            TEST_ASSERT (expected_on_failure, caught_exception.what ());
+        }
+
+    }
+
     void test_element_at_or_default ()
     {
         using namespace cpplinq;
@@ -2203,6 +2583,34 @@ namespace
         using namespace cpplinq;
 
         TEST_PRELUDE ();
+
+        std::string expected_on_failure ("sequence_empty_exception");
+
+        {
+            sequence_empty_exception caught_exception;
+            try
+            {
+                int sum_result = from (empty_vector) >> aggregate (sum_aggregator);
+                ignore (sum_result);
+            }
+            catch (sequence_empty_exception const & ex)
+            {
+                caught_exception = ex;
+            }
+            TEST_ASSERT (expected_on_failure, caught_exception.what ());
+        }
+
+        {
+            int sum_of_simple_ints = std::accumulate (simple_ints, simple_ints + count_of_simple_ints, 0);
+            int sum_result = from_array (simple_ints) >> aggregate (sum_aggregator);
+            TEST_ASSERT (sum_of_simple_ints, sum_result);
+        }
+
+        {
+            int prod_of_simple_ints = std::accumulate (simple_ints, simple_ints + count_of_simple_ints, 1, mul_aggregator);
+            int sum_result = from_array (simple_ints) >> aggregate (mul_aggregator);
+            TEST_ASSERT (prod_of_simple_ints, sum_result);
+        }
 
         {
             int sum_result = from (empty_vector) >> aggregate (0, sum_aggregator);
@@ -2267,6 +2675,30 @@ namespace
         {
             auto d = from_array (customers_set1) >> distinct () >> to_vector ();
             TEST_ASSERT (4U, d.size ());
+        }
+
+        {
+            auto d = from (empty_vector) >> distinct (modular_of_four) >> to_vector ();
+            TEST_ASSERT (0U, d.size ());
+        }
+
+        {
+            int expected[] = {5,4,3,2};
+            auto expected_size = get_array_size (expected);
+
+            auto result = from_array (set1) >> distinct (modular_of_four) >> to_vector ();
+            auto result_size = result.size ();
+
+            TEST_ASSERT (expected_size, result_size);
+            for (auto i = 0U; i < expected_size && i < result_size; ++i)
+            {
+                TEST_ASSERT (expected[i], result[i]);
+            }
+        }
+
+        {
+            auto d = from_array (customers_set3) >> distinct (customer_last_name) >> to_vector ();
+            TEST_ASSERT (3U, d.size ());
         }
 
     }
@@ -2616,6 +3048,89 @@ namespace
         // code coverage test
         {
             auto q = empty<int>() >> concat (empty<int>());
+
+            TEST_ASSERT (false, q.next ());
+            TEST_ASSERT (false, q.next ());
+        }
+    }
+
+    void test_start_with ()
+    {
+        using namespace cpplinq;
+
+        TEST_PRELUDE ();
+
+        // start_with two empty ranges
+        {
+            auto result = empty<int>() >> start_with (empty<int>()) >> to_vector ();
+            TEST_ASSERT (0U, result.size ());
+        }
+
+        // start_with two empty ranges
+        {
+            auto result = from (empty_vector) >> start_with (empty<int>()) >> to_vector ();
+            TEST_ASSERT (0U, result.size ());
+        }
+
+        // start_with an empty range with a non empty range
+        {
+            auto expected = range (0,10);
+            auto expected_result = expected >> to_vector ();
+            auto result = empty<int>() >> start_with (expected) >> to_vector ();
+            TEST_ASSERT (expected_result.size (), result.size ());
+            for (auto i = 0U; i < expected_result.size () && i < result.size ();++i)
+            {
+                TEST_ASSERT (expected_result[i], result[i]);
+            }
+        }
+
+        // start_with an empty range with a non empty range
+        {
+            auto result = empty<int>() >> start_with (from_array (ints)) >> to_vector ();
+            TEST_ASSERT (count_of_ints, result.size ());
+            for (auto i = 0U; i < count_of_ints && i < result.size ();++i)
+            {
+                TEST_ASSERT (ints[i], result[i]);
+            }
+        }
+
+        // start_with a non empty range with an empty range
+        {
+            auto expected = range (0,10);
+            auto expected_result = expected >> to_vector ();
+            auto result = expected >> start_with (empty<int>()) >> to_vector ();
+            TEST_ASSERT (expected_result.size (), result.size ());
+            for (auto i = 0U; i < expected_result.size () && i < result.size ();++i)
+            {
+                TEST_ASSERT (expected_result[i], result[i]);
+            }
+        }
+
+        // start_with a non empty range with an empty range
+        {
+            auto result = from_array (ints) >> start_with (empty<int>()) >> to_vector ();
+            TEST_ASSERT (count_of_ints, result.size ());
+            for (auto i = 0U; i < count_of_ints && i < result.size ();++i)
+            {
+                TEST_ASSERT (ints[i], result[i]);
+            }
+        }
+
+        // start_with two non-empty ranges
+        {
+            int set1[] = {6,7,8,9};
+            int set2[] = {0,1,2,3,4,5};
+            auto result = from_array (set1) >> start_with (from_array (set2)) >> to_vector ();
+            TEST_ASSERT (10U, result.size ());
+            for (auto i = 0U; i < 10 && i < result.size (); ++i)
+            {
+                TEST_ASSERT (static_cast<int> (i), result[i]);
+            }
+        }
+
+        // code coverage test
+        {
+            auto q = empty<int>() >> start_with (empty<int>());
 
             TEST_ASSERT (false, q.next ());
             TEST_ASSERT (false, q.next ());
@@ -3123,6 +3638,7 @@ namespace
         test_any                    ();
         test_first                  ();
         test_first_or_default       ();
+        test_last                   ();
         test_last_or_default        ();
         test_sum                    ();
         test_avg                    ();
@@ -3148,6 +3664,7 @@ namespace
         test_take_while             ();
         test_skip_while             ();
         test_contains               ();
+        test_element_at             ();
         test_element_at_or_default  ();
         test_aggregate              ();
         test_distinct               ();
@@ -3155,6 +3672,7 @@ namespace
         test_intersect_with         ();
         test_except                 ();
         test_concat                 ();
+        test_start_with             ();
         test_sequence_equal         ();
         test_pairwise               ();
         test_zip_with               ();
