@@ -3571,24 +3571,8 @@ namespace cpplinq
             typedef typename    keys_type::const_iterator                       keys_iterator_type  ;
             typedef typename    values_type::const_iterator                     values_iterator_type;
 
-            template<typename TRange, typename TSelector>
-            CPPLINQ_METHOD lookup (size_type capacity, TRange range, TSelector selector)
+            CPPLINQ_METHOD void init (keys_type & k, values_type & v)
             {
-                keys_type   k;
-                values_type v;
-                k.reserve (capacity);
-                v.reserve (capacity);
-
-                auto index = 0U;
-                while (range.next ())
-                {
-                    auto value  = range.front ();
-                    auto key    = selector (value);
-                    v.push_back (std::move (value));
-                    k.push_back (typename keys_type::value_type (std::move (key), index));
-                    ++index;
-                }
-
                 if (v.size () == 0)
                 {
                     return;
@@ -3609,7 +3593,7 @@ namespace cpplinq
                 auto iter       = k.begin ();
                 auto end        = k.end ();
 
-                index = 0U;
+                auto index = 0U;
 
                 if (iter != end)
                 {
@@ -3636,6 +3620,27 @@ namespace cpplinq
                 }
             }
 
+            template<typename TRange, typename TKeySelector>
+            CPPLINQ_METHOD lookup (size_type capacity, TRange range, TKeySelector key_selector)
+            {
+                keys_type   k;
+                values_type v;
+                k.reserve (capacity);
+                v.reserve (capacity);
+
+                auto index = 0U;
+                while (range.next ())
+                {
+                    auto value  = range.front ();
+                    auto key    = key_selector (value);
+                    v.push_back (std::move (value));
+                    k.push_back (typename keys_type::value_type (std::move (key), index));
+                    ++index;
+                }
+
+                init (k, v);
+            }
+
             template<typename TRange, typename TKeySelector, typename TValueSelector>
             CPPLINQ_METHOD lookup (size_type capacity, TRange range, TKeySelector key_selector, TValueSelector value_selector)
             {
@@ -3654,51 +3659,7 @@ namespace cpplinq
                     ++index;
                 }
 
-                if (v.size () == 0)
-                {
-                    return;
-                }
-
-                std::sort (
-                        k.begin ()
-                    ,   k.end ()
-                    ,   [] (typename keys_type::value_type const & l, typename keys_type::value_type const & r)
-                        {
-                            return l.first < r.first;
-                        }
-                    );
-
-                keys.reserve (k.size ());
-                values.reserve (v.size ());
-
-                auto iter       = k.begin ();
-                auto end        = k.end ();
-
-                index = 0U;
-
-                if (iter != end)
-                {
-                    values.push_back (std::move (v[iter->second]));
-                    keys.push_back (typename keys_type::value_type (iter->first, index));
-                }
-
-                auto previous   = iter;
-                ++iter;
-                ++index;
-
-                while (iter != end)
-                {
-                    values.push_back (v[iter->second]);
-
-                    if (previous->first < iter->first)
-                    {
-                        keys.push_back (typename keys_type::value_type (iter->first, index));
-                    }
-
-                    previous = iter;
-                    ++iter;
-                    ++index;
-                }
+                init (k, v);
             }
 
             CPPLINQ_INLINEMETHOD lookup (lookup const & v)
