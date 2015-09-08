@@ -22,4 +22,10 @@ int computes_a_sum ()
 
 See the documentation: http://cpplinq.codeplex.com/documentation
 
+## Using the library with CMake
+The library is header-only, but still provides a package config module to allow easy usage of the library : 
 
+```cmake
+find_package(cpplinq 20150908 REQUIRED)
+include_directories(${cpplinq_INCLUDE_DIRS})
+```
