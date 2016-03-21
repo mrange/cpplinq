@@ -1956,7 +1956,7 @@ namespace cpplinq
             predicate_type          predicate    ;
 
             opt<value_type>         cache_value  ;
-            size_t                  current_index;
+            size_type               current_index;
 
             CPPLINQ_INLINEMETHOD select_range (
                     range_type      range
@@ -2062,7 +2062,11 @@ namespace cpplinq
             static typename TRange::value_type get_source ();
             static          TPredicate get_predicate ();
 
-            typedef        decltype (get_predicate ()(get_source ()))           raw_inner_range_type    ;
+
+            typedef        decltype (choose (get_predicate (),
+                                             std::make_tuple (get_source ()),
+                                             std::make_tuple (get_source (), 0)))
+                                                                                raw_inner_range_type    ;
             typedef        typename cleanup_type<raw_inner_range_type>::type    inner_range_type        ;
 
             static         inner_range_type get_inner_range ();
@@ -2089,32 +2093,36 @@ namespace cpplinq
             typedef                 TRange                                      range_type              ;
             typedef                 TPredicate                                  predicate_type          ;
 
-            range_type              range       ;
-            predicate_type          predicate   ;
+            range_type              range        ;
+            predicate_type          predicate    ;
 
-            opt<inner_range_type>   inner_range ;
+            opt<inner_range_type>   inner_range  ;
+            size_type               current_index;
 
 
             CPPLINQ_INLINEMETHOD select_many_range (
                     range_type      range
                 ,   predicate_type  predicate
                 ) CPPLINQ_NOEXCEPT
-                :   range       (std::move (range))
-                ,   predicate   (std::move (predicate))
+                :   range        (std::move (range))
+                ,   predicate    (std::move (predicate))
+                ,   current_index(0)
             {
             }
 
             CPPLINQ_INLINEMETHOD select_many_range (select_many_range const & v)
-                :   range       (v.range)
-                ,   predicate   (v.predicate)
-                ,   inner_range (v.inner_range)
+                :   range        (v.range)
+                ,   predicate    (v.predicate)
+                ,   inner_range  (v.inner_range)
+                ,   current_index(v.current_index)
             {
             }
 
             CPPLINQ_INLINEMETHOD select_many_range (select_many_range && v) CPPLINQ_NOEXCEPT
-                :   range       (std::move (v.range))
-                ,   predicate   (std::move (v.predicate))
-                ,   inner_range (std::move (v.inner_range))
+                :   range        (std::move (v.range))
+                ,   predicate    (std::move (v.predicate))
+                ,   inner_range  (std::move (v.inner_range))
+                ,   current_index(std::move (v.current_index))
             {
             }
 
@@ -2139,13 +2147,25 @@ namespace cpplinq
 
                 if (range.next ())
                 {
-                    inner_range = predicate (range.front ());
+                    inner_range = evaluate_predicate (predicate);
                     return inner_range && inner_range->next ();
                 }
 
                 inner_range.clear ();
 
                 return false;
+            }
+
+            template<typename TPredicate_>
+            CPPLINQ_INLINEMETHOD auto evaluate_predicate(TPredicate_& pred) -> decltype (pred (range.front ()))
+            {
+                return pred (range.front ());
+            }
+
+            template<typename TPredicate_, int = 0 /* VisualStudio Workaround (http://stackoverflow.com/a/28204207/3647361) */>
+            CPPLINQ_INLINEMETHOD auto evaluate_predicate(TPredicate_& pred) -> decltype (pred (range.front (), 0))
+            {
+                return pred (range.front (), current_index++);
             }
         };
 

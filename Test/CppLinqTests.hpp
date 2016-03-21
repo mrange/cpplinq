@@ -1772,6 +1772,18 @@ namespace
 
             TEST_ASSERT (0U, select_many_result.size ());
         }
+
+        {
+            std::vector<std::pair<size_t, char>> select_many_result =
+                    from_iterators (customers, customers)
+                >>  select_many([](customer const & c, std::size_t index) {return from(c.last_name)
+                                                                               >> select([index](char c) {return std::make_pair(index, c); }); })
+                >>  to_vector()
+                ;
+
+            TEST_ASSERT (0U, select_many_result.size ());
+        }
+
         {
             std::vector<char> expected;
             for (auto customer : customers)
@@ -1801,6 +1813,45 @@ namespace
             }
         }
 
+        {
+            std::vector<char> expected;
+            for (auto customer : customers)
+            {
+                expected.insert (
+                        expected.end ()
+                    ,   customer.last_name.begin ()
+                    ,   customer.last_name.end ()
+                    );
+            }
+
+            std::vector<std::pair<std::size_t, char>> select_many_result =
+                    from_array (customers)
+                >>  select_many([](customer const & c, std::size_t index) {return from(c.last_name)
+                                                                               >> select([index](char c) {return std::make_pair(index, c); }); })
+                >>  to_vector()
+                ;
+
+            std::size_t group = -1;
+            if (TEST_ASSERT (expected.size (), select_many_result.size ()))
+            {
+                for (std::size_t index = 0U; index < expected.size (); ++index)
+                {
+                    if (TEST_ASSERT (expected[index], select_many_result[index].second))
+                    {
+                        if (expected[index] >= 'A' && expected[index] <= 'Z') group++; //every name begins with an upper case character
+
+                        if (!TEST_ASSERT (group, select_many_result[index].first))
+                        {
+                            PRINT_INDEX (index);
+                        }
+                    }
+                    else
+                    {
+                        PRINT_INDEX (index);
+                    }
+                }
+            }
+        }
     }
 
     void test_orderby ()
