@@ -867,8 +867,8 @@ namespace
         }
 
         {
-            auto customers = empty<customer>() >> to_list ();
-            TEST_ASSERT (0U, customers.size ());
+            auto customers_list = empty<customer>() >> to_list ();
+            TEST_ASSERT (0U, customers_list.size ());
         }
 
     }
@@ -1626,6 +1626,11 @@ namespace
         }
 
         {
+            std::vector<double> select_result = from (empty_vector) >> select ([](int i, std::size_t index){return 1.0*i*index;}) >> to_vector ();
+            TEST_ASSERT (0U, select_result.size ());
+        }
+
+        {
             std::vector<std::size_t> select_result =
                     from_array (customers)
                 >>  select ([](customer const & c){return c.id;})
@@ -1646,6 +1651,26 @@ namespace
             TEST_ASSERT (count_of_customers, select_result.size ());
         }
 
+        {
+            std::vector<std::pair<std::size_t, std::size_t>> select_result =
+                    from_array (customers)
+                >>  select ([](customer const & c, std::size_t index){return std::make_pair(c.id, index);})
+                >>  to_vector ()
+                ;
+
+            std::size_t index = 0U;
+            for (auto sz : select_result)
+            {
+                if (!TEST_ASSERT (customers[index].id, sz.first) || !TEST_ASSERT (index, sz.second))
+                {
+                    PRINT_INDEX (index);
+                }
+
+                ++index;
+            }
+
+            TEST_ASSERT (count_of_customers, select_result.size ());
+        }
     }
 
     void test_join ()
@@ -1747,6 +1772,18 @@ namespace
 
             TEST_ASSERT (0U, select_many_result.size ());
         }
+
+        {
+            std::vector<std::pair<size_t, char>> select_many_result =
+                    from_iterators (customers, customers)
+                >>  select_many([](customer const & c, std::size_t index) {return from(c.last_name)
+                                                                               >> select([index](char c) {return std::make_pair(index, c); }); })
+                >>  to_vector()
+                ;
+
+            TEST_ASSERT (0U, select_many_result.size ());
+        }
+
         {
             std::vector<char> expected;
             for (auto customer : customers)
@@ -1776,6 +1813,45 @@ namespace
             }
         }
 
+        {
+            std::vector<char> expected;
+            for (auto customer : customers)
+            {
+                expected.insert (
+                        expected.end ()
+                    ,   customer.last_name.begin ()
+                    ,   customer.last_name.end ()
+                    );
+            }
+
+            std::vector<std::pair<std::size_t, char>> select_many_result =
+                    from_array (customers)
+                >>  select_many([](customer const & c, std::size_t index) {return from(c.last_name)
+                                                                               >> select([index](char c) {return std::make_pair(index, c); }); })
+                >>  to_vector()
+                ;
+
+            std::size_t group = -1;
+            if (TEST_ASSERT (expected.size (), select_many_result.size ()))
+            {
+                for (std::size_t index = 0U; index < expected.size (); ++index)
+                {
+                    if (TEST_ASSERT (expected[index], select_many_result[index].second))
+                    {
+                        if (expected[index] >= 'A' && expected[index] <= 'Z') group++; //every name begins with an upper case character
+
+                        if (!TEST_ASSERT (group, select_many_result[index].first))
+                        {
+                            PRINT_INDEX (index);
+                        }
+                    }
+                    else
+                    {
+                        PRINT_INDEX (index);
+                    }
+                }
+            }
+        }
     }
 
     void test_orderby ()
@@ -2603,9 +2679,9 @@ namespace
 
         // concat two non-empty ranges
         {
-            int set1[] = {0,1,2,3,4,5};
-            int set2[] = {6,7,8,9};
-            auto result = from_array (set1) >> concat (from_array (set2)) >> to_vector ();
+            int set3[] = {0,1,2,3,4,5};
+            int set4[] = {6,7,8,9};
+            auto result = from_array (set3) >> concat (from_array (set4)) >> to_vector ();
             TEST_ASSERT (10U, result.size ());
             for (auto i = 0U; i < 10 && i < result.size (); ++i)
             {
