@@ -867,8 +867,8 @@ namespace
         }
 
         {
-            auto customers = empty<customer>() >> to_list ();
-            TEST_ASSERT (0U, customers.size ());
+            auto customers_list = empty<customer>() >> to_list ();
+            TEST_ASSERT (0U, customers_list.size ());
         }
 
     }
@@ -2603,9 +2603,9 @@ namespace
 
         // concat two non-empty ranges
         {
-            int set1[] = {0,1,2,3,4,5};
-            int set2[] = {6,7,8,9};
-            auto result = from_array (set1) >> concat (from_array (set2)) >> to_vector ();
+            int set3[] = {0,1,2,3,4,5};
+            int set4[] = {6,7,8,9};
+            auto result = from_array (set3) >> concat (from_array (set4)) >> to_vector ();
             TEST_ASSERT (10U, result.size ());
             for (auto i = 0U; i < 10 && i < result.size (); ++i)
             {
