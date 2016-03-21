@@ -1626,6 +1626,11 @@ namespace
         }
 
         {
+            std::vector<double> select_result = from (empty_vector) >> select ([](int i, std::size_t index){return 1.0*i*index;}) >> to_vector ();
+            TEST_ASSERT (0U, select_result.size ());
+        }
+
+        {
             std::vector<std::size_t> select_result =
                     from_array (customers)
                 >>  select ([](customer const & c){return c.id;})
@@ -1646,6 +1651,26 @@ namespace
             TEST_ASSERT (count_of_customers, select_result.size ());
         }
 
+        {
+            std::vector<std::pair<std::size_t, std::size_t>> select_result =
+                    from_array (customers)
+                >>  select ([](customer const & c, std::size_t index){return std::make_pair(c.id, index);})
+                >>  to_vector ()
+                ;
+
+            std::size_t index = 0U;
+            for (auto sz : select_result)
+            {
+                if (!TEST_ASSERT (customers[index].id, sz.first) || !TEST_ASSERT (index, sz.second))
+                {
+                    PRINT_INDEX (index);
+                }
+
+                ++index;
+            }
+
+            TEST_ASSERT (count_of_customers, select_result.size ());
+        }
     }
 
     void test_join ()
