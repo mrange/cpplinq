@@ -32,6 +32,7 @@
 // ----------------------------------------------------------------------------------------------
 #include <limits.h>
 #include <stdio.h>
+#include <cmath>
 // ----------------------------------------------------------------------------------------------
 #include "../CppLinq/cpplinq.hpp"
 // ----------------------------------------------------------------------------------------------
@@ -1775,7 +1776,41 @@ namespace
                 }
             }
         }
+        {
+            std::vector<int> seed;
+            seed.push_back(1);
+            seed.push_back(2);
+            std::vector<int> select_many_result =
+                from (seed)
+                >>  select_many ([&seed](int n){
+                    if(n == 1)
+                        return from(std::vector<int>());
+                    else
+                        return from(seed);
+                })
+                >>  to_vector ()
+            ;
 
+            TEST_ASSERT (2U, select_many_result.size ());
+        }
+        {
+            std::vector<int> seed;
+            seed.push_back(1);
+            std::vector<int> select_many_result =
+                from (seed)
+                    >>  select_many ([](int n){
+                        std::vector<int> seq;
+                        seq.push_back(n);
+                        seq.push_back(n);
+                        return from_copy(std::move(seq));
+                    })
+                    >>  to_vector ()
+            ;
+
+            TEST_ASSERT (2U, select_many_result.size ());
+            TEST_ASSERT (1, select_many_result[0]);
+            TEST_ASSERT (1, select_many_result[1]);
+        }
     }
 
     void test_orderby ()
