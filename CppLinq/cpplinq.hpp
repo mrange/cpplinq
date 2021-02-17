@@ -544,28 +544,31 @@ namespace cpplinq
                     container_type&&        container
                 )
                 :   container   (std::move (container))
-                ,   current     (container.begin ())
-                ,   upcoming    (container.begin ())
-                ,   end         (container.end ())
             {
+                upcoming  = current = this->container.begin();
+                end       = this->container.end();
             }
 
             CPPLINQ_INLINEMETHOD from_copy_range (
                     container_type const &  container
                 )
                 :   container   (container)
-                ,   current     (container.begin ())
-                ,   upcoming    (container.begin ())
-                ,   end         (container.end ())
             {
+                upcoming  = current = this->container.begin();
+                end       = this->container.end();
             }
 
             CPPLINQ_INLINEMETHOD from_copy_range (from_copy_range const & v)
                 :   container   (v.container)
-                ,   current     (v.current)
-                ,   upcoming    (v.upcoming)
-                ,   end         (v.end)
             {
+                iterator_type s_b = v.container.begin();
+                auto d_c = std::distance(s_b, v.current);
+                auto d_u = std::distance(v.current, v.upcoming); // upcoming is never before current.
+                current = container.begin();
+                std::advance(current,  d_c);
+                upcoming = current;
+                std::advance(upcoming, d_u);
+                end = container.end(); // end must re-create from new container.
             }
 
             CPPLINQ_INLINEMETHOD from_copy_range (from_copy_range && v) CPPLINQ_NOEXCEPT
@@ -2113,10 +2116,13 @@ namespace cpplinq
                     return true;
                 }
 
-                if (range.next ())
+                while(range.next ())
                 {
                     inner_range = predicate (range.front ());
-                    return inner_range && inner_range->next ();
+                    if(inner_range && inner_range->next ())
+                    {
+                        return true;
+                    }
                 }
 
                 inner_range.clear ();
